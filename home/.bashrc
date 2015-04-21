@@ -3,6 +3,16 @@
 ############################################################
 # If not running interactively, don't do anything
 if [[ -n "$PS1" ]]; then
+  # make sure that tmux (1) exists on the system and (2) doesn't try to run within itself
+  if command -v tmux>/dev/null; then
+    # if session exists attach to it on loading
+    if $(tmux has-session 2> /dev/null); then
+      [[ ! $TERM =~ screen ]] && [ -z $TMUX ] && exec tmux a
+    else
+      [[ ! $TERM =~ screen ]] && [ -z $TMUX ] && exec tmux
+    fi
+  fi
+
   # append to the history file, don't overwrite it
   shopt -s histappend
 
