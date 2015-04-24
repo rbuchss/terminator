@@ -3,6 +3,9 @@
 ############################################################
 # If not running interactively, don't do anything
 if [[ -n "$PS1" ]]; then
+  source $HOME/.bash_func
+  source_if_exists $HOME/.bash_styles
+
   # append to the history file, don't overwrite it
   shopt -s histappend
 
@@ -39,7 +42,14 @@ if [[ -n "$PS1" ]]; then
   export HSR="$HOME/.homesick/repos"
   export CDPATH=.:$HOME:$HSR:/opt
 
-  export HostInfoWColor="$ICyan$UserName$IGreen@$IBlue$HostName"
+  if [ $(id -u) -eq 0 ]; then
+    export HostInfoWColor="$IRed$UserName#$IBlue$HostName"
+    export PathColor="$IBlue"
+  else
+    export HostInfoWColor="$ICyan$UserName@$IBlue$HostName"
+    export PathColor="$IYellow"
+  fi
+
   export PROMPT_COMMAND=ps1_w_pwd_info
 
   # Customize BASH PS1 prompt to show current GIT or SVN repository and branch
@@ -72,7 +82,7 @@ if [[ -n "$PS1" ]]; then
     fi
 
     # git info
-    git branch >/dev/null 2>&1
+    git branch >/dev/null 2>&1 && command -v __git_ps1 >/dev/null 2>&1
     if [ $? -eq 0 ]; then
       GitBranch=`__git_ps1 "%s"`
       if [[ $GitBranch =~ ^\( ]]; then
@@ -99,9 +109,9 @@ if [[ -n "$PS1" ]]; then
 
     # flag if last command had non-zero exit status
     if [ $last_command_exit -eq 0 ]; then
-      export PBJ="$HostInfoWColor $IYellow$PathFull"
+      export PBJ="$HostInfoWColor $PathColor$PathFull"
     else
-      export PBJ="${IRed}$x_char $HostInfoWColor $IYellow$PathFull"
+      export PBJ="${IRed}$x_char $HostInfoWColor $PathColor$PathFull"
     fi
 
     export PS1="$PBJ $SvnInfoWColor$GitInfoWColor$NewLine$arrow_char $Color_Off"
