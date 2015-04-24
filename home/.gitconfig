@@ -61,6 +61,7 @@
   add-upstream = !.git/hooks/add-upstream
   http-2-ssh = !.git/hooks/http-2-ssh
   ssh-2-http = !.git/hooks/ssh-2-http
+  submodule-upgrade = !.git/hooks/submodule-upgrade
 [push]
   # limit no arg push behavior to just the current branch
   default = tracking
