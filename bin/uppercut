@@ -1,0 +1,73 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Getopt::Long qw(GetOptions);
+Getopt::Long::Configure qw(gnu_getopt);
+use Data::Dumper;
+use Text::CSV_XS;
+
+my @columns;
+my @index;
+my $delim = "\t";
+my $no_filenames;
+my $no_headers;
+my $no_fileheaders;
+my $limit;
+
+GetOptions(
+  'fields|columns|c|f:s@' => \@columns,
+  'index|i:i@' => \@index,
+  'delim|d:s' => \$delim,
+  'no-filenames' => \$no_filenames,
+  'no-headers' => \$no_headers,
+  'n' => \$no_fileheaders,
+  'limit|l:i' => \$limit,
+) or die "Usage: $0\n";
+
+sub better_cut {
+  my ($data) = @_;
+  my $csv = Text::CSV_XS->new({ sep_char => $delim,
+      binary             => 1,
+      allow_loose_quotes => 1,
+      blank_is_undef     => 1 });
+
+  my @headers = $csv->column_names ($csv->getline ($data));  # use header
+  my @cols = @columns;
+  foreach my $i (@index) {
+    my $header_length = scalar(@headers);
+    die "fatal error index: $i out of bounds; columns only go to $header_length\n" unless $header_length >= $i;
+    push @cols, $headers[$i-1];
+  }
+  # check for valid params
+  foreach my $column (@cols) {
+    die "fatal error column: $column not found in possible headers: @headers\n" unless
+    grep { $_ eq $column } $csv->column_names;
+    print "$column\t" unless $no_fileheaders or $no_headers;
+  }
+  print "\n" unless $no_fileheaders or $no_headers;
+
+  my $line_num = 1;
+  while (my $row = $csv->getline_hr ($data)) {
+    foreach my $column (@cols) {
+      my $value = $row->{$column} // '';
+      print "$value\t";
+    }
+    print "\n";
+    $line_num += 1;
+    last if $limit and $limit < $line_num;
+  }
+  close $data;
+}
+
+if (@ARGV) {
+  my @files = @ARGV or die "Need to have file(s) specified\n";
+  foreach my $file (@files) {
+    print "==> $file <==\n" unless $no_fileheaders or $no_filenames;
+    open(my $data, '<', $file) or die "Could not open '$file' $!\n";
+    better_cut $data;
+  }
+} else {
+    print "==> STDIN <==\n" unless $no_fileheaders or $no_filenames;
+    open(my $data, '<-');
+    better_cut $data;
+}
