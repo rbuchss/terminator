@@ -42,32 +42,47 @@ sub better_cut {
   foreach my $column (@cols) {
     die "fatal error column: $column not found in possible headers: @headers\n" unless
     grep { $_ eq $column } $csv->column_names;
-    print "$column\t" unless $no_fileheaders or $no_headers;
+    unless ($no_fileheaders or $no_headers) {
+      print "$column";
+      print "\t" unless $column eq $cols[-1];
+    }
   }
   print "\n" unless $no_fileheaders or $no_headers;
 
-  my $line_num = 1;
-  while (my $row = $csv->getline_hr ($data)) {
-    foreach my $column (@cols) {
-      my $value = $row->{$column} // '';
-      print "$value\t";
+  my $line_num = 2; # starts at 2 since header is line 1
+  while (not $csv->eof) {
+    my $row = $csv->getline_hr ($data);
+    if ($row) {
+      foreach my $column (@cols) {
+        my $value = $row->{$column} // '';
+        print "$value";
+        print "\t" unless $column eq $cols[-1];
+      }
+      print "\n" unless ($csv->eof);
+    } else {
+      warn "WARNING: Line #: $line_num could not be parsed\n" unless ($csv->eof);
     }
-    print "\n";
     $line_num += 1;
-    last if $limit and $limit < $line_num;
+    last if $limit and $limit <= ($line_num-2);
   }
   close $data;
 }
 
 if (@ARGV) {
-  my @files = @ARGV or die "Need to have file(s) specified\n";
-  foreach my $file (@files) {
+  foreach my $file (@ARGV) {
+    my $data;
     print "==> $file <==\n" unless $no_fileheaders or $no_filenames;
-    open(my $data, '<', $file) or die "Could not open '$file' $!\n";
+    die "Could not open '$file' $!\n" unless (-e $file);
+    if ($file =~ /\.gz$/) {
+      open($data, "gunzip -c $file |");
+    } else {
+      open($data, '<', $file);
+    }
     better_cut $data;
   }
 } else {
     print "==> STDIN <==\n" unless $no_fileheaders or $no_filenames;
+    die 'No STDIN pipe or files found' if (-z STDIN);
     open(my $data, '<-');
     better_cut $data;
 }

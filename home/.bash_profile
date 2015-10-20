@@ -17,7 +17,7 @@ if [[ ! -z $TMUX ]] && [[ -z $tmux_path_initialized ]]; then
   export path_initialized=
 fi
 
-initialize_path "$HOME/bin"
+initialize_path "$HOME/bin:$HOME/bin-terminator"
 
 # OS specific features
 if [[ 'Darwin' == `uname` ]]; then
