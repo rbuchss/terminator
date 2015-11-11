@@ -480,3 +480,12 @@ function battery_health() {
     for i in `seq 1 $(echo "$num_hearts-$charged_slots" | bc)`; do echo -n "$HEART"; done
   fi
 }
+
+############################################################
+# Vagrant Helpers
+############################################################
+function scp_vagrant() {
+  scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o \
+    IdentitiesOnly=yes -o LogLevel=ERROR -i $HOME/.vagrant.d/insecure_private_key -P 2202 \
+    $1 vagrant@127.0.0.1:
+}
