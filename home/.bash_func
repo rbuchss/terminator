@@ -412,7 +412,7 @@ function killps() {
 ############################################################
 # style helpers
 ############################################################
-function colortest() {
+function color_test_old() {
   echo "${BLACK} TEST test ${TXTBLD} TEST test ${RESET}"
   echo "${RED} TEST test ${TXTBLD} TEST test ${RESET}"
   echo "${GREEN} TEST test ${TXTBLD} TEST test ${RESET}"
@@ -423,10 +423,14 @@ function colortest() {
   echo "${WHITE} TEST test ${TXTBLD} TEST test ${RESET}"
 }
 
-function colortest2() {
+function color_test() {
   for i in {0..255} ; do
     printf "\x1b[38;5;${i}mcolour${i}\n"
   done
+}
+
+function highlight_test() {
+  printf '\e[0;31mplain\n\e[1;31mbold\n\e[0;91mhighlight\n\e[1;91mbold+highlight\n\e[0m'
 }
 
 ############################################################
