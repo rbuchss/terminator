@@ -40,7 +40,7 @@ if [[ -n "$PS1" ]]; then
   export INPUTRC=$HOME/.inputrc
 
   export HSR="$HOME/.homesick/repos"
-  export CDPATH=.:$HOME:$HSR:/opt
+  initialize_cdpath "$HSR"
 
   if [ $(id -u) -eq 0 ]; then
     export HostInfoWColor="$IRed$UserName#$IBlue$HostName"

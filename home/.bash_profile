@@ -12,12 +12,15 @@ source $HOME/.bash_func
 if [[ ! -z $TMUX ]] && [[ -z $tmux_path_initialized ]]; then
   if_debug_echo 'initializing tmux...'
   PATH=""
+  CDPATH=""
+  MANPATH=""
   source /etc/profile
   export tmux_path_initialized=true
   export path_initialized=
 fi
 
 initialize_path "$HOME/bin:$HOME/bin-terminator"
+initialize_cdpath "$HOME:/opt"
 
 # OS specific features
 if [[ 'Darwin' == `uname` ]]; then
@@ -26,6 +29,9 @@ if [[ 'Darwin' == `uname` ]]; then
 
   # gotta have dircolors
   eval `dircolors $HOME/.dir_colors`
+
+  export my_services="$HOME/Library/Services/"
+  initialize_cdpath "$my_services"
 
   source_if_exists $(brew --prefix)/etc/bash_completion
   source_if_exists $(brew --prefix grc)/etc/grc.bashrc
@@ -54,9 +60,14 @@ for autoload_file in `ls -a $HOME/.bash_autoload* 2>/dev/null`; do
   source_if_exists $autoload_file
 done
 
+# ensure CDPATH has . as first element
+initialize_cdpath '.'
+
+# ensure rvm can control the beginning of the path
 [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
 
 if_debug_echo "Profile PATH: $PATH"
 if_debug_echo "Profile MANPATH: $MANPATH"
+if_debug_echo "Profile CDPATH: $CDPATH"
 export path_initialized=true
 export PATH

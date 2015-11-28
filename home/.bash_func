@@ -24,6 +24,16 @@ function initialize_path() {
   fi
 }
 
+function initialize_cdpath() {
+  if [[ -z $path_initialized ]] && [[ "$#" -eq 1 ]]; then
+    if [[ -z $CDPATH ]]; then
+      export CDPATH=$1
+    else
+      export CDPATH=$1:$CDPATH
+    fi
+  fi
+}
+
 function initialize_manpath() {
   if [[ -z $path_initialized ]] && [[ "$#" -eq 1 ]]; then
     if [[ -z $MANPATH ]]; then
