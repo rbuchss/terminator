@@ -129,6 +129,44 @@ function coalesce() {
   done
 }
 
+function comparsions() {
+  case $1 in
+    'ge'|'greaterThanOrEqual'|'>=')
+      echo '>='
+      ;;
+    'gt'|'greaterThan'|'>')
+      echo '>'
+      ;;
+    'le'|'lessThanOrEqual'|'<=')
+      echo '<='
+      ;;
+    'lt'|'lessThan'|'<')
+      echo '<'
+      ;;
+    'eq'|'equal'|'==')
+      echo '=='
+      ;;
+    *)
+      echo "Invalid option"
+      exit 1
+      ;;
+  esac
+}
+
+function compare() {
+  version=$1
+  comparsion=$2
+  ref_version=$3
+  result=$(awk "BEGIN{ print ($version $comparsion $ref_version); exit }")
+  if [[ $result -eq 1 ]]; then
+    echo 1
+    exit 0 # for bash success
+  else
+    echo 0
+    exit 1 # for bash failure
+  fi
+}
+
 ############################################################
 # git helpers
 ############################################################
@@ -470,6 +508,7 @@ function ssh() {
 
 function battery_health() {
   HEART='♥'
+  #HEART='█'
   num_hearts=20
 
   if [[ `uname` == 'Linux' ]]; then
@@ -493,6 +532,19 @@ function battery_health() {
     echo -n '#[fg=white]'
     for i in `seq 1 $(echo "$num_hearts-$charged_slots" | bc)`; do echo -n "$HEART"; done
   fi
+}
+
+function man_or_help() {
+  command man $1 || \
+    command $1 help $2 | less -R || \
+    command $1 --help | less -R
+}
+
+function tmux() {
+  if [[ $# -eq 0 ]] || [[ -z $tmux_path_initialized ]]; then
+    source $HOME/.tmux/helpers/init.sh
+  fi
+  command tmux $@
 }
 
 ############################################################
