@@ -535,9 +535,16 @@ function battery_health() {
 }
 
 function man_or_help() {
-  command man $1 || \
-    command $1 help $2 | less -R || \
-    command $1 --help | less -R
+  # TODO make a better way to check if command exists
+  if command -v $1 >/dev/null 2>&1; then
+    command man $1 || \
+      command $1 help $2 | less -R || \
+      command $1 --help | less -R || \
+      command $1 -h | less -R || \
+      echo "ERROR: help page for $1 command not found" | less
+  else
+    echo "ERROR: command $1 not found" | less
+  fi
 }
 
 function tmux() {
