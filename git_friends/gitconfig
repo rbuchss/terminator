@@ -1,0 +1,12 @@
+[core]
+  excludesfile = ~/.gitignore
+[init]
+  templatedir = ~/.git_friends/template
+[push]
+  default = tracking # limit no arg push behavior to just the current branch
+[hub]
+  host = github.com
+[include]
+  path = ~/.git_friends/aliases/base.config
+  path = ~/.git_friends/aliases/hooks.config
+  path = ~/.git_friends/styles.config
