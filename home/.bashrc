@@ -10,8 +10,8 @@ if [[ -n "$PS1" ]]; then
   shopt -s histappend
 
   # for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
-  HISTSIZE=100000
-  HISTFILESIZE=200000
+  HISTSIZE=1000000
+  HISTFILESIZE=2000000
 
   # don't put duplicate lines in the history. See bash(1) for more options
   # ... or force ignoredups and ignorespace
