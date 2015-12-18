@@ -17,6 +17,7 @@ alias llr='ll -R'
 alias llra='llr -a'
 alias clr='clear'
 alias df='df -kTh'
+alias du='du -kh'
 alias rm='rm -i'
 alias mv='mv -i'
 alias cp='cp -i'
@@ -32,7 +33,7 @@ alias sbp="source_if_exists $HOME/.bash_profile"
 alias hr="cd $HSR"
 alias rakeit="rake db:drop && rake db:create && rake db:migrate && rake db:seed"
 alias beeline="beeline --color=true"
-alias tree="tree -I sandcube"
+alias tree="tree -I '\.git|\.svn|sandcube'"
 alias brew_cleaner="brew update && brew upgrade brew-cask && brew cleanup && brew cask cleanup"
 
 alias hideme='history -d $((HISTCMD-1)) &&'

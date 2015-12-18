@@ -494,12 +494,17 @@ function color_test_old() {
 
 function color_test() {
   for i in {0..255} ; do
-    printf "\x1b[38;5;${i}mcolour${i}\n"
+    printf "\x1b[38;5;${i}m%11s" "colour${i}"
+    if [ $((($i+1)%8)) == 0 ]; then echo ''; fi
   done
 }
 
 function highlight_test() {
   printf '\e[0;31mplain\n\e[1;31mbold\n\e[0;91mhighlight\n\e[1;91mbold+highlight\n\e[0m'
+}
+
+function color_code() {
+  echo $(printf "\x1b[${1}")
 }
 
 ############################################################
@@ -582,4 +587,80 @@ function scp_vagrant() {
   scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o \
     IdentitiesOnly=yes -o LogLevel=ERROR -i $HOME/.vagrant.d/insecure_private_key -P 2202 \
     $1 vagrant@127.0.0.1:
+}
+
+############################################################
+# PS1 Helpers
+############################################################
+function svn_ps1_info() {
+  # svn info
+  stat .svn > /dev/null 2>&1
+  if [ $? -eq 0 ]; then
+    SURL=`svn info | grep URL | head -1 | perl -pe 's/URL: (.*)/\1/'`
+    if [ `echo $SURL | grep -E "branches|tags"` ]; then
+      SVER=`echo $SURL \
+        | perl -pe 's{.*/(branches|tags)/(.*)}{\1/\2}' | cut -d/ -f1-2`
+      SPTH=`echo $SURL \
+        | perl -pe 's{.*svnroot/(.*)/(branches|tags)/.*}{/\1}'`
+      SPWD="$SPTH/$SVER"
+      SCL=$IGreen
+    else
+      SPWD=`echo $SURL \
+        | perl -pe 's{.*svnroot/(.*)/trunk(.*)}{/\1/trunk}'`
+      SCL=$IYellow
+    fi
+    svn status | egrep '.+' > /dev/null 2>&1
+    if [ $? -eq 0 ]; then
+      SCL=$IRed
+    fi
+    export SvnInfoWColor="$SCL[SVN: $SPWD]"
+  else
+    export SvnInfoWColor=""
+  fi
+}
+
+function git_ps1_info() {
+  # git info
+  git branch >/dev/null 2>&1 && command -v __git_ps1 >/dev/null 2>&1
+  if [ $? -eq 0 ]; then
+    GitBranch=`__git_ps1 "%s"`
+    if [[ $GitBranch =~ ^\( ]]; then
+      char=$detached_head_char
+    else
+      char=$branch_char
+    fi
+    git status | grep "nothing to commit" >/dev/null 2>&1
+    if [ $? -eq 0 ]; then
+      # Clean repository - nothing to commit
+      export GitInfoWColor="${IGreen}$char $GitBranch $check_char$ColorOff"
+    else
+      git status | egrep '(Changes to be committed|Changes not staged for commit)' >/dev/null 2>&1
+      if [ $? -eq 0 ]; then
+        # Changes to working tree
+        export GitInfoWColor="${IRed}$char $GitBranch $x_char$ColorOff"
+      else
+        export GitInfoWColor="${Orange}$char $GitBranch $x_char$ColorOff"
+      fi
+    fi
+  else
+    export GitInfoWColor=""
+  fi
+}
+
+# Customize BASH PS1 prompt to show current GIT or SVN repository and branch
+# along with colorization to show local status (red dirty/green clean)
+function ps1_w_pwd_info() {
+  last_command_exit=$?
+
+  svn_ps1_info
+  git_ps1_info
+
+  # flag if last command had non-zero exit status
+  if [ $last_command_exit -eq 0 ]; then
+    export PBJ="$HostInfoWColor $PathColor$PathFull"
+  else
+    export PBJ="${IRed}$x_char $HostInfoWColor $PathColor$PathFull"
+  fi
+
+  export PS1="$PBJ $SvnInfoWColor$GitInfoWColor$NewLine$arrow_char $ColorOff"
 }

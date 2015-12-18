@@ -46,74 +46,8 @@ if [[ -n "$PS1" ]]; then
     export HostInfoWColor="$IRed$UserName#$IBlue$HostName"
     export PathColor="$IBlue"
   else
-    export HostInfoWColor="$ICyan$UserName@$IBlue$HostName"
-    export PathColor="$IYellow"
+    export HostInfoWColor="$UserColor$UserName@$HostColor$HostName"
   fi
 
   export PROMPT_COMMAND=ps1_w_pwd_info
-
-  # Customize BASH PS1 prompt to show current GIT or SVN repository and branch
-  # along with colorization to show local status (red dirty/green clean)
-  function ps1_w_pwd_info() {
-    last_command_exit=$?
-    # svn info
-    stat .svn > /dev/null 2>&1
-    if [ $? -eq 0 ]; then
-        SURL=`svn info | grep URL | head -1 | perl -pe 's/URL: (.*)/\1/'`
-        if [ `echo $SURL | grep -E "branches|tags"` ]; then
-          SVER=`echo $SURL \
-            | perl -pe 's{.*/(branches|tags)/(.*)}{\1/\2}' | cut -d/ -f1-2`
-          SPTH=`echo $SURL \
-            | perl -pe 's{.*svnroot/(.*)/(branches|tags)/.*}{/\1}'`
-          SPWD="$SPTH/$SVER"
-          SCL=$IGreen
-        else
-          SPWD=`echo $SURL \
-            | perl -pe 's{.*svnroot/(.*)/trunk(.*)}{/\1/trunk}'`
-          SCL=$IYellow
-        fi
-        svn status | egrep '.+' > /dev/null 2>&1
-        if [ $? -eq 0 ]; then
-          SCL=$IRed
-        fi
-      SvnInfoWColor="$SCL[SVN: $SPWD]"
-    else
-      SvnInfoWColor=""
-    fi
-
-    # git info
-    git branch >/dev/null 2>&1 && command -v __git_ps1 >/dev/null 2>&1
-    if [ $? -eq 0 ]; then
-      GitBranch=`__git_ps1 "%s"`
-      if [[ $GitBranch =~ ^\( ]]; then
-        char=$detached_head_char
-      else
-        char=$branch_char
-      fi
-      git status | grep "nothing to commit" >/dev/null 2>&1
-      if [ $? -eq 0 ]; then
-        # Clean repository - nothing to commit
-        GitInfoWColor="${IGreen}$char $GitBranch $check_char$Color_Off"
-      else
-        git status | egrep '(Changes to be committed|Changes not staged for commit)' >/dev/null 2>&1
-        if [ $? -eq 0 ]; then
-          # Changes to working tree
-          GitInfoWColor="${IRed}$char $GitBranch $x_char$Color_Off"
-        else
-          GitInfoWColor="${Orange}$char $GitBranch $x_char$Color_Off"
-        fi
-      fi
-    else
-      GitInfoWColor=""
-    fi
-
-    # flag if last command had non-zero exit status
-    if [ $last_command_exit -eq 0 ]; then
-      export PBJ="$HostInfoWColor $PathColor$PathFull"
-    else
-      export PBJ="${IRed}$x_char $HostInfoWColor $PathColor$PathFull"
-    fi
-
-    export PS1="$PBJ $SvnInfoWColor$GitInfoWColor$NewLine$arrow_char $Color_Off"
-  }
 fi
