@@ -45,3 +45,11 @@ then
   alias mvnk="colourify -c $HOME/.grc/mvn.config mvn"
   alias kat="colourify -c $HOME/.grc/mvn.config"
 fi
+
+function vg() {
+  vim -p $(ag -g $1)
+}
+
+function va() {
+  vim -p $(ag -l $1)
+}

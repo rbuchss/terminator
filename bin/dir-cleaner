@@ -1,0 +1,41 @@
+#!/bin/bash
+source $HOME/.bash_func
+
+clean_dir=$1
+if [ -z "$clean_dir" ]; then
+  clean_dir=$HOME
+fi
+
+trash_stage=$2
+if [ -z "$trash_stage" ]; then
+  trash_stage=$HOME/Rubish/
+fi
+mkdir -p $trash_stage     # ensure trash stage exists
+
+for f in `find $clean_dir -maxdepth 1 -type f | grep -v '\/\.' | grep -v '\.gz'`; do
+  echo "~~~>Preview: $f<~~~"
+  head $f
+  echo "~~~>Lines total: $(wc -l $f)<~~~"
+
+  if ask "move $f to $trash_stage ?"; then
+    mv $f $trash_stage
+    echo "$f moved to $trash_stage"
+  elif ask "copy file to the buffer then archive ?"; then
+    pbcopy < $f
+    mv $f $trash_stage
+    echo "$f copyed to buffer and moved to $trash_stage"
+  elif ask "move $f to another dir ?"; then
+    echo "Enter the new dir:"
+    read other_dir
+    if ask "move $f to $other_dir ?"; then
+      mkdir -p $other_dir
+      mv $f $other_dir
+      echo "$f moved to $other_dir"
+    else
+      echo "$f skipped!"
+    fi
+  else
+    echo "$f skipped!"
+  fi
+  echo ''
+done

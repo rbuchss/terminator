@@ -51,3 +51,5 @@ if [[ -n "$PS1" ]]; then
 
   export PROMPT_COMMAND=ps1_w_pwd_info
 fi
+
+export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting

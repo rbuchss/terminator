@@ -581,6 +581,18 @@ function tmux() {
 }
 
 ############################################################
+# ruby Helpers
+############################################################
+function bundle_helper() {
+  for gem in $@; do
+    echo -n "Searching for $gem in bundle gempath  ...  "
+    bundle exec ruby -e "gem = \"$gem\";
+    gem_path = Bundler.rubygems.find_name(gem).first.full_gem_path;
+    puts \"Gempath for #{gem} ~~~> #{gem_path}\""
+  done
+}
+
+############################################################
 # Vagrant Helpers
 ############################################################
 function scp_vagrant() {
