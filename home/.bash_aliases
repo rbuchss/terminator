@@ -72,3 +72,4 @@ fi
 alias vi='vim'
 function vg() { vim -p $(ag -g $1); }
 function va() { vim -p $(ag -l $1); }
+function vd() { vim -p $(git diff --name-only $1); }
