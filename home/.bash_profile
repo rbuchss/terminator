@@ -51,9 +51,12 @@ source_if_exists $HOME/.bash_styles
 source_if_exists $HOME/.bashrc
 source_if_exists $HOME/.bash_aliases
 
-# use homeshick to manage dot-files
-source_if_exists $HSR/homeshick/homeshick.sh
-source_if_exists $HSR/homeshick/completions/homeshick-completion.bash
+# If not running interactively, don't do anything
+if [[ -n "$PS1" ]]; then
+  # use homeshick to manage dot-files
+  source_if_exists $HSR/homeshick/homeshick.sh
+  source_if_exists $HSR/homeshick/completions/homeshick-completion.bash
+fi
 
 # autoload other bash configs
 for autoload_file in `ls -a $HOME/.bash_autoload* 2>/dev/null`; do
