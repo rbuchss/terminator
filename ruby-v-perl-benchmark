@@ -1,0 +1,14 @@
+rb@neptune ~/.homesick/repos/terminator ⭠ master ✘
+➜ time bin/ruby-csv /Users/rb/foo-file.tsv | wc -l
+230406
+
+real    0m57.994s
+user    0m56.735s
+sys     0m2.060s
+rb@neptune ~/.homesick/repos/terminator ⭠ master ✘
+➜ time bin/uppercut -i 1 /Users/rb/foo-file.tsv | wc -l
+230407
+
+real    0m7.177s
+user    0m7.131s
+sys     0m0.038s

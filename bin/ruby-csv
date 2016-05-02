@@ -1,0 +1,14 @@
+#!/usr/bin/ruby
+
+require 'csv'
+
+file = ARGV[0]
+olde = CSV.foreach(file, {headers: true, return_headers: true, header_converters: :symbol, converters: :all, col_sep: "\t"}) do |row|
+  p row[0]
+end
+
+#p olde [:customer_id]
+
+#CSV.foreach("path/to/file.csv") do |row|
+#     use row here...
+#   end
