@@ -50,6 +50,7 @@ if [[ -n "$PS1" ]]; then
 
   # ruby helpers
   alias rakeit='rake db:drop && rake db:create && rake db:migrate && rake db:seed'
+  alias be='bundle exec'
 
   # beeline helpers
   alias beeline='beeline --color=true'
