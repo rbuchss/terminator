@@ -1,0 +1,23 @@
+#!/usr/bin/env ruby
+
+require 'pp'
+
+dot_files = Dir["#{ENV['HOME']}/.*"].reject { |f| f.match(/\.$/) }
+
+symlinked = Hash.new {|h,k| h[k] = Array.new }
+not_symlinked = Hash.new {|h,k| h[k] = Array.new }
+
+dot_files.each do |f|
+  if File.symlink?(f)
+    manager = File.readlink(f).gsub(/#{ENV['HOME']}\/(\.homesick\/repos\/|)(.+)\/(home|)\/([^\/]+)$/, '\2').to_sym
+    symlinked[manager] << f
+  else
+    type = :undef
+    type = :history if f.match(/history|hst/)
+    type = :osx if f.match(/DS_Store|OSX/)
+    not_symlinked[type] << f
+  end
+end
+
+pp symlinked
+pp not_symlinked
