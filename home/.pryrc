@@ -4,13 +4,15 @@ $LOAD_PATH.push(*Dir["#{ENV['HOME']}/.prygems/gems/*/lib"]).uniq!
 
 PLUGINS = %w(
   pry-doc
-  pry-git
-  pry-remote
   awesome_print
   readline
 )
+#
 # pry-byebug
 # pry-stack_explorer
+# pry-git
+# pry-remote
+#
 
 PLUGINS.each do |name|
   begin
@@ -45,3 +47,9 @@ end if defined?(Bundler)
 ##$:.uniq!
 
 #Pry.load_plugins if Pry.config.should_load_plugins
+
+module Kernel
+  def show_tables
+    ActiveRecord::Base.connection.tables
+  end
+end
