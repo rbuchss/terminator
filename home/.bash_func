@@ -592,6 +592,22 @@ function bundle_helper() {
   done
 }
 
+function rails_diff() {
+  diff --exclude=.git \
+    --exclude=.bundle \
+    --exclude=secrets.yml \
+    --exclude=log \
+    --exclude=pkg \
+    --exclude=*.sqlite3* \
+    --exclude=sandcube \
+    --exclude=tmp \
+    --exclude=Gemfile.lock \
+    --exclude=.yardoc \
+    --exclude=doc \
+    --exclude=coverage \
+    -ur $1 $2
+}
+
 ############################################################
 # Vagrant Helpers
 ############################################################
