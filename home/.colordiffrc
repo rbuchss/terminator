@@ -1,0 +1,7 @@
+# be more git-like:
+banner=no
+plain=off
+newtext=green
+oldtext=red
+diffstuff=darkcyan
+cvsstuff=white

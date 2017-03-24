@@ -593,7 +593,7 @@ function bundle_helper() {
 }
 
 function rails_diff() {
-  diff --exclude=.git \
+  colordiff --exclude=.git \
     --exclude=.bundle \
     --exclude=secrets.yml \
     --exclude=log \
@@ -605,7 +605,7 @@ function rails_diff() {
     --exclude=.yardoc \
     --exclude=doc \
     --exclude=coverage \
-    -ur $1 $2 | colordiff | less -R
+    -ur $1 $2 | less -R
 }
 
 ############################################################
