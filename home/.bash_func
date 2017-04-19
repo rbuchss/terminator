@@ -486,6 +486,38 @@ function killps() {
 }
 
 ############################################################
+# ssh helpers
+############################################################
+function is_ssh_session() {
+  if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ] || is_ssh_sudo; then
+    # 0 = true
+    return 0
+  else
+    # 1 = false
+    return 1
+  fi
+}
+
+function ppid () { ps -p ${1:-$$} -o ppid=; }
+function ppinfo () { ps -p ${1:-$$} -o ppid=,user=,comm=; }
+
+function is_ssh_sudo() {
+  user=$(logname)
+  pp=$(ppinfo $1)
+  ppid=$(ppid $1)
+  is_ssh=$(ppinfo $1 | grep "$user sshd")
+  if [ -n "$is_ssh" ]; then
+    export PBSSHSudo="true"
+    return 0 # 0 = true
+  elif [ -z "$ppid" ]; then
+    unset PBSSHSudo
+    return 1 # 1 = false
+  else
+    is_ssh_sudo "$ppid"
+  fi
+}
+
+############################################################
 # style helpers
 ############################################################
 function color_test_old() {
@@ -667,14 +699,17 @@ function git_ps1_info() {
     git status | grep "nothing to commit" >/dev/null 2>&1
     if [ $? -eq 0 ]; then
       # Clean repository - nothing to commit
-      export GitInfoWColor="${IGreen}$char $GitBranch $check_char$ColorOff"
+      clean_color=$(color_code "38;5;10m")
+      export GitInfoWColor="${clean_color}$char $GitBranch $check_char$ColorOff"
     else
       git status | egrep '(Changes to be committed|Changes not staged for commit)' >/dev/null 2>&1
       if [ $? -eq 0 ]; then
         # Changes to working tree
-        export GitInfoWColor="${IRed}$char $GitBranch $x_char$ColorOff"
+        dirty_color=$(color_code "38;5;9m")
+        export GitInfoWColor="${dirty_color}$char $GitBranch $x_char$ColorOff"
       else
-        export GitInfoWColor="${Orange}$char $GitBranch $x_char$ColorOff"
+        dirty_color=$(color_code "38;5;214m")
+        export GitInfoWColor="${dirty_color}$char $GitBranch $x_char$ColorOff"
       fi
     fi
   else
@@ -682,20 +717,68 @@ function git_ps1_info() {
   fi
 }
 
-# Customize BASH PS1 prompt to show current GIT or SVN repository and branch
-# along with colorization to show local status (red dirty/green clean)
-function ps1_w_pwd_info() {
-  last_command_exit=$?
+function ssh_ps1_info() {
+  if is_ssh_session; then
+    export PBSSHed="${HostColor}${HostChar} "
+  else
+    export PBSSHed=""
+  fi
+}
 
+function user_ps1_info() {
+  export PBUser="${UserColor}${UserName}"
+}
+
+function host_ps1_info() {
+  export PBHost="${HostColor}${HostName}"
+}
+
+function pwd_ps1_info() {
+  export PBPwd="${PathColor}${PathFull}"
+}
+
+function basic_ps1_info() {
+  user_ps1_info
+  host_ps1_info
+  pwd_ps1_info
+  export PBBasic="${PBUser}${UserSeparator}${PBHost} ${PBPwd}"
+}
+
+function vcs_ps1_info() {
   svn_ps1_info
   git_ps1_info
+  export PBVcs="${SvnInfoWColor}${GitInfoWColor}"
+}
 
-  # flag if last command had non-zero exit status
+function base_ps1_info() {
+  ssh_ps1_info
+  basic_ps1_info
+  vcs_ps1_info
+  export PBBase="${PBSSHed}${PBBasic} ${PBVcs}"
+}
+
+# must be run first in full_ps1_info
+# flag if last command had non-zero exit status
+function error_ps1_info() {
+  last_command_exit=$?
   if [ $last_command_exit -eq 0 ]; then
-    export PBJ="$HostInfoWColor $PathColor$PathFull"
+    export PBError=""
   else
-    export PBJ="${IRed}$x_char $HostInfoWColor $PathColor$PathFull"
+    export PBError="${IRed}${x_char} "
   fi
+}
 
-  export PS1="$PBJ $SvnInfoWColor$GitInfoWColor$NewLine$arrow_char $ColorOff"
+function suffix_ps1_info() {
+  export PBSuffix="${NewLine}${arrow_char} ${ColorOff}"
+}
+
+# Customize BASH PS1 prompt to show current
+# GIT or SVN repository and branch
+# along with colorization to show status
+# (red dirty/green clean)
+function full_ps1_info() {
+  error_ps1_info
+  base_ps1_info
+  suffix_ps1_info
+  export PS1="${PBError}${PBBase} ${PBSuffix}"
 }

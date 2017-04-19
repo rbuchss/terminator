@@ -43,13 +43,13 @@ if [[ -n "$PS1" ]]; then
   initialize_cdpath "$HSR"
 
   if [ $(id -u) -eq 0 ]; then
-    export HostInfoWColor="$IRed$UserName#$IBlue$HostName"
+    export UserColor="$IRed"
+    export UserSeparator="#"
     export PathColor="$IBlue"
-  else
-    export HostInfoWColor="$UserColor$UserName@$HostColor$HostName"
+    source_if_exists $HOME/.bash_root_styles
   fi
 
-  export PROMPT_COMMAND=ps1_w_pwd_info
+  export PROMPT_COMMAND=full_ps1_info
 fi
 
 export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting

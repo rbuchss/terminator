@@ -7,9 +7,10 @@ if [[ -n "$PS1" ]]; then
   export NewLine="\n"
 
   # default profile colors
-  export UserColor=$(color_code "38;5;39m")
+  export UserColor=$(color_code "38;5;69m")
+  export UserSeparator="@"
   export HostColor=$(color_code "0;94m")
-  export PathColor=$(color_code "0;93m")
+  export PathColor=$(color_code "38;5;186m")
 
   export Time24h="\t"
   export PathShort="\W"
