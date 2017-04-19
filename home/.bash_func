@@ -458,6 +458,13 @@ function mysql() {
 }
 
 ############################################################
+# psql helpers
+############################################################
+function psql_configs() {
+  psql -qAt -c 'show hba_file' | xargs grep -v -E '^[[:space:]]*#'
+}
+
+############################################################
 # process helpers
 ############################################################
 function my_ps() { ps $@ -u $USER -o pid,%cpu,%mem,bsdtime,command ; }
