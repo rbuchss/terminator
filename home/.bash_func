@@ -503,7 +503,7 @@ function is_ssh_session() {
 }
 
 function ppid () { ps -p ${1:-$$} -o ppid=; }
-function ppinfo () { ps -p ${1:-$$} -o ppid=,user=,comm=; }
+function ppinfo () { ps -p ${1:-$$} -o ppid= -o user= -o comm=; }
 
 function is_ssh_sudo() {
   user=$(logname)
@@ -513,6 +513,9 @@ function is_ssh_sudo() {
   if [ -n "$is_ssh" ]; then
     export PBSSHSudo="true"
     return 0 # 0 = true
+  elif [ $ppid == 0 ]; then
+    unset PBSSHSudo
+    return 1 # 1 = false
   elif [ -z "$ppid" ]; then
     unset PBSSHSudo
     return 1 # 1 = false
