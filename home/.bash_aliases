@@ -49,7 +49,7 @@ if [[ -n "$PS1" ]]; then
   alias hr="cd $HSR"
 
   # ruby helpers
-  alias rakeit='rake db:drop && rake db:create && rake db:migrate && rake db:seed'
+  alias rakeit='bundle exec rake db:drop && bundle exec rake db:create && bundle exec rake db:migrate && bundle exec rake db:seed'
   alias be='bundle exec'
 
   # beeline helpers
