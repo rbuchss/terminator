@@ -59,9 +59,11 @@ if [[ -n "$PS1" ]]; then
   alias brew-cleaner='brew update; brew cleanup'
   alias brew-cask-cleaner='brew upgrade brew-cask; brew cask cleanup'
 
-  # Finder helpers
+  # Mac/Finder helpers
   alias show-files='defaults write com.apple.finder AppleShowAllFiles YES; killall Finder /System/Library/CoreServices/Finder.app'
   alias hide-files='defaults write com.apple.finder AppleShowAllFiles NO; killall Finder /System/Library/CoreServices/Finder.app'
+  # from http://www.maxum.com/Rumpus/Blog/OSXServer.html
+  alias mac-server-http-disable='sudo launchctl unload -w /System/Library/LaunchDaemons/org.apache.httpd.plist && sudo rm -i /System/Library/LaunchDaemons/org.apache.httpd.plist'
 
   export GRC=`which grc 2>/dev/null`
   if [ "$TERM" != dumb ] && [ -n GRC ]
