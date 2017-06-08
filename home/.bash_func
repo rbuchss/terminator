@@ -460,12 +460,20 @@ function mysql() {
 ############################################################
 # psql helpers
 ############################################################
-function psql_config() {
+function psql_list_config() {
   psql -qAt -c 'show hba_file' | xargs grep -v -E '^[[:space:]]*#'
 }
 
-function edit_psql_config() {
+function psql_edit_config() {
   vi $(psql -qAt  -c 'SHOW config_file')
+}
+
+# from https://stackoverflow.com/questions/13573204/psql-could-not-connect-to-server-no-such-file-or-directory-mac-os-x
+function psql_clear_pid() {
+  less /usr/local/var/log/postgres.log
+  if ask "move /usr/local/var/postgres/postmaster.pid?"; then
+    sudo mv /usr/local/var/postgres/postmaster.pid ${HOME}/
+  fi
 }
 
 ############################################################
