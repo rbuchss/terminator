@@ -78,7 +78,7 @@ if [[ -n "$PS1" ]]; then
 
   # vim helpers
   alias vi='vim'
-  function vg() { vim -p $(ag -g $1); }
-  function va() { vim -p $(ag -l $1); }
+  function vg() { vim -p $(ag -g $1 ${2:-./}); }
+  function va() { vim -p $(ag -l "$1" ${2:-./}); }
   function vd() { vim -p $(git diff --name-only $1); }
 fi
