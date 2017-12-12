@@ -50,6 +50,7 @@ fi
 source_if_exists $HOME/.bash_styles
 source_if_exists $HOME/.bashrc
 source_if_exists $HOME/.bash_aliases
+source_if_exists $HOME/.tmux/helpers/tmuxinator.bash
 
 # If not running interactively, don't do anything
 if [[ -n "$PS1" ]]; then
