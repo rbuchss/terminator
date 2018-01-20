@@ -37,6 +37,7 @@ if [[ -n "$PS1" ]]; then
   export TERM='xterm-256color'
 
   export EDITOR=vim
+  export CSCOPE_EDITOR=$EDITOR
   export INPUTRC=$HOME/.inputrc
 
   export HSR="$HOME/.homesick/repos"
