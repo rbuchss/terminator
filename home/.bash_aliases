@@ -40,6 +40,7 @@ if [[ -n "$PS1" ]]; then
   alias t1='tail -n1'
   alias h1='head -n1'
   alias tree='tree -I "\.git|\.svn|sandcube"'
+  alias diffs='diff -y --suppress-common-lines'
 
   # git helpers
   alias g='hub_or_git'
