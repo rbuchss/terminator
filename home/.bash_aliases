@@ -66,13 +66,7 @@ if [[ -n "$PS1" ]]; then
   # from http://www.maxum.com/Rumpus/Blog/OSXServer.html
   alias mac-server-http-disable='sudo launchctl unload -w /System/Library/LaunchDaemons/org.apache.httpd.plist && sudo rm -i /System/Library/LaunchDaemons/org.apache.httpd.plist'
 
-  export GRC=`which grc 2>/dev/null`
-  if [ "$TERM" != dumb ] && [ -n GRC ]
-  then
-    alias colourify="$GRC -es --colour=auto"
-    alias mvnk="colourify -c $HOME/.grc/mvn.config mvn"
-    alias kat="colourify -c $HOME/.grc/mvn.config"
-  fi
+  [[ -s "$HOME/.grc/grc.bashrc" ]] && source $HOME/.grc/grc.bashrc
 
   # ag helpers
   alias ag='ag --hidden'
