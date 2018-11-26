@@ -453,7 +453,7 @@ function mysql() {
   fi
 
   if command -v grcat >/dev/null 2>&1; then
-    command mysql "$@" --pager='grcat $HOME/.grc/sql.config'
+    command mysql "$@" --pager='grcat conf.sql'
   else
     command mysql "$@"
   fi
