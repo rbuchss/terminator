@@ -1,0 +1,87 @@
+# gcc/linker
+regexp=\b(g?cc|[gc]\+\+|g?as|ld)\b
+colours=white bold
+count=once
+.........
+# clang
+regexp=clang[^\/\s]*
+colours=white bold
+count=once
+.........
+# xcode run
+regexp=\bxcrun\b
+colours=white bold
+count=once
+.........
+# line number
+regexp=^[^:\s]*?:\d+:
+colours="\x1b[38;5;69m"
+.........
+# column number
+regexp=(?!\d+):\d+: 
+colours=bold black
+.........
+# filepath
+regexp=^[^:\s]*:
+colours=bold cyan
+count=once
+.........
+#
+regexp=\`[A-Za-z0-9_():&*]+( const)?\'
+colours=magenta
+.........
+# compilation method modifiers
+regexp=\s\-(O\d?|f\S+|pthread|g\S*|c|W\S,\S+)\b
+colours="\x1b[38;5;186m"
+.........
+# compilation warning modifiers
+regexp=\s\-W[^\s]*
+colours=bold yellow
+.........
+# -O
+regexp=\-O\d 
+colours=green
+.........
+# -o
+regexp=\-o\s[^\s]+
+colours="\x1b[38;5;117m"
+.........
+# warning/error category
+regexp=\[[^\]]+\]$
+colours=white bold
+count=once
+.........
+# warning and error won't work, unless you redirect also
+# stderr to grcat
+#
+# warning
+# regexp=[Ww]arning[:\b]
+regexp=[Ww]arning[: ]
+colours=bold yellow
+.........
+regexp=warning:
+colours=bold yellow
+count=once
+.........
+# error
+# regexp=[Ee]rror[:\b]
+regexp=[Ee]rror[: ]
+colours=bold red
+.........
+regexp=error:
+colours=bold red
+count=once
+.........
+# note
+regexp=note:
+colours=bold cyan
+count=once
+.........
+# regexp=~*\^~*
+regexp=\^
+colours=bold green
+count=block
+.........
+regexp=^(?!\s)
+colours=default
+count=unblock
