@@ -67,6 +67,13 @@ done
 # ensure CDPATH has . as first element
 initialize_cdpath '.'
 
+# bootstrap pyenv
+if command -v pyenv 1>/dev/null 2>&1; then
+  eval "$(pyenv init -)"
+  eval "$(pyenv virtualenv-init -)"
+  source "$(brew --prefix pyenv)/completions/pyenv.bash"
+fi
+
 # ensure rvm can control the beginning of the path
 [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
 
