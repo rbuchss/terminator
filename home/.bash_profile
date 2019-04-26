@@ -74,8 +74,11 @@ if command -v pyenv 1>/dev/null 2>&1; then
   source "$(brew --prefix pyenv)/completions/pyenv.bash"
 fi
 
-# ensure rvm can control the beginning of the path
-[[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
+# bootstrap rbenv
+if command -v rbenv 1>/dev/null 2>&1; then
+  eval "$(rbenv init -)"
+  source "$(brew --prefix rbenv)/completions/rbenv.bash"
+fi
 
 if_debug_echo "Profile PATH: $PATH"
 if_debug_echo "Profile MANPATH: $MANPATH"
