@@ -1,8 +1,22 @@
 #!/bin/sh
+
 set -e
 PATH="/usr/local/bin:$PATH"
-trap "rm -f .git/tags.$$" EXIT
-ctags --extra=+f --tag-relative -Rf.git/tags.$$ --exclude=.git
-#ctags --tag-relative -Rf.git/tags.$$ --exclude=.git --languages=-javascript,sql
-# ctags --c++-kinds=+p --fields=+iaS --extra=+q --language-force=C++
+trap 'rm -f .git/tags.$$' EXIT
+
+extra_flags=''
+
+if [ -f '.ctagsignore' ]; then
+  extra_flags='--exclude=@.ctagsignore'
+fi
+
+ctags -Rf.git/tags.$$ \
+  --c++-kinds=+p \
+  --c-kinds=+p \
+  --exclude=.git \
+  --extra=+fq \
+  --fields=+iaS \
+  --tag-relative \
+  $extra_flags
+
 mv .git/tags.$$ .git/tags

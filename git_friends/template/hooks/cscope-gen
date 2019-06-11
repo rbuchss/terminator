@@ -1,11 +1,21 @@
 #!/bin/sh
+
 find . -name '*.py' \
--o -name '*.java' \
--o -iname '*.[CH]' \
--o -name '*.cpp' \
--o -name '*.cc' \
--o -name '*.hpp'  \
-> .git/cscope.files
+  -o -name '*.java' \
+  -o -name '*.properties' \
+  -o -iname '*.[CH]' \
+  -o -name '*.cc' \
+  -o -name '*.cpp' \
+  -o -name '*.c++' \
+  -o -name '*.cp' \
+  -o -name '*.cxx' \
+  -o -name '*.hh' \
+  -o -name '*.hpp' \
+  -o -name '*.h++' \
+  -o -name '*.hp' \
+  -o -name '*.hxx' \
+  -o -name '*.ino' \
+  > .git/cscope.files
 
 # -b: just build
 # -q: create inverted index
