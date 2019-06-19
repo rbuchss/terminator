@@ -76,7 +76,7 @@ fi
 
 # bootstrap rbenv
 if command -v rbenv 1>/dev/null 2>&1; then
-  eval "$(rbenv init -)"
+  eval "$(rbenv init -)" >/dev/null
   source "$(brew --prefix rbenv)/completions/rbenv.bash"
 fi
 
