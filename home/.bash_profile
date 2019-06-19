@@ -80,6 +80,12 @@ if command -v rbenv 1>/dev/null 2>&1; then
   source "$(brew --prefix rbenv)/completions/rbenv.bash"
 fi
 
+# bootstrap jenv
+if command -v jenv 1>/dev/null 2>&1; then
+  # export PATH="$HOME/.jenv/bin:$PATH"
+  eval "$(jenv init -)"
+fi
+
 if_debug_echo "Profile PATH: $PATH"
 if_debug_echo "Profile MANPATH: $MANPATH"
 if_debug_echo "Profile CDPATH: $CDPATH"
