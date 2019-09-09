@@ -13,3 +13,7 @@ export TMUX_STATUS_RIGHT="#[fg=${TmuxSessionColor},bg=${TmuxBgColor}]${TMUX_PREF
 export TMUX_STATUS_LEFT="#[fg=${TmuxSessionColor},bg=${TmuxBgColor}] #S #[fg=${TmuxHostColor},bg=${TmuxBgColor}]#h $TMUX_DIVIDER_LEFT "
 export TMUX_STATUS=' #I #W '
 export TMUX_STATUS_CURRENT="#[fg=${TmuxMessageColor},bg=${TmuxMenuColor},noreverse,bright,nobold] #I #W #[fg=${TmuxMenuColor},bg=${TmuxBgColor},nobold]"
+
+export TMUX_CONFIG_PATH="$HOME/.tmux/config/"
+TMUX_VERSION_CONFIG_PATH="$("$HOME"/.tmux/helpers/version-config-path.sh)"
+export TMUX_VERSION_CONFIG_PATH
