@@ -303,7 +303,7 @@ function dirsize() {
   dir=${dir%%+(/)}
   cache=/tmp/dirsize-list.$$
 
-  du -shx "$dir"/* .[a-zA-Z0-9_]* 2> /dev/null | \
+  du -shx "$dir"/* 2>/dev/null | \
     sort -n > "$cache"
   # Units are K,M,G,T,P,E,Z,Y
   grep -E '^ *[0-9.]*[^KMGTPEZY]\s+' "$cache"
