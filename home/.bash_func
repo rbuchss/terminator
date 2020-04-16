@@ -292,15 +292,30 @@ function find_exec() {
 }
 
 function dirsize_big() {
-  du -shx * .[a-zA-Z0-9_]* 2> /dev/null | \
-  egrep '^ *[0-9.]*[MG]' | sort -n > /tmp/list
-  egrep '^ *[0-9.]*M' /tmp/list
-  egrep '^ *[0-9.]*G' /tmp/list
-  rm -f /tmp/list
+  dir=${1:-.}
+  dir=${dir%%+(/)}
+
+  dirsize "$dir" | grep -E '^ *[0-9.]*[MGTPEZY].'
 }
 
 function dirsize() {
-  du -shx * .[a-zA-Z0-9_]* 2> /dev/null
+  dir=${1:-.}
+  dir=${dir%%+(/)}
+  cache=/tmp/dirsize-list.$$
+
+  du -shx "$dir"/* .[a-zA-Z0-9_]* 2> /dev/null | \
+    sort -n > "$cache"
+  # Units are K,M,G,T,P,E,Z,Y
+  grep -E '^ *[0-9.]*[^KMGTPEZY]\s+' "$cache"
+  grep -E '^ *[0-9.]*K' "$cache"
+  grep -E '^ *[0-9.]*M' "$cache"
+  grep -E '^ *[0-9.]*G' "$cache"
+  grep -E '^ *[0-9.]*T' "$cache"
+  grep -E '^ *[0-9.]*P' "$cache"
+  grep -E '^ *[0-9.]*E' "$cache"
+  grep -E '^ *[0-9.]*Z' "$cache"
+  grep -E '^ *[0-9.]*Y' "$cache"
+  rm -f "$cache"
 }
 
 function mkcd() {
