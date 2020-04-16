@@ -434,6 +434,25 @@ function shot() {
   import -frame -strip -quality 75 "$HOME/$(date +%s).png"
 }
 
+function reverse_endianness() {
+  local expected_args=1
+  if [ $# -ne $expected_args ]; then
+    echo "Error: invalid # of args: expected $expected_args args"
+    echo "Usage: ${FUNCNAME[0]} hex-value"
+    return 1
+  fi
+
+  value="$1"
+  index=${#value}
+
+  while [ "$index" -gt 0 ]; do
+    index=$((index-2))
+    echo -n "${value:$index:2}"
+  done
+
+  echo
+}
+
 function expand_url() {
   curl -sIL "$1" | grep ^Location:
 }
