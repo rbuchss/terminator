@@ -672,10 +672,12 @@ function man_or_help() {
 }
 
 function tmux() {
-  if [[ $# -eq 0 ]] || [[ -z $tmux_path_initialized ]]; then
-    source $HOME/.tmux/helpers/init.sh
+  # shellcheck disable=SC2154
+  if [[ $# -eq 0 ]] && [[ -z "$tmux_path_initialized" ]]; then
+    # shellcheck source=/dev/null
+    source "$HOME/.tmux/bin/session-create.sh"
   fi
-  command tmux $@
+  command tmux "$@"
 }
 
 ############################################################
