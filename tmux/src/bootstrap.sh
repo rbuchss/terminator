@@ -26,7 +26,7 @@ function tmux::bootstrap::session_create() {
 
   if [ -z "$version_config_path" ]; then
     tmux::bootstrap::error "value for TMUX_VERSION_CONFIG_PATH is not set!"
-    tmux::bootstrap::error "skipped load of $(tmux::bootstrap::config_path 'version')/<VERSION>/__init__.config"
+    tmux::bootstrap::error "skipped load of config at $(tmux::bootstrap::config_path 'version' "$(tmux::bootstrap::version)")"
     version_config_path=$(tmux::bootstrap::latest_version_config_path)
     tmux::bootstrap::warning "reverting to latest version config at: $version_config_path"
     tmux::bootstrap::build_session_created_error_messages
@@ -81,15 +81,19 @@ function tmux::bootstrap::build_session_created_error_messages() {
   input=$(tmux::bootstrap::log::error::path)
   output=$(tmux::bootstrap::error::messages::path)
 
-  echo "SESSION_CREATED_ERRORS='display-message -p \"tmux session-created: has errors/warnings\" ; \\" > "$output"
+  cat > "$output" <<-EOM
+SESSION_CREATED_ERRORS='display-message -p "==================================================" ; \\
+  display-message -p "tmux session-created: has errors/warnings" ; \\
+  display-message -p "=================================================="; \\
+EOM
 
   while read -r line; do
-    echo "display-message -p \"$line\" ; \\" >> "$output"
+    echo "  display-message -p \"$line\" ; \\" >> "$output"
   done < "$input"
 
   cat >> "$output" <<-EOM
   set-hook -gu session-created ;'
-  set-hook -g session-created \${SESSION_CREATED_ERRORS}
+set-hook -g session-created \${SESSION_CREATED_ERRORS}
 EOM
 }
 
