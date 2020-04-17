@@ -26,7 +26,7 @@ function tmux::bootstrap::session_create() {
 
   if [ -z "$version_config_path" ]; then
     tmux::bootstrap::error "value for TMUX_VERSION_CONFIG_PATH is not set!"
-    tmux::bootstrap::error "skipped load of ${TMUX_CONFIG_PATH}<VERSION>/__init__.config"
+    tmux::bootstrap::error "skipped load of $(tmux::bootstrap::config_path 'version')/<VERSION>/__init__.config"
     version_config_path=$(tmux::bootstrap::latest_version_config_path)
     tmux::bootstrap::warning "reverting to latest version config at: $version_config_path"
     tmux::bootstrap::build_session_created_error_messages
@@ -56,7 +56,7 @@ function tmux::bootstrap::load_style_environment_vars() {
 
 function tmux::bootstrap::version_config_path() {
   local version_config_path
-  version_config_path=$(tmux::bootstrap::config_path "$(tmux::bootstrap::version)")
+  version_config_path=$(tmux::bootstrap::config_path 'version' "$(tmux::bootstrap::version)")
 
   if [ ! -d "$version_config_path" ]; then
     tmux::bootstrap::error "config directory: '$version_config_path' does not exist!"
