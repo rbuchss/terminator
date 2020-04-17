@@ -1,10 +1,6 @@
 #!/bin/bash
 
 function tmux::bootstrap::config_path() {
-  if [ -z "$TMUX_CONFIG_PATH" ]; then
-    export TMUX_CONFIG_PATH="$HOME/.tmux/config"
-  fi
-
   if [ $# -eq 0 ]; then
     echo "$TMUX_CONFIG_PATH"
     return 0
@@ -31,10 +27,11 @@ function tmux::bootstrap::session_create() {
   if [ -z "$version_config_path" ]; then
     tmux::bootstrap::error "value for TMUX_VERSION_CONFIG_PATH is not set!"
     tmux::bootstrap::error "skipped load of ${TMUX_CONFIG_PATH}<VERSION>/__init__.config"
+    version_config_path=$(tmux::bootstrap::latest_version_config_path)
+    tmux::bootstrap::warning "reverting to latest version config at: $version_config_path"
     tmux::bootstrap::build_session_created_error_messages
     TMUX_SESSION_CREATED_ERROR_MESSAGES_PATH=$(tmux::bootstrap::error::messages::path)
     export TMUX_SESSION_CREATED_ERROR_MESSAGES_PATH
-    return 1
   fi
 
   export TMUX_VERSION_CONFIG_PATH="$version_config_path"
@@ -69,12 +66,23 @@ function tmux::bootstrap::version_config_path() {
   echo "$version_config_path"
 }
 
+function tmux::bootstrap::latest_version_config() {
+  local versions_config_path
+  versions_config_path=$(tmux::bootstrap::config_path 'version')
+  # shellcheck disable=SC2012
+  ls "$versions_config_path" | sort -V | tail -1
+}
+
+function tmux::bootstrap::latest_version_config_path() {
+  tmux::bootstrap::config_path 'version' "$(tmux::bootstrap::latest_version_config)"
+}
+
 function tmux::bootstrap::build_session_created_error_messages() {
   local input output
   input=$(tmux::bootstrap::log::error::path)
   output=$(tmux::bootstrap::error::messages::path)
 
-  echo "SESSION_CREATED_ERRORS='display-message -p \"Error: tmux config not properly loaded\" ; \\" > "$output"
+  echo "SESSION_CREATED_ERRORS='display-message -p \"tmux session-created: has errors/warnings\" ; \\" > "$output"
 
   while read -r line; do
     echo "display-message -p \"$line\" ; \\" >> "$output"
@@ -86,24 +94,64 @@ function tmux::bootstrap::build_session_created_error_messages() {
 EOM
 }
 
-function tmux::bootstrap::error() {
-  local level=2
-  tmux::bootstrap::log::error -l "$level" "$@"
-  tmux::bootstrap::stderr -l "$level" "$@"
-}
-
 function tmux::bootstrap::error::messages::path() {
   echo '/tmp/tmux-session-created.error.conf'
 }
 
-function tmux::bootstrap::stderr() {
-  tmux::bootstrap::error_formatter "$@"
+function tmux::bootstrap::info() {
+  local caller_level=2
+  tmux::bootstrap::log::info -c "$caller_level" "$@"
+  tmux::bootstrap::console::info -c "$caller_level" "$@"
+}
+
+function tmux::bootstrap::warning() {
+  local caller_level=2
+  tmux::bootstrap::log::warning -c "$caller_level" "$@"
+  tmux::bootstrap::console::warning -c "$caller_level" "$@"
+}
+
+function tmux::bootstrap::error() {
+  local caller_level=2
+  tmux::bootstrap::log::error -c "$caller_level" "$@"
+  tmux::bootstrap::console::error -c "$caller_level" "$@"
+}
+
+function tmux::bootstrap::console::info() {
+  tmux::bootstrap::logger -l info -o /dev/stdout "$@"
+}
+
+function tmux::bootstrap::console::warning() {
+  tmux::bootstrap::logger -l warning "$@"
+}
+
+function tmux::bootstrap::console::error() {
+  tmux::bootstrap::logger -l error "$@"
+}
+
+function tmux::bootstrap::log::info() {
+  local info_log
+  info_log=$(tmux::bootstrap::log::info::path)
+  tmux::bootstrap::logger -l info -o "$info_log" "$@"
+}
+
+function tmux::bootstrap::log::warning() {
+  local warning_log
+  warning_log=$(tmux::bootstrap::log::warning::path)
+  tmux::bootstrap::logger -l warning -o "$warning_log" "$@"
 }
 
 function tmux::bootstrap::log::error() {
   local error_log
   error_log=$(tmux::bootstrap::log::error::path)
-  tmux::bootstrap::error_formatter -o "$error_log" "$@"
+  tmux::bootstrap::logger -l error -o "$error_log" "$@"
+}
+
+function tmux::bootstrap::log::info::path() {
+  echo '/tmp/tmux-session-created.info.log'
+}
+
+function tmux::bootstrap::log::warning::path() {
+  tmux::bootstrap::log::error::path
 }
 
 function tmux::bootstrap::log::error::path() {
@@ -116,19 +164,21 @@ function tmux::bootstrap::log::error::delete() {
   rm -f "$error_log"
 }
 
-function tmux::bootstrap::error_formatter() (
+function tmux::bootstrap::logger() (
   function usage() {
-    >&2 echo "Usage: ${FUNCNAME[1]} [-l] # prints error message with caller info"
-    >&2 echo "    -l: caller level (default: 0)"
+    >&2 echo "Usage: ${FUNCNAME[1]} [-clo] # prints error message with caller info"
+    >&2 echo "    -c: caller level (default: 0)"
     >&2 echo "    -o: output (default: /dev/stderr)"
   }
 
   local OPTIND flag
-  local level=1
+  local level='info'
+  local caller_level=1
   local output=/dev/stderr
 
-  while getopts 'l:o:' flag; do
+  while getopts 'c:l:o:' flag; do
     case "${flag}" in
+      c) caller_level="${OPTARG}" ;;
       l) level="${OPTARG}" ;;
       o) output="${OPTARG}" ;;
       *) usage
@@ -138,10 +188,17 @@ function tmux::bootstrap::error_formatter() (
   shift $((OPTIND-1))
 
   local caller_info
-  caller_info=$(tmux::bootstrap::caller_formatter "$(caller "$level")")
+  caller_info=$(tmux::bootstrap::caller_formatter "$(caller "$caller_level")")
+
+  local level_prefix
+  case "${level}" in
+    info) level_prefix="INFO" ;;
+    warning) level_prefix="WARNING" ;;
+    *) level_prefix="ERROR" ;;
+  esac
 
   for message in "$@"; do
-    echo "Error: $message -> (from $caller_info)" >> "$output"
+    echo "$level_prefix: $message -> (from $caller_info)" >> "$output"
   done
 )
 
