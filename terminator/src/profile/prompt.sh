@@ -81,7 +81,8 @@ function terminator::profile::prompt::git_info() {
 }
 
 function terminator::profile::prompt::ssh_info() {
-  if is_ssh_session; then
+  if declare -F terminator::utility::ssh::is_ssh_session > /dev/null \
+    && terminator::utility::ssh::is_ssh_session; then
     echo "${HostColor}${HostChar} "
     return 0
   fi
