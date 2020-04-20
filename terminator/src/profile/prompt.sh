@@ -1,61 +1,83 @@
 #!/bin/bash
 
 function terminator::profile::prompt::svn_info() {
-  # svn info
-  stat .svn > /dev/null 2>&1
-  if [ $? -eq 0 ]; then
-    SURL=`svn info | grep URL | head -1 | perl -pe 's/URL: (.*)/\1/'`
-    if [ `echo $SURL | grep -E "branches|tags"` ]; then
-      SVER=`echo $SURL \
-        | perl -pe 's{.*/(branches|tags)/(.*)}{\1/\2}' | cut -d/ -f1-2`
-      SPTH=`echo $SURL \
-        | perl -pe 's{.*svnroot/(.*)/(branches|tags)/.*}{/\1}'`
-      SPWD="$SPTH/$SVER"
-      SCL=$IGreen
+  local url version path working_path color
+
+  if stat .svn > /dev/null 2>&1; then
+    if ! command -v svn > /dev/null 2>&1; then
+      echo ''
+      return 0
+    fi
+
+    url="$(svn info | grep 'URL' | head -1 | perl -pe 's/URL: (.*)/\1/')"
+
+    if grep -q -E 'branches|tags' <<< "${url}"; then
+      version="$(echo "${url}" \
+        | perl -pe 's{.*/(branches|tags)/(.*)}{\1/\2}' \
+        | cut -d/ -f1-2)"
+      path="$(echo "${url}" \
+        | perl -pe 's{.*svnroot/(.*)/(branches|tags)/.*}{/\1}')"
+      working_path="${path}/${version}"
+      color="${IGreen}"
     else
-      SPWD=`echo $SURL \
-        | perl -pe 's{.*svnroot/(.*)/trunk(.*)}{/\1/trunk}'`
-      SCL=$IYellow
+      working_path="$(echo "${url}" \
+        | perl -pe 's{.*svnroot/(.*)/trunk(.*)}{/\1/trunk}')"
+      color="${IYellow}"
     fi
-    svn status | egrep '.+' > /dev/null 2>&1
-    if [ $? -eq 0 ]; then
-      SCL=$IRed
+
+    if svn status | grep -q -E '.+'; then
+      color="${IRed}"
     fi
-    echo "${SCL}[SVN: $SPWD]"
-  else
-    echo ''
+
+    echo "${color}[SVN: ${working_path}]"
+    return 0
   fi
+
+  echo ''
 }
 
 function terminator::profile::prompt::git_info() {
-  # git info
-  git branch >/dev/null 2>&1 && command -v __git_ps1 >/dev/null 2>&1
-  if [ $? -eq 0 ]; then
-    GitBranch=`__git_ps1 "%s"`
-    if [[ $GitBranch =~ ^\( ]]; then
-      char=$detached_head_char
-    else
-      char=$branch_char
-    fi
-    git status | grep "nothing to commit" >/dev/null 2>&1
-    if [ $? -eq 0 ]; then
-      # Clean repository - nothing to commit
-      clean_color="$(color_code "38;5;10m")"
-      echo "${clean_color}$char $GitBranch $check_char$ColorOff"
-    else
-      git status | egrep '(Changes to be committed|Changes not staged for commit)' >/dev/null 2>&1
-      if [ $? -eq 0 ]; then
-        # Changes to working tree
-        dirty_color="$(color_code "38;5;9m")"
-        echo "${dirty_color}$char $GitBranch $x_char$ColorOff"
-      else
-        dirty_color="$(color_code "38;5;214m")"
-        echo "${dirty_color}$char $GitBranch $x_char$ColorOff"
-      fi
-    fi
-  else
+  if ! command -v git > /dev/null 2>&1 \
+    || ! command -v __git_ps1 > /dev/null 2>&1; then
     echo ''
+    return 0
   fi
+
+  local inside_worktree branch branch_symbol color status_symbol
+
+  if inside_worktree="$(git rev-parse --is-inside-work-tree 2>/dev/null)"; then
+    branch="$(__git_ps1 '%s')"
+    branch_symbol="${branch_char}"
+
+    if [[ "${branch}" =~ ^\( ]]; then
+      branch_symbol="${detached_head_char}"
+    fi
+
+    if [[ "${inside_worktree}" != 'true' ]]; then
+      echo "${branch_symbol} ${branch}${ColorOff}"
+      return 0
+    fi
+
+    if [[ -z "$(git status --porcelain)" ]]; then
+      # Clean repository - nothing to commit
+      color="$(color_code "38;5;10m")"
+      status_symbol="${check_char}"
+    elif ! (git diff --no-ext-diff --cached --quiet --exit-code \
+      || git diff --no-ext-diff --quiet --exit-code); then
+      # Changes exist on working tree
+      color="$(color_code "38;5;9m")"
+      status_symbol="${x_char}"
+    else
+      # Untracked files exist
+      color="$(color_code "38;5;214m")"
+      status_symbol="${x_char}"
+    fi
+
+    echo "${color}${branch_symbol} ${branch} ${status_symbol}${ColorOff}"
+    return 0
+  fi
+
+  echo ''
 }
 
 function terminator::profile::prompt::ssh_info() {
