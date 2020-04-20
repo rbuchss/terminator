@@ -40,16 +40,16 @@ function terminator::profile::prompt::git_info() {
     git status | grep "nothing to commit" >/dev/null 2>&1
     if [ $? -eq 0 ]; then
       # Clean repository - nothing to commit
-      clean_color=$(color_code "38;5;10m")
+      clean_color="$(color_code "38;5;10m")"
       echo "${clean_color}$char $GitBranch $check_char$ColorOff"
     else
       git status | egrep '(Changes to be committed|Changes not staged for commit)' >/dev/null 2>&1
       if [ $? -eq 0 ]; then
         # Changes to working tree
-        dirty_color=$(color_code "38;5;9m")
+        dirty_color="$(color_code "38;5;9m")"
         echo "${dirty_color}$char $GitBranch $x_char$ColorOff"
       else
-        dirty_color=$(color_code "38;5;214m")
+        dirty_color="$(color_code "38;5;214m")"
         echo "${dirty_color}$char $GitBranch $x_char$ColorOff"
       fi
     fi
@@ -61,9 +61,10 @@ function terminator::profile::prompt::git_info() {
 function terminator::profile::prompt::ssh_info() {
   if is_ssh_session; then
     echo "${HostColor}${HostChar} "
-  else
-    echo ''
+    return 0
   fi
+
+  echo ''
 }
 
 function terminator::profile::prompt::user_info() {
@@ -80,34 +81,42 @@ function terminator::profile::prompt::pwd_info() {
 
 function terminator::profile::prompt::basic_info() {
   local user_info host_info pwd_info
-  user_info=$(terminator::profile::prompt::user_info)
-  host_info=$(terminator::profile::prompt::host_info)
-  pwd_info=$(terminator::profile::prompt::pwd_info)
+  user_info="$(terminator::profile::prompt::user_info)"
+  host_info="$(terminator::profile::prompt::host_info)"
+  pwd_info="$(terminator::profile::prompt::pwd_info)"
   echo "${user_info}${UserSeparator}${host_info} ${pwd_info}"
 }
 
 function terminator::profile::prompt::vcs_info() {
   local svn_info git_info
-  svn_info=$(terminator::profile::prompt::svn_info)
-  git_info=$(terminator::profile::prompt::git_info)
+  svn_info="$(terminator::profile::prompt::svn_info)"
+  git_info="$(terminator::profile::prompt::git_info)"
   echo "${svn_info}${git_info}"
 }
 
 function terminator::profile::prompt::base_info() {
   local ssh_info basic_info vcs_info
-  ssh_info=$(terminator::profile::prompt::ssh_info)
-  basic_info=$(terminator::profile::prompt::basic_info)
-  vcs_info=$(terminator::profile::prompt::vcs_info)
+  ssh_info="$(terminator::profile::prompt::ssh_info)"
+  basic_info="$(terminator::profile::prompt::basic_info)"
+  vcs_info="$(terminator::profile::prompt::vcs_info)"
   echo "${ssh_info}${basic_info} ${vcs_info}"
 }
 
 function terminator::profile::prompt::error_info() {
-  local last_command_exit=$?
-  if [ $last_command_exit -eq 0 ]; then
-    echo ''
-  else
-    echo "${IRed}${x_char} "
+  local last_command_exit="${1:-$?}"
+
+  if (( $# > 1 )); then
+    >&2 echo "ERROR: invalid number of arguments"
+    >&2 echo "Usage: ${FUNCNAME[0]} [last_command_exit] # defaults to \$?"
+    return 1
   fi
+
+  if [[ "${last_command_exit}" -eq 0 ]]; then
+    echo ''
+    return 0
+  fi
+
+  echo "${IRed}${x_char} "
 }
 
 function terminator::profile::prompt::suffix_info() {
@@ -123,10 +132,10 @@ function terminator::profile::prompt::suffix_info() {
 #   must be run first to properly capture if
 #   last command had non-zero exit status
 function terminator::profile::prompt() {
-  # shellcheck disable=SC2155
-  local error_info=$(terminator::profile::prompt::error_info)
-  local base_info suffix_info
-  base_info=$(terminator::profile::prompt::base_info)
-  suffix_info=$(terminator::profile::prompt::suffix_info)
+  local last_command_exit=$?
+  local error_info base_info suffix_info
+  error_info="$(terminator::profile::prompt::error_info "${last_command_exit}")"
+  base_info="$(terminator::profile::prompt::base_info)"
+  suffix_info="$(terminator::profile::prompt::suffix_info)"
   export PS1="${error_info}${base_info} ${suffix_info}"
 }
