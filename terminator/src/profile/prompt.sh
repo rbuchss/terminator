@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# shellcheck source=/dev/null
+source "${BASH_SOURCE[0]%/*/*}/utility/ssh.sh"
+
 function terminator::profile::prompt::svn_info() {
   local url version path working_path color
 
@@ -63,7 +66,7 @@ function terminator::profile::prompt::git_info() {
       color="$(color_code "38;5;10m")"
       status_symbol="${check_char}"
     elif ! (git diff --no-ext-diff --cached --quiet --exit-code \
-      || git diff --no-ext-diff --quiet --exit-code); then
+      && git diff --no-ext-diff --quiet --exit-code); then
       # Changes exist on working tree
       color="$(color_code "38;5;9m")"
       status_symbol="${x_char}"
