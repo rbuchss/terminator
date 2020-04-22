@@ -2,12 +2,18 @@
 
 # shellcheck source=/dev/null
 source "${BASH_SOURCE[0]%/*/*}/styles.sh"
+source "${BASH_SOURCE[0]%/*/*}/user.sh"
 
 function terminator::profile::styles::username() {
   echo '\u'
 }
 
 function terminator::profile::styles::user_color() {
+  if terminator::user::is_root; then
+    terminator::profile::styles::root::user_color
+    return
+  fi
+
   if [[ -n "${TERMINATOR_PROFILE_STYLES_USER_COLOR}" ]]; then
     echo "${TERMINATOR_PROFILE_STYLES_USER_COLOR}"
     return 0
@@ -16,7 +22,21 @@ function terminator::profile::styles::user_color() {
   terminator::styles::color::code '38;5;69m'
 }
 
+function terminator::profile::styles::root::user_color() {
+  if [[ -n "${TERMINATOR_PROFILE_STYLES_ROOT_USER_COLOR}" ]]; then
+    echo "${TERMINATOR_PROFILE_STYLES_ROOT_USER_COLOR}"
+    return 0
+  fi
+
+  terminator::styles::color::code '0;91m'
+}
+
 function terminator::profile::styles::user_separator() {
+  if terminator::user::is_root; then
+    echo '#'
+    return
+  fi
+
   echo '@'
 }
 
@@ -25,8 +45,22 @@ function terminator::profile::styles::hostname() {
 }
 
 function terminator::profile::styles::host_color() {
+  if terminator::user::is_root; then
+    terminator::profile::styles::root::host_color
+    return
+  fi
+
   if [[ -n "${TERMINATOR_PROFILE_STYLES_HOST_COLOR}" ]]; then
     echo "${TERMINATOR_PROFILE_STYLES_HOST_COLOR}"
+    return 0
+  fi
+
+  terminator::styles::color::code '0;94m'
+}
+
+function terminator::profile::styles::root::host_color() {
+  if [[ -n "${TERMINATOR_PROFILE_STYLES_ROOT_HOST_COLOR}" ]]; then
+    echo "${TERMINATOR_PROFILE_STYLES_ROOT_HOST_COLOR}"
     return 0
   fi
 
@@ -47,12 +81,26 @@ function terminator::profile::styles::path() {
 }
 
 function terminator::profile::styles::path_color() {
+  if terminator::user::is_root; then
+    terminator::profile::styles::root::path_color
+    return
+  fi
+
   if [[ -n "${TERMINATOR_PROFILE_STYLES_PATH_COLOR}" ]]; then
     echo "${TERMINATOR_PROFILE_STYLES_PATH_COLOR}"
     return 0
   fi
 
   terminator::styles::color::code '38;5;186m'
+}
+
+function terminator::profile::styles::root::path_color() {
+  if [[ -n "${TERMINATOR_PROFILE_STYLES_ROOT_PATH_COLOR}" ]]; then
+    echo "${TERMINATOR_PROFILE_STYLES_ROOT_PATH_COLOR}"
+    return 0
+  fi
+
+  terminator::styles::color::code '0;94m'
 }
 
 function terminator::profile::styles::command_symbol() {

@@ -3,8 +3,8 @@
 ############################################################
 # If not running interactively, don't do anything
 if [[ -n "$PS1" ]]; then
-  source $HOME/.bash_func
-  source_if_exists $HOME/.bash_styles
+  source "$HOME/.bash_func"
+  source_if_exists "$HOME/.bash_styles"
 
   # append to the history file, don't overwrite it
   shopt -s histappend
@@ -35,20 +35,12 @@ if [[ -n "$PS1" ]]; then
   stty -ixon
 
   export TERM='xterm-256color'
-
   export EDITOR=vim
   export CSCOPE_EDITOR=$EDITOR
   export INPUTRC=$HOME/.inputrc
 
   export HSR="$HOME/.homesick/repos"
   initialize_cdpath "$HSR"
-
-  if [ $(id -u) -eq 0 ]; then
-    export UserColor="$IRed"
-    export UserSeparator="#"
-    export PathColor="$IBlue"
-    source_if_exists $HOME/.bash_root_styles
-  fi
 
   export PROMPT_COMMAND=full_ps1_info
 fi
