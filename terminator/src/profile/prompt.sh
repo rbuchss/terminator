@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*/*}/utility/ssh.sh"
+source "${BASH_SOURCE[0]%/*/*}/ssh.sh"
 source "${BASH_SOURCE[0]%/*}/styles.sh"
 
 function terminator::profile::prompt::svn_info() {
@@ -87,8 +87,8 @@ function terminator::profile::prompt::git_info() {
 }
 
 function terminator::profile::prompt::ssh_info() {
-  if declare -F terminator::utility::ssh::is_ssh_session > /dev/null \
-    && terminator::utility::ssh::is_ssh_session; then
+  if declare -F terminator::ssh::is_ssh_session > /dev/null \
+    && terminator::ssh::is_ssh_session; then
     local host_color host_symbol
     host_color="$(terminator::profile::styles::host_color)"
     host_symbol="$(terminator::profile::styles::host_symbol)"
