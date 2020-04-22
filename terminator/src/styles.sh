@@ -13,10 +13,10 @@ function terminator::styles::newline() {
 }
 
 function terminator::styles::highlight::demo() {
-  printf '\e[0;31mplain\n\e[0m'
-  printf '\e[1;31mbold\n\e[0m'
-  printf '\e[0;91mhighlight\n\e[0m'
-  printf '\e[1;91mbold+highlight\n\e[0m'
+  printf '\e[0;31m%s\n\e[0m' 'plain'
+  printf '\e[1;31m%s\n\e[0m' 'bold'
+  printf '\e[0;91m%s\n\e[0m' 'highlight'
+  printf '\e[1;91m%s\n\e[0m' 'bold+highlight'
 }
 
 function terminator::styles::color::demo() {
@@ -24,7 +24,7 @@ function terminator::styles::color::demo() {
     printf '%s%11s' \
       "$(terminator::styles::color::code "38;5;${index}m")" \
       "color${index}"
-    if [[ $(((index + 1) % 8)) == 0 ]]; then echo ''; fi
+    (( ((index + 1) % 8) == 0 )) && { echo ''; }
   done
 }
 
@@ -36,3 +36,33 @@ function terminator::styles::color::off() {
   echo "\[\033[0m\]"
 }
 
+# unicode helper for lack of echo/printf code point
+# support in bash < 4.2
+function terminator::styles::unicode::code() {
+  local code_point="$1"
+  local ceiling=63
+  local bits=128
+  local output=''
+  local reply
+
+  (( code_point < 0x80 )) && {
+    reply="$(terminator::styles::unicode::octal "${code_point}")"
+    echo "${reply}"
+    return
+  }
+
+  while (( code_point > ceiling )); do
+    reply="$(terminator::styles::unicode::octal "$(( 0x80 | code_point & 0x3f ))")"
+    output="${reply}${output}"
+    (( code_point >>= 6, bits += ceiling + 1, ceiling >>= 1 ))
+  done
+
+  reply="$(terminator::styles::unicode::octal "$(( bits | code_point ))")"
+  echo "${reply}${output}"
+}
+
+function terminator::styles::unicode::octal() {
+  local octal
+  printf -v octal '%03o' "$1"
+  printf '%b' "\\${octal}"
+}

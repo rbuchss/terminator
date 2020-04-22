@@ -70,7 +70,7 @@ function terminator::profile::styles::error_symbol() {
     return 0
   fi
 
-  echo 'x'
+  echo '✘'
 }
 
 function terminator::profile::styles::error_color() {
@@ -79,7 +79,6 @@ function terminator::profile::styles::error_color() {
     return 0
   fi
 
-  # export IRed="\[\033[0;91m\]"         # Red
   # color="$(color_code "38;5;9m")"
   terminator::styles::color::code '0;91m'
 }
@@ -99,7 +98,6 @@ function terminator::profile::styles::warning_color() {
     return 0
   fi
 
-  # export IYellow="\[\033[0;93m\]"      # Yellow
   terminator::styles::color::code '0;93m'
 }
 
@@ -109,7 +107,7 @@ function terminator::profile::styles::ok_symbol() {
     return 0
   fi
 
-  echo ''
+  echo '✔'
 }
 
 function terminator::profile::styles::ok_color() {
@@ -118,7 +116,6 @@ function terminator::profile::styles::ok_color() {
     return 0
   fi
 
-  # export IGreen="\[\033[0;92m\]"       # Green
   # color="$(color_code "38;5;10m")"
   terminator::styles::color::code '0;92m'
 }
@@ -130,8 +127,7 @@ function terminator::profile::styles::branch_symbol() {
   fi
 
   # U+2B60 - 2640 menlo for powerline
-  # U+E0A0 - 1617 monaco for powerline
-  echo -e '\xe2\xad\xa0'
+  terminator::styles::unicode::code 0xE0A0
 }
 
 function terminator::profile::styles::detached_head_symbol() {
@@ -140,6 +136,6 @@ function terminator::profile::styles::detached_head_symbol() {
     return 0
   fi
 
-  # u+27a6
-  echo ''
+  # echo '➦'
+  terminator::styles::unicode::code 0x27A6
 }
