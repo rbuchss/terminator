@@ -2,6 +2,7 @@
 
 # shellcheck source=/dev/null
 source "${BASH_SOURCE[0]%/*/*}/utility/ssh.sh"
+source "${BASH_SOURCE[0]%/*}/styles.sh"
 
 function terminator::profile::prompt::svn_info() {
   local url version path working_path color
@@ -21,15 +22,15 @@ function terminator::profile::prompt::svn_info() {
       path="$(echo "${url}" \
         | perl -pe 's{.*svnroot/(.*)/(branches|tags)/.*}{/\1}')"
       working_path="${path}/${version}"
-      color="${IGreen}"
+      color="$(terminator::profile::styles::ok_color)"
     else
       working_path="$(echo "${url}" \
         | perl -pe 's{.*svnroot/(.*)/trunk(.*)}{/\1/trunk}')"
-      color="${IYellow}"
+      color="$(terminator::profile::styles::warning_color)"
     fi
 
     if svn status | grep -q -E '.+'; then
-      color="${IRed}"
+      color="$(terminator::profile::styles::error_color)"
     fi
 
     echo "${color}[SVN: ${working_path}]"
@@ -47,36 +48,38 @@ function terminator::profile::prompt::git_info() {
   fi
 
   local inside_worktree branch branch_symbol color status_symbol
+  local color_off
+  color_off="$(terminator::styles::color::off)"
 
   if inside_worktree="$(git rev-parse --is-inside-work-tree 2>/dev/null)"; then
     branch="$(__git_ps1 '%s')"
-    branch_symbol="${branch_char}"
+    branch_symbol="$(terminator::profile::styles::branch_symbol)"
 
     if [[ "${branch}" =~ ^\( ]]; then
-      branch_symbol="${detached_head_char}"
+      branch_symbol="$(terminator::profile::styles::detached_head_symbol)"
     fi
 
     if [[ "${inside_worktree}" != 'true' ]]; then
-      echo "${branch_symbol} ${branch}${ColorOff}"
+      echo "${branch_symbol} ${branch}${color_off}"
       return 0
     fi
 
     if [[ -z "$(git status --porcelain)" ]]; then
       # Clean repository - nothing to commit
-      color="$(color_code "38;5;10m")"
-      status_symbol="${check_char}"
+      color="$(terminator::profile::styles::ok_color)"
+      status_symbol="$(terminator::profile::styles::ok_symbol)"
     elif ! (git diff --no-ext-diff --cached --quiet --exit-code \
       && git diff --no-ext-diff --quiet --exit-code); then
       # Changes exist on working tree
-      color="$(color_code "38;5;9m")"
-      status_symbol="${x_char}"
+      color="$(terminator::profile::styles::error_color)"
+      status_symbol="$(terminator::profile::styles::error_symbol)"
     else
       # Untracked files exist
-      color="$(color_code "38;5;214m")"
-      status_symbol="${x_char}"
+      color="$(terminator::styles::color::code '38;5;214m')"
+      status_symbol="$(terminator::profile::styles::warning_symbol)"
     fi
 
-    echo "${color}${branch_symbol} ${branch} ${status_symbol}${ColorOff}"
+    echo "${color}${branch_symbol} ${branch} ${status_symbol}${color_off}"
     return 0
   fi
 
@@ -86,7 +89,10 @@ function terminator::profile::prompt::git_info() {
 function terminator::profile::prompt::ssh_info() {
   if declare -F terminator::utility::ssh::is_ssh_session > /dev/null \
     && terminator::utility::ssh::is_ssh_session; then
-    echo "${HostColor}${HostChar} "
+    local host_color host_symbol
+    host_color="$(terminator::profile::styles::host_color)"
+    host_symbol="$(terminator::profile::styles::host_symbol)"
+    echo "${host_color}${host_symbol} "
     return 0
   fi
 
@@ -94,23 +100,33 @@ function terminator::profile::prompt::ssh_info() {
 }
 
 function terminator::profile::prompt::user_info() {
-  echo "${UserColor}${UserName}"
+  local username user_color
+  username="$(terminator::profile::styles::username)"
+  user_color="$(terminator::profile::styles::user_color)"
+  echo "${user_color}${username}"
 }
 
 function terminator::profile::prompt::host_info() {
-  echo "${HostColor}${HostName}"
+  local hostname host_color
+  hostname="$(terminator::profile::styles::hostname)"
+  host_color="$(terminator::profile::styles::host_color)"
+  echo "${host_color}${hostname}"
 }
 
 function terminator::profile::prompt::pwd_info() {
-  echo "${PathColor}${PathFull}"
+  local path path_color
+  path="$(terminator::profile::styles::path)"
+  path_color="$(terminator::profile::styles::path_color)"
+  echo "${path_color}${path}"
 }
 
 function terminator::profile::prompt::basic_info() {
-  local user_info host_info pwd_info
+  local user_info user_separator host_info pwd_info
   user_info="$(terminator::profile::prompt::user_info)"
+  user_separator="$(terminator::profile::styles::user_separator)"
   host_info="$(terminator::profile::prompt::host_info)"
   pwd_info="$(terminator::profile::prompt::pwd_info)"
-  echo "${user_info}${UserSeparator}${host_info} ${pwd_info}"
+  echo "${user_info}${user_separator}${host_info} ${pwd_info}"
 }
 
 function terminator::profile::prompt::vcs_info() {
@@ -142,21 +158,24 @@ function terminator::profile::prompt::error_info() {
     return 0
   fi
 
-  echo "${IRed}${x_char} "
+  local error_symbol error_color
+  error_symbol="$(terminator::profile::styles::error_symbol)"
+  error_color="$(terminator::profile::styles::error_color)"
+  echo "${error_color}${error_symbol} "
 }
 
 function terminator::profile::prompt::suffix_info() {
-  echo "${NewLine}${arrow_char} ${ColorOff}"
+  local newline command_symbol color_off
+  newline="$(terminator::styles::newline)"
+  command_symbol="$(terminator::profile::styles::command_symbol)"
+  color_off="$(terminator::styles::color::off)"
+  echo "${newline}${command_symbol} ${color_off}"
 }
 
 # Customize BASH PS1 prompt to show current
 # GIT or SVN repository and branch
 # along with colorization to show status
 # (red dirty/green clean)
-#
-# NOTE: terminator::profile::prompt::error_info
-#   must be run first to properly capture if
-#   last command had non-zero exit status
 function terminator::profile::prompt() {
   local last_command_exit=$?
   local error_info base_info suffix_info
