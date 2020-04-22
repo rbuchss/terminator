@@ -1,5 +1,5 @@
 .PHONY: guards
-guards: linter test
+guards: test linter
 
 .PHONY: test
 test:
@@ -7,4 +7,4 @@ test:
 
 .PHONY: linter
 linter:
-	shellcheck $$(git ls-files -- . ':!:Makefile' ':!:*.md' ':!:*.bats' ":!:test/fixtures/*")
+	shellcheck $$(git ls-files -- . ':!:Makefile' ':!:*.md' ':!:*.bats' ':!:test/fixtures/*' ':!:*.conf' ':!:home/*' ':!:ruby_friends/*' ':!:grc/*' ':!:vendor/*')

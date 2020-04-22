@@ -1,9 +1,9 @@
 #!/usr/bin/env bats
 
-TMUX_CONFIG_PATH="$HOME/.tmux/config"
-source "$HOME/.tmux/src/bootstrap.sh"
-
 load test_helper
+
+TMUX_CONFIG_PATH="$HOME/.tmux/config"
+source "$(repo_root)/tmux/src/bootstrap.sh"
 
 @test "tmux::bootstrap::config_path" {
   output=$(tmux::bootstrap::config_path)
