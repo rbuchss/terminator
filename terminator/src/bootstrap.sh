@@ -66,17 +66,6 @@ function terminator::bootstrap::os::darwin() {
   terminator::config::load 'os/darwin.sh'
 }
 
-function terminator::bootstrap::os::darwin::add_brew_paths() {
-  local prefix
-
-  for element in "$@"; do
-    prefix="$(brew --prefix "${element}")"
-    terminator::log::debug "'${prefix}'"
-    terminator::path::prepend "${prefix}/libexec/gnubin"
-    terminator::manpath::prepend "${prefix}/libexec/gnuman"
-  done
-}
-
 function terminator::bootstrap::os::linux() {
   terminator::config::load 'os/linux.sh'
 }

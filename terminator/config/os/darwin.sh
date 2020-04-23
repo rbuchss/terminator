@@ -1,9 +1,9 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${HOME}/.terminator/src/bootstrap.sh"
+source "${HOME}/.terminator/src/os/darwin.sh"
 
 # using GNU for coreutils vs BSD
-terminator::bootstrap::os::darwin::add_brew_paths \
+terminator::os::darwin::add_brew_paths \
   'coreutils' \
   'gnu-sed'
 
