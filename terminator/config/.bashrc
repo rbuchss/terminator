@@ -36,10 +36,10 @@ if [[ -n "${PS1}" ]]; then
   export HSR="${HOME}/.homesick/repos"
   terminator::cdpath::prepend "${HSR}"
 
-  # TODO convert these calls to use $@
   # use homeshick to manage dot-files
-  terminator::source "${HSR}/homeshick/homeshick.sh"
-  terminator::source "${HSR}/homeshick/completions/homeshick-completion.bash"
+  terminator::source \
+    "${HSR}/homeshick/homeshick.sh" \
+    "${HSR}/homeshick/completions/homeshick-completion.bash"
 
   # TODO convert this to new prompt
   export PROMPT_COMMAND=full_ps1_info
