@@ -5,12 +5,12 @@ source "${HOME}/.terminator/src/log.sh"
 function terminator::source() {
   for element in "$@"; do
     if [[ -s "${element}" ]]; then
-      terminator::log::debug "${FUNCNAME[0]}: '${element}'"
+      terminator::log::debug "'${element}'"
       # TODO add guard here?
       # shellcheck source=/dev/null
       source "${element}"
     else
-      terminator::log::warning "${FUNCNAME[0]}: '${element}' not found"
+      terminator::log::warning "'${element}' NOT found!"
     fi
   done
 }

@@ -33,9 +33,10 @@ function terminator::bootstrap() {
   # ensure CDPATH has . as first element
   terminator::cdpath::prepend '.'
 
-  terminator::log::debug "Profile PATH: $PATH"
-  terminator::log::debug "Profile MANPATH: $MANPATH"
-  terminator::log::debug "Profile CDPATH: $CDPATH"
+  terminator::log::debug \
+    "Profile PATH: $PATH" \
+    "Profile MANPATH: $MANPATH" \
+    "Profile CDPATH: $CDPATH"
 }
 
 function terminator::bootstrap::tmux() {
@@ -44,7 +45,7 @@ function terminator::bootstrap::tmux() {
   # like a brand new login shell
   # will not do this if bash_login has already been run
   if [[ -n "${TMUX}" ]] && [[ -z "${tmux_path_initialized}" ]]; then
-    terminator::log::debug "DEBUG ${FUNCNAME[0]}: initializing tmux ..."
+    terminator::log::debug 'initializing tmux ...'
     terminator::paths::clear
     source /etc/profile
     # TODO change this to match style-guide
@@ -70,7 +71,7 @@ function terminator::bootstrap::os::darwin::add_brew_paths() {
 
   for element in "$@"; do
     prefix="$(brew --prefix "${element}")"
-    terminator::log::debug "${FUNCNAME[0]}: ${element} at '${prefix}'"
+    terminator::log::debug "'${prefix}'"
     terminator::path::prepend "${prefix}/libexec/gnubin"
     terminator::manpath::prepend "${prefix}/libexec/gnuman"
   done
@@ -85,7 +86,7 @@ function terminator::bootstrap::os::windows() {
 }
 
 function terminator::bootstrap::os::unsupported() {
-  terminator::log::warning "${FUNCNAME[0]}: OS '${OSTYPE}' not supported"
+  terminator::log::error "OS '${OSTYPE}' not supported"
   return 1
 }
 
