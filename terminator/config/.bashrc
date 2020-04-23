@@ -1,11 +1,5 @@
-############################################################
-# .bashrc
-############################################################
 # If not running interactively, don't do anything
-if [[ -n "$PS1" ]]; then
-  source "$HOME/.bash_func"
-  source_if_exists "$HOME/.bash_styles"
-
+if [[ -n "${PS1}" ]]; then
   # append to the history file, don't overwrite it
   shopt -s histappend
 
@@ -36,11 +30,17 @@ if [[ -n "$PS1" ]]; then
 
   export TERM='xterm-256color'
   export EDITOR=vim
-  export CSCOPE_EDITOR=$EDITOR
-  export INPUTRC=$HOME/.inputrc
+  export CSCOPE_EDITOR="${EDITOR}"
+  export INPUTRC="${HOME}/.inputrc"
 
-  export HSR="$HOME/.homesick/repos"
-  initialize_cdpath "$HSR"
+  export HSR="${HOME}/.homesick/repos"
+  terminator::cdpath::prepend "${HSR}"
 
+  # TODO convert these calls to use $@
+  # use homeshick to manage dot-files
+  terminator::source "${HSR}/homeshick/homeshick.sh"
+  terminator::source "${HSR}/homeshick/completions/homeshick-completion.bash"
+
+  # TODO convert this to new prompt
   export PROMPT_COMMAND=full_ps1_info
 fi
