@@ -1,5 +1,8 @@
 # If not running interactively, don't do anything
 if [[ -n "${PS1}" ]]; then
+  # shellcheck source=/dev/null
+  source "${HOME}/.terminator/src/profile/prompt.sh"
+
   # append to the history file, don't overwrite it
   shopt -s histappend
 
@@ -41,6 +44,5 @@ if [[ -n "${PS1}" ]]; then
     "${HSR}/homeshick/homeshick.sh" \
     "${HSR}/homeshick/completions/homeshick-completion.bash"
 
-  # TODO convert this to new prompt
-  export PROMPT_COMMAND=full_ps1_info
+  export PROMPT_COMMAND=terminator::profile::prompt
 fi
