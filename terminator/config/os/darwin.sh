@@ -8,14 +8,14 @@ terminator::homebrew::add_paths \
   'coreutils' \
   'gnu-sed'
 
-terminator::cdpath::prepend "${HOME}/Library/Services/"
-
-terminator::source \
-  "$(brew --prefix)/etc/bash_completion" \
-  "$(brew --prefix grc)/etc/grc.bashrc"
-
 # If not running interactively, don't do anything
 if [[ -n "${PS1}" ]]; then
+  terminator::cdpath::prepend "${HOME}/Library/Services/"
+
+  terminator::source \
+    "$(brew --prefix)/etc/bash_completion" \
+    "$(brew --prefix grc)/etc/grc.bashrc"
+
   # gotta have dircolors
   eval "$(dircolors "${HOME}/.dir_colors")"
 
