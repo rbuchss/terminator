@@ -3,13 +3,16 @@
 source "${HOME}/.terminator/src/source.sh"
 source "${HOME}/.terminator/src/path.sh"
 
-function terminator::os::darwin::add_brew_paths() {
-  local prefix
+function terminator::os::darwin::finder::show_hidden_files() {
+  terminator::os::darwin::finder::set_show_all_files 'YES'
+}
 
-  for element in "$@"; do
-    prefix="$(brew --prefix "${element}")"
-    terminator::log::debug "'${prefix}'"
-    terminator::path::prepend "${prefix}/libexec/gnubin"
-    terminator::manpath::prepend "${prefix}/libexec/gnuman"
-  done
+function terminator::os::darwin::finder::hide_hidden_files() {
+  terminator::os::darwin::finder::set_show_all_files 'NO'
+}
+
+function terminator::os::darwin::finder::set_show_all_files() {
+  local value="${1:-NO}"
+  defaults write com.apple.finder AppleShowAllFiles "${value}" \
+    && killall Finder /System/Library/CoreServices/Finder.app
 }

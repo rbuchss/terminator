@@ -1,10 +1,14 @@
+# shellcheck source=/dev/null
+source "${HOME}/.terminator/src/source.sh"
+
 # If not running interactively, don't do anything
-if [[ -n "$PS1" ]]; then
-  ############################################################
-  #  aliases
-  ############################################################
+if [[ -n "${PS1}" ]]; then
+  terminator::source "${HOME}/.terminator/src/git.sh"
+  terminator::source "${HOME}/.terminator/src/grep.sh"
+  terminator::source "${HOME}/.terminator/src/vim.sh"
+
   # bash helpers
-  alias sbp="source_if_exists $HOME/.bash_profile"
+  alias sbp='terminator::source "${HOME}/.bash_profile"'
   alias clr='clear'
   alias df='df -kTh'
   alias du='du -kh'
@@ -31,49 +35,35 @@ if [[ -n "$PS1" ]]; then
   alias llr='ll -R'
   alias llra='llr -a'
 
-  # grep helpers
-  alias grep='grep --color=auto --exclude-dir="\.git" --exclude-dir="\.svn"'
-  alias egrep='egrep --color=auto --exclude-dir="\.git" --exclude-dir="\.svn"'
-  alias fgrep='fgrep --color=auto --exclude-dir="\.git" --exclude-dir="\.svn"'
-
   # file helpers
   alias t1='tail -n1'
   alias h1='head -n1'
   alias tree='tree -I "\.git|\.svn|sandcube"'
   alias diffs='diff -y --suppress-common-lines'
 
-  # git helpers
-  alias g='hub_or_git'
-  __git_complete g __git_main
-
-  # homeshick helpers
-  alias hr="cd $HSR"
-
-  # ruby helpers
-  alias rakeit='bundle exec rake db:drop && bundle exec rake db:create && bundle exec rake db:migrate && bundle exec rake db:seed'
-  alias be='bundle exec'
-
-  # beeline helpers
-  alias beeline='beeline --color=true'
-
-  # homebrew helpers
-  alias brew-cleaner='brew update; brew cleanup'
-  alias brew-cask-cleaner='brew upgrade brew-cask; brew cask cleanup'
-
-  # Mac/Finder helpers
-  alias show-files='defaults write com.apple.finder AppleShowAllFiles YES; killall Finder /System/Library/CoreServices/Finder.app'
-  alias hide-files='defaults write com.apple.finder AppleShowAllFiles NO; killall Finder /System/Library/CoreServices/Finder.app'
-  # from http://www.maxum.com/Rumpus/Blog/OSXServer.html
-  alias mac-server-http-disable='sudo launchctl unload -w /System/Library/LaunchDaemons/org.apache.httpd.plist && sudo rm -i /System/Library/LaunchDaemons/org.apache.httpd.plist'
-
-  [[ -s "$HOME/.grc/grc.bashrc" ]] && source $HOME/.grc/grc.bashrc
+  # grep helpers
+  alias grep='terminator::grep::invoke'
+  alias egrep='grep -E'
+  alias fgrep='grep -F'
 
   # ag helpers
   alias ag='ag --hidden'
 
   # vim helpers
   alias vi='vim'
-  function vg() { vim -p $(ag -g $1 ${2:-./}); }
-  function va() { vim -p $(ag -l "$1" ${2:-./}); }
-  function vd() { vim -p $(git diff --name-only $1); }
+  alias vg='terminator::vim::open::filename_match'
+  alias va='terminator::vim::open::content_match'
+  alias vd='terminator::vim::open::git_diff'
+
+  # git helpers
+  alias g='terminator::git::invoke'
+  __git_complete g __git_main
+
+  # ruby helpers
+  alias be='bundle exec'
+
+  # beeline helpers
+  alias beeline='beeline --color=true'
+
+  terminator::source "${HOME}/.grc/grc.bashrc"
 fi
