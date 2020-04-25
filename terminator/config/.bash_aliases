@@ -1,8 +1,8 @@
-# shellcheck source=/dev/null
-source "${HOME}/.terminator/src/source.sh"
-
 # If not running interactively, don't do anything
 if [[ -n "${PS1}" ]]; then
+  # shellcheck source=/dev/null
+  source "${HOME}/.terminator/src/source.sh"
+
   terminator::source "${HOME}/.terminator/src/git.sh"
   terminator::source "${HOME}/.terminator/src/grep.sh"
   terminator::source "${HOME}/.terminator/src/vim.sh"

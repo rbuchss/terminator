@@ -17,18 +17,19 @@ function terminator::bootstrap() {
 
   terminator::bootstrap::os
 
+  # TODO move this to src or bin
+  terminator::source "${HOME}/.tmux/helpers/tmuxinator.bash"
+
+  terminator::bootstrap::pyenv
+  terminator::bootstrap::rbenv
+  terminator::bootstrap::jenv
+
   terminator::config::load \
     '.bash_styles' \
     '.bashrc' \
     '.bash_aliases'
 
-  # TODO move this to src or bin
-  terminator::source "${HOME}/.tmux/helpers/tmuxinator.bash"
-
   terminator::bootstrap::autoload
-  terminator::bootstrap::pyenv
-  terminator::bootstrap::rbenv
-  terminator::bootstrap::jenv
 
   # ensure CDPATH has . as first element
   terminator::cdpath::prepend '.'

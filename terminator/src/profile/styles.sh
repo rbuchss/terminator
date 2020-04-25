@@ -1,5 +1,4 @@
 #!/bin/bash
-
 # shellcheck source=/dev/null
 source "${BASH_SOURCE[0]%/*/*}/styles.sh"
 source "${BASH_SOURCE[0]%/*/*}/user.sh"

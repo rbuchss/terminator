@@ -44,5 +44,7 @@ if [[ -n "${PS1}" ]]; then
     "${HSR}/homeshick/homeshick.sh" \
     "${HSR}/homeshick/completions/homeshick-completion.bash"
 
-  export PROMPT_COMMAND=terminator::profile::prompt
+  # jenv uses PROMPT_COMMAND as a hook
+  # which we have to preserve by chaining PROMPT_COMMAND
+  export PROMPT_COMMAND="terminator::profile::prompt;${PROMPT_COMMAND}"
 fi
