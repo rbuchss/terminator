@@ -5,9 +5,11 @@ if [[ -n "${PS1}" ]]; then
   # shellcheck source=/dev/null
   source "${HOME}/.terminator/src/source.sh"
 
+  terminator::source "${HOME}/.terminator/src/file.sh"
   terminator::source "${HOME}/.terminator/src/git.sh"
   terminator::source "${HOME}/.terminator/src/grep.sh"
   terminator::source "${HOME}/.terminator/src/vim.sh"
+  terminator::source "${HOME}/.grc/grc.bashrc"
 
   # bash helpers
   alias sbp='terminator::source "${HOME}/.bash_profile"'
@@ -42,6 +44,16 @@ if [[ -n "${PS1}" ]]; then
   alias h1='head -n1'
   alias tree='tree -I "\.git|\.svn|sandcube"'
   alias diffs='diff -y --suppress-common-lines'
+  alias extract='terminator::file::extract'
+  alias mktar='terminator::file::mktar'
+  alias mktgz='terminator::file::mktgz'
+  alias mktbz='terminator::file::mktbz'
+  alias swap='terminator::file::swap'
+  alias nuke_spaces='terminator::file::nuke_spaces'
+  alias find_exec='terminator::file::find_exec'
+  alias dirsize_big='terminator::file::dirsize_big'
+  alias dirsize='terminator::file::dirsize'
+  alias mkcd='terminator::file::mkcd'
 
   # grep helpers
   alias grep='terminator::grep::invoke'
@@ -66,6 +78,4 @@ if [[ -n "${PS1}" ]]; then
 
   # beeline helpers
   alias beeline='beeline --color=true'
-
-  terminator::source "${HOME}/.grc/grc.bashrc"
 fi
