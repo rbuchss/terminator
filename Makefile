@@ -5,8 +5,8 @@ LINT_IGNORE := \
   *.conf \
   *.md \
   Makefile \
-  bin/dot-helper \
-  bin/uppercut \
+  terminator/bin/dotfile-info \
+  terminator/bin/uppercut \
   grc/* \
   home/* \
   ruby_friends/* \

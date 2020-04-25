@@ -8,7 +8,7 @@ function terminator::bootstrap() {
 
   # TODO convert this to .terminator/bin
   terminator::path::prepend \
-    "${HOME}/bin-terminator" \
+    "${HOME}/.terminator/bin" \
     "${HOME}/bin"
 
   terminator::cdpath::prepend \
