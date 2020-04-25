@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # If not running interactively, don't do anything
 if [[ -n "${PS1}" ]]; then
   # shellcheck source=/dev/null
