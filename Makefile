@@ -1,10 +1,27 @@
+TEST_DIRS := terminator/test/ tmux/test/
+
+LINT_IGNORE := \
+  *.bats \
+  *.conf \
+  *.md \
+  Makefile \
+  bin/dot-helper \
+  bin/uppercut \
+  grc/* \
+  home/* \
+  ruby_friends/* \
+  test/fixtures/* \
+  vendor/*
+
+GIT_IGNORE := $(addsuffix ',$(addprefix ':!:,$(LINT_IGNORE)))
+
 .PHONY: guards
-guards: test linter
+guards: test lint
 
 .PHONY: test
 test:
-	bats --pretty --recursive terminator/test/ tmux/test/
+	bats --pretty --recursive $(TEST_DIRS)
 
-.PHONY: linter
-linter:
-	shellcheck $$(git ls-files -- . ':!:Makefile' ':!:*.md' ':!:*.bats' ':!:test/fixtures/*' ':!:*.conf' ':!:home/*' ':!:ruby_friends/*' ':!:grc/*' ':!:vendor/*')
+.PHONY: lint
+lint:
+	shellcheck $$(git ls-files -- . $(GIT_IGNORE))
