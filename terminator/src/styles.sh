@@ -29,7 +29,7 @@ function terminator::styles::color::demo() {
 }
 
 function terminator::styles::color::code() {
-  printf "\x1b[%s" "$1"
+  printf '\x1b[%s' "$1"
 }
 
 function terminator::styles::color::off() {
