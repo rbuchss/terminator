@@ -22,9 +22,3 @@ source "$(repo_root)/tmux/src/bootstrap.sh"
   assert_success
   assert_output_regexp "^${TMUX_CONFIG_PATH}/version/2.9$"
 }
-
-@test "tmux::bootstrap::version" {
-  output=$(tmux::bootstrap::version)
-  assert_success
-  assert_output_regexp "^[0-9]+\.[0-9]+$"
-}

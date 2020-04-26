@@ -1,4 +1,6 @@
 #!/bin/bash
+# shellcheck source=/dev/null
+source "${BASH_SOURCE[0]%/*}/version.sh"
 
 function tmux::bootstrap::config_path() {
   if [ $# -eq 0 ]; then
@@ -13,10 +15,6 @@ function tmux::bootstrap::config_path() {
   echo "$result"
 }
 
-function tmux::bootstrap::version() {
-  command tmux -V | grep -E -o '([0-9.]+)'
-}
-
 function tmux::bootstrap::session_create() {
   tmux::bootstrap::log::error::delete
   tmux::bootstrap::load_style_environment_vars
@@ -26,7 +24,7 @@ function tmux::bootstrap::session_create() {
 
   if [ -z "$version_config_path" ]; then
     tmux::bootstrap::error "value for TMUX_VERSION_CONFIG_PATH is not set!"
-    tmux::bootstrap::error "skipped load of config at $(tmux::bootstrap::config_path 'version' "$(tmux::bootstrap::version)")"
+    tmux::bootstrap::error "skipped load of config at $(tmux::bootstrap::config_path 'version' "$(tmux::version)")"
     version_config_path=$(tmux::bootstrap::latest_version_config_path)
     tmux::bootstrap::warning "reverting to latest version config at: $version_config_path"
     tmux::bootstrap::build_session_created_error_messages
@@ -38,7 +36,7 @@ function tmux::bootstrap::session_create() {
 }
 
 function tmux::bootstrap::load_style_environment_vars() {
-  # to add scripts use this format #(~/.tmux/helpers/battery-health.sh)
+  # to add scripts use this format #(~/.tmux/bin/foobar.sh)
   export TMUX_HOST_COLOR="colour${HostColorNum}"
   export TMUX_BG_COLOR="colour234"
   export TMUX_SESSION_COLOR="colour10"
@@ -55,7 +53,7 @@ function tmux::bootstrap::load_style_environment_vars() {
 
 function tmux::bootstrap::version_config_path() {
   local version_config_path
-  version_config_path=$(tmux::bootstrap::config_path 'version' "$(tmux::bootstrap::version)")
+  version_config_path=$(tmux::bootstrap::config_path 'version' "$(tmux::version)")
 
   if [ ! -d "$version_config_path" ]; then
     tmux::bootstrap::error "config directory: '$version_config_path' does not exist!"
