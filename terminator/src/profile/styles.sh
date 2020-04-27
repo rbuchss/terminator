@@ -102,12 +102,22 @@ function terminator::profile::styles::root::path_color() {
   terminator::styles::color::code '0;94m'
 }
 
+function terminator::profile::styles::jobs() {
+  echo '\j'
+}
+
+function terminator::profile::styles::time() {
+  # shellcheck disable=SC2028
+  echo '\t'
+}
+
 function terminator::profile::styles::command_symbol() {
   if [[ -n "${TERMINATOR_PROFILE_STYLES_COMMAND_SYMBOL}" ]]; then
     echo "${TERMINATOR_PROFILE_STYLES_COMMAND_SYMBOL}"
     return 0
   fi
 
+  # export arrow_char=➜
   echo '$'
 }
 
@@ -173,6 +183,7 @@ function terminator::profile::styles::branch_symbol() {
     return 0
   fi
 
+  # export branch_char=⭠
   # U+2B60 - 2640 menlo for powerline
   terminator::styles::unicode::code 0xE0A0
 }
