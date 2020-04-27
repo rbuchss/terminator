@@ -6,6 +6,18 @@ source "${BASH_SOURCE[0]%/*}/path.sh"
 function terminator::bootstrap() {
   terminator::bootstrap::tmux
 
+  # MANPATH must be defined, even if empty
+  # before /etc/profile -> path_helper runs
+  # From the path_helper info page:
+  #   The MANPATH environment variable will not be modified
+  #   unless it is already set in the environment.
+  terminator::manpath::prepend \
+    '/usr/X11/share/man' \
+    '/usr/local/share/man' \
+    '/usr/share/man'
+
+  source /etc/profile
+
   terminator::path::prepend \
     "${HOME}/.terminator/bin" \
     "${HOME}/bin"
@@ -43,7 +55,6 @@ function terminator::bootstrap::tmux() {
   if [[ -n "${TMUX}" ]] && [[ -z "${TMUX_PATH_INITIALIZED}" ]]; then
     terminator::log::debug 'initializing tmux ...'
     terminator::paths::clear
-    source /etc/profile
     export TMUX_PATH_INITIALIZED=1
   fi
 
