@@ -83,4 +83,3 @@ source "$(repo_root)/terminator/src/version.sh"
   run terminator::version::compare 1.0 1..0
   assert_exit_status 0
 }
-
