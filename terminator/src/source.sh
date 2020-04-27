@@ -1,6 +1,6 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${HOME}/.terminator/src/log.sh"
+source "${BASH_SOURCE[0]%/*}/log.sh"
 
 function terminator::source() {
   for element in "$@"; do

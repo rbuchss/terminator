@@ -1,6 +1,6 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${HOME}/.terminator/src/source.sh"
+source "${BASH_SOURCE[0]%/*}/source.sh"
 
 function terminator::config::path() {
   local result="${HOME}/.terminator/config"

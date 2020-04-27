@@ -1,7 +1,7 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${HOME}/.terminator/src/source.sh"
-source "${HOME}/.terminator/src/path.sh"
+source "${BASH_SOURCE[0]%/*}/source.sh"
+source "${BASH_SOURCE[0]%/*}/path.sh"
 
 function terminator::homebrew::add_paths() {
   local prefix
