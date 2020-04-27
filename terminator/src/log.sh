@@ -17,7 +17,7 @@ function terminator::log::error() {
 }
 
 function terminator::log::logger() (
-  (( TERMINATOR_LOG_SILENCE == 1 )) && { return; }
+  terminator::log::is_silenced && return
 
   function usage() {
     >&2 echo "Usage: ${FUNCNAME[1]} [-clo] # prints log message"
@@ -47,11 +47,11 @@ function terminator::log::logger() (
 
   severity="$(terminator::log::severity "${level}")"
 
-  (( severity < $(terminator::log::level) )) && { return; }
+  (( severity < $(terminator::log::level) )) && return
 
   local datetime progname caller_info
   datetime="$(date +%Y-%m-%dT%H:%M:%S%z)"
-  progname="${FUNCNAME[$caller_level+1]}"
+  progname="${FUNCNAME[${caller_level}+1]}"
 
   case "${level}" in
     debug) level='DEBUG' ;;
@@ -60,7 +60,7 @@ function terminator::log::logger() (
     *)
       level='ERROR'
       caller_info=" -> from: $(terminator::log::caller_formatter \
-        "$(caller "$caller_level")")\n"
+        "$(caller "${caller_level}")")\n"
       ;;
   esac
 
@@ -90,16 +90,54 @@ function terminator::log::severity() {
 }
 
 function terminator::log::level() {
-  terminator::log::severity "${TERMINATOR_LOG_LEVEL:-warning}"
+  local variable
+  variable="$(terminator::log::level::variable)"
+  terminator::log::severity "${!variable:-warning}"
+}
+
+function terminator::log::level::variable() {
+  echo "${TERMINATOR_LOG_LEVEL_VARIABLE:-TERMINATOR_LOG_LEVEL}"
+}
+
+function terminator::log::level::set_variable() {
+  TERMINATOR_LOG_LEVEL_VARIABLE="$1"
+}
+
+function terminator::log::level::unset_variable() {
+  unset TERMINATOR_LOG_LEVEL_VARIABLE
+}
+
+function terminator::log::is_silenced() {
+  local silence
+  silence="$(terminator::log::silence)"
+  (( silence == 1 ))
+}
+
+function terminator::log::silence() {
+  local variable
+  variable="$(terminator::log::silence::variable)"
+  echo "${!variable:-0}"
+}
+
+function terminator::log::silence::variable() {
+  echo "${TERMINATOR_LOG_SILENCE_VARIABLE:-TERMINATOR_LOG_SILENCE}"
+}
+
+function terminator::log::silence::set_variable() {
+  TERMINATOR_LOG_SILENCE_VARIABLE="$1"
+}
+
+function terminator::log::silence::unset_variable() {
+  unset TERMINATOR_LOG_SILENCE_VARIABLE
 }
 
 function terminator::log::caller_formatter() {
   read -r -a array <<< "$@"
   for index in "${!array[@]}"; do
     case "${index}" in
-      0) echo -n "line: ${array[$index]}, " ;;
-      1) echo -n "function: ${array[$index]}, " ;;
-      *) echo -n "file: ${array[*]:$index}"
+      0) echo -n "line: ${array[${index}]}, " ;;
+      1) echo -n "function: ${array[${index}]}, " ;;
+      *) echo -n "file: ${array[*]:${index}}"
         break ;;
     esac
   done
