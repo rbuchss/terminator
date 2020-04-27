@@ -3,7 +3,7 @@
 function terminator::ssh::is_ssh_session() {
   [[ -n "${SSH_CLIENT}" ]] \
     || [[ -n "${SSH_TTY}" ]] \
-    || terminator::ssh::is_ssh_sudo "$@"
+    || terminator::ssh::is_ssh_sudo "$@" # TODO is this really required?
 }
 
 function terminator::ssh::ppid() {
@@ -17,7 +17,7 @@ function terminator::ssh::ppinfo() {
 function terminator::ssh::is_ssh_sudo() {
   user="$(logname)"
   ppid="$(terminator::ssh::ppid "${1:-$$}")"
-  is_ssh="$(terminator::ssh::ppinfo "${1:-$$}" | grep "${user} sshd")"
+  is_ssh="$(terminator::ssh::ppinfo "${1:-$$}" | command grep "${user} sshd")"
 
   if [[ -n "${is_ssh}" ]]; then
     return 0
@@ -25,5 +25,5 @@ function terminator::ssh::is_ssh_sudo() {
     return 1
   fi
 
-  is_ssh_sudo "${ppid}"
+  terminator::ssh::is_ssh_sudo "${ppid}"
 }
