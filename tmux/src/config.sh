@@ -29,19 +29,31 @@ function tmux::config::current_version::path() {
   echo "${path}"
 
   if [[ ! -d "${path}" ]]; then
-    tmux::log::error "current version ${version} config directory: '${path}' does NOT exist"
+    tmux::log::error \
+      "current version ${version} config directory: '${path}' does NOT exist"
     return 1
   fi
 }
 
 function tmux::config::rollback_version() {
-  local path
+  local path versions=()
   path="$(tmux::config::version::path)"
-  # TODO fix this
-  # shellcheck disable=SC2012
-  ls "${path}" | sort -V | tail -1
-}
 
-function tmux::config::rollback_version::path() {
-  tmux::config::version::path "$(tmux::config::rollback_version)"
+  while IFS='' read -r version; do
+    versions+=("${version}")
+  done < <(find "${path}" -depth 1 -type d -exec basename {} \; | sort -rV)
+
+  tmux::log::debug "available versions: ${versions[*]}"
+
+  for version in "${versions[@]}"; do
+    if tmux::version::compare::greater_than "${version}"; then
+      tmux::log::debug "selected rollback version: ${version}"
+      echo "${version}"
+      return
+    fi
+  done
+
+  tmux::log::error \
+    "no eligible rollback versions found (current $(tmux::version) > rollback)"
+  return 1
 }
