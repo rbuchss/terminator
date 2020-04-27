@@ -6,7 +6,6 @@ source "${HOME}/.terminator/src/path.sh"
 function terminator::bootstrap() {
   terminator::bootstrap::tmux
 
-  # TODO convert this to .terminator/bin
   terminator::path::prepend \
     "${HOME}/.terminator/bin" \
     "${HOME}/bin"
@@ -16,10 +15,6 @@ function terminator::bootstrap() {
     "${HOME}"
 
   terminator::bootstrap::os
-
-  # TODO move this to src or bin
-  terminator::source "${HOME}/.tmux/helpers/tmuxinator.bash"
-
   terminator::bootstrap::pyenv
   terminator::bootstrap::rbenv
   terminator::bootstrap::jenv
@@ -45,13 +40,15 @@ function terminator::bootstrap::tmux() {
   # by clearing out the old path and then rebuilding it
   # like a brand new login shell
   # will not do this if bash_login has already been run
-  if [[ -n "${TMUX}" ]] && [[ -z "${tmux_path_initialized}" ]]; then
+  if [[ -n "${TMUX}" ]] && [[ -z "${TMUX_PATH_INITIALIZED}" ]]; then
     terminator::log::debug 'initializing tmux ...'
     terminator::paths::clear
     source /etc/profile
-    # TODO change this to match style-guide
-    export tmux_path_initialized=true
+    export TMUX_PATH_INITIALIZED=1
   fi
+
+  # shellcheck source=/dev/null
+  source "${HOME}/.tmux/config/tmux.sh"
 }
 
 function terminator::bootstrap::os() {
