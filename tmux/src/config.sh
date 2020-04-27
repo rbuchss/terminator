@@ -13,6 +13,12 @@ function tmux::config::path() {
   echo "${result}"
 }
 
+function tmux::config::load() {
+  for element in "$@"; do
+    source "$(tmux::config::path "${element}")"
+  done
+}
+
 function tmux::config::version::path() {
   if (( $# == 0 )); then
     tmux::config::path 'version'
