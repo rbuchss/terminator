@@ -12,6 +12,7 @@ if [[ -n "${PS1}" ]]; then
   terminator::source "${HOME}/.terminator/src/network.sh"
   terminator::source "${HOME}/.terminator/src/postgresql.sh"
   terminator::source "${HOME}/.terminator/src/ruby.sh"
+  terminator::source "${HOME}/.terminator/src/utility.sh"
   terminator::source "${HOME}/.terminator/src/vagrant.sh"
   terminator::source "${HOME}/.terminator/src/vim.sh"
   terminator::source "${HOME}/.grc/grc.bashrc"
@@ -22,6 +23,9 @@ if [[ -n "${PS1}" ]]; then
   alias df='df -kTh'
   alias du='du -kh'
   alias hideme='history -d $((HISTCMD-1)) &&'
+  alias hack='terminator::utility::hack'
+  alias history_stats='terminator::utility::history_stats'
+  alias reverse_endianness='terminator::utility::reverse_endianness'
 
   # safety first!
   alias rm='rm -i'
