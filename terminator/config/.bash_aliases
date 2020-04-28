@@ -7,6 +7,7 @@ if [[ -n "${PS1}" ]]; then
 
   terminator::source \
     "${HOME}/.grc/grc.bashrc" \
+    "${HOME}/.terminator/src/ag.sh" \
     "${HOME}/.terminator/src/file.sh" \
     "${HOME}/.terminator/src/git.sh" \
     "${HOME}/.terminator/src/grep.sh" \
@@ -75,7 +76,7 @@ if [[ -n "${PS1}" ]]; then
   alias fgrep='grep -F'
 
   # ag helpers
-  alias ag='ag --hidden'
+  alias ag='terminator::ag::invoke'
 
   # vim helpers
   alias vi='vim'
