@@ -30,11 +30,11 @@ function terminator::file::extract() {
 
 # Creates an archive from given directory
 function terminator::file::mktar() {
-  tar cvf  "${1%%/}.tar"   "${1%%/}/"
+  tar cvf "${1%%/}.tar" "${1%%/}/"
 }
 
 function terminator::file::mktgz() {
-  tar cvzf "${1%%/}.tar.gz"  "${1%%/}/"
+  tar cvzf "${1%%/}.tar.gz" "${1%%/}/"
 }
 
 function terminator::file::mktbz() {
