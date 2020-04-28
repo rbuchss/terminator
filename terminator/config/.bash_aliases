@@ -10,6 +10,7 @@ if [[ -n "${PS1}" ]]; then
   terminator::source "${HOME}/.terminator/src/grep.sh"
   terminator::source "${HOME}/.terminator/src/mysql.sh"
   terminator::source "${HOME}/.terminator/src/network.sh"
+  terminator::source "${HOME}/.terminator/src/postgresql.sh"
   terminator::source "${HOME}/.terminator/src/vim.sh"
   terminator::source "${HOME}/.grc/grc.bashrc"
 
@@ -85,6 +86,11 @@ if [[ -n "${PS1}" ]]; then
   alias mysql='terminator::mysql::invoke'
   alias mysql_spl='terminator::mysql::show_process_list'
   alias mysql_find_column='terminator::mysql::find_column'
+
+  # postgresql helpers
+  alias psql_list_config='terminator::postgresql::list_config'
+  alias psql_edit_config='terminator::postgresql::edit_config'
+  alias psql_clear_pid='terminator::postgresql::clear_pid'
 
   # network helpers
   alias expand_url='terminator::network::expand_url'
