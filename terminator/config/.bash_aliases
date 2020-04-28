@@ -11,6 +11,7 @@ if [[ -n "${PS1}" ]]; then
   terminator::source "${HOME}/.terminator/src/mysql.sh"
   terminator::source "${HOME}/.terminator/src/network.sh"
   terminator::source "${HOME}/.terminator/src/postgresql.sh"
+  terminator::source "${HOME}/.terminator/src/ruby.sh"
   terminator::source "${HOME}/.terminator/src/vim.sh"
   terminator::source "${HOME}/.grc/grc.bashrc"
 
@@ -94,4 +95,9 @@ if [[ -n "${PS1}" ]]; then
 
   # network helpers
   alias expand_url='terminator::network::expand_url'
+
+  # ruby/rails helpers
+  alias ruby_bundle_search='terminator::ruby::bundle_search'
+  alias rails_diff='terminator::ruby::rails::diff'
+  alias rails_db_clean='terminator::ruby::rails::create_clean_database'
 fi
