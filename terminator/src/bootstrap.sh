@@ -111,7 +111,7 @@ function terminator::bootstrap::rbenv() {
 
 function terminator::bootstrap::jenv() {
   if command -v jenv > /dev/null 2>&1; then
-    # export PATH="$HOME/.jenv/bin:$PATH"
+    # export PATH="${HOME}/.jenv/bin:$PATH"
     eval "$(jenv init -)"
   fi
 }

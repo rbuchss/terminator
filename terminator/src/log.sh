@@ -137,8 +137,10 @@ function terminator::log::caller_formatter() {
     case "${index}" in
       0) echo -n "line: ${array[${index}]}, " ;;
       1) echo -n "function: ${array[${index}]}, " ;;
-      *) echo -n "file: ${array[*]:${index}}"
-        break ;;
+      *)
+        echo -n "file: ${array[*]:${index}}"
+        break
+        ;;
     esac
   done
   echo ''
