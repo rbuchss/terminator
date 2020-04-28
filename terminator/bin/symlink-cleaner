@@ -1,0 +1,19 @@
+#!/bin/bash
+# shellcheck source=/dev/null
+source "${HOME}/.terminator/src/utility.sh"
+
+# export the ask function to make it availble in find exec
+export -f terminator::utility::ask
+
+find . -maxdepth 1 -exec bash -c '
+  for file do
+    ### test if file exists (test actual file, not symbolic link)
+    if [ ! -e "${file}" ]; then
+      echo "Found broken symlink:"
+      ls -l "${file}"
+      if terminator::utility::ask " -> remove broken symlink ${file} ?"; then
+        rm "${file}"
+      fi
+    fi
+  done
+' bash {} +

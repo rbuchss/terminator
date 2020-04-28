@@ -1,6 +1,8 @@
-GRC="$(which grc 2>/dev/null)"
-if [ "$TERM" != dumb ] && [ -n "$GRC" ]; then
-  alias colourify="$GRC -es --colour=auto"
+#!/bin/bash
+
+if [[ "$TERM" != dumb ]] \
+  && command -v grc > /dev/null 2>&1; then
+  alias colourify='command grc -es --colour=auto'
   alias blkid='colourify blkid'
   alias configure='colourify ./configure'
   alias df='colourify df'

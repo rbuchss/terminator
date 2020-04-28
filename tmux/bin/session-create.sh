@@ -1,8 +1,7 @@
 #!/bin/bash
-
-export TMUX_CONFIG_PATH="$HOME/.tmux/config"
-
 # shellcheck source=/dev/null
-source "$HOME/.tmux/src/bootstrap.sh"
+source "${HOME}/.tmux/src/bootstrap.sh"
+
+export TMUX_CONFIG_PATH="${HOME}/.tmux/config"
 
 tmux::bootstrap::session_create
