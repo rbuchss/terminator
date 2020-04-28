@@ -12,9 +12,7 @@ terminator::homebrew::add_paths \
 if [[ -n "${PS1}" ]]; then
   terminator::cdpath::prepend "${HOME}/Library/Services/"
 
-  terminator::source \
-    "$(brew --prefix)/etc/bash_completion" \
-    "$(brew --prefix grc)/etc/grc.bashrc"
+  terminator::source "$(brew --prefix)/etc/bash_completion"
 
   # gotta have dircolors
   eval "$(dircolors "${HOME}/.dir_colors")"

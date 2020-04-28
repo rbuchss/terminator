@@ -5,17 +5,19 @@ if [[ -n "${PS1}" ]]; then
   # shellcheck source=/dev/null
   source "${HOME}/.terminator/src/source.sh"
 
-  terminator::source "${HOME}/.terminator/src/file.sh"
-  terminator::source "${HOME}/.terminator/src/git.sh"
-  terminator::source "${HOME}/.terminator/src/grep.sh"
-  terminator::source "${HOME}/.terminator/src/mysql.sh"
-  terminator::source "${HOME}/.terminator/src/network.sh"
-  terminator::source "${HOME}/.terminator/src/postgresql.sh"
-  terminator::source "${HOME}/.terminator/src/ruby.sh"
-  terminator::source "${HOME}/.terminator/src/utility.sh"
-  terminator::source "${HOME}/.terminator/src/vagrant.sh"
-  terminator::source "${HOME}/.terminator/src/vim.sh"
-  terminator::source "${HOME}/.grc/grc.bashrc"
+  terminator::source \
+    "${HOME}/.grc/grc.bashrc" \
+    "${HOME}/.terminator/src/file.sh" \
+    "${HOME}/.terminator/src/git.sh" \
+    "${HOME}/.terminator/src/grep.sh" \
+    "${HOME}/.terminator/src/mysql.sh" \
+    "${HOME}/.terminator/src/network.sh" \
+    "${HOME}/.terminator/src/postgresql.sh" \
+    "${HOME}/.terminator/src/process.sh" \
+    "${HOME}/.terminator/src/ruby.sh" \
+    "${HOME}/.terminator/src/utility.sh" \
+    "${HOME}/.terminator/src/vagrant.sh" \
+    "${HOME}/.terminator/src/vim.sh"
 
   # bash helpers
   alias sbp='terminator::source "${HOME}/.bash_profile"'
@@ -63,6 +65,9 @@ if [[ -n "${PS1}" ]]; then
   alias dirsize_big='terminator::file::dirsize_big'
   alias dirsize='terminator::file::dirsize'
   alias mkcd='terminator::file::mkcd'
+
+  # process helpers
+  alias kill_match='terminator::process::kill'
 
   # grep helpers
   alias grep='terminator::grep::invoke'
