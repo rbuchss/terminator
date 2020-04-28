@@ -12,6 +12,7 @@ if [[ -n "${PS1}" ]]; then
   terminator::source "${HOME}/.terminator/src/network.sh"
   terminator::source "${HOME}/.terminator/src/postgresql.sh"
   terminator::source "${HOME}/.terminator/src/ruby.sh"
+  terminator::source "${HOME}/.terminator/src/vagrant.sh"
   terminator::source "${HOME}/.terminator/src/vim.sh"
   terminator::source "${HOME}/.grc/grc.bashrc"
 
@@ -100,4 +101,7 @@ if [[ -n "${PS1}" ]]; then
   alias ruby_bundle_search='terminator::ruby::bundle_search'
   alias rails_diff='terminator::ruby::rails::diff'
   alias rails_db_clean='terminator::ruby::rails::create_clean_database'
+
+  # vagrant helpers
+  alias vagrant_scp='terminator::vagrant::scp'
 fi
