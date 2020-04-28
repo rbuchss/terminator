@@ -36,7 +36,7 @@ function terminator::mysql::invoke() {
 
   export MYSQL_PS1="[mysql] \u@${host}:\d> "
 
-  if command -v grcat >/dev/null 2>&1; then
+  if command -v grcat > /dev/null 2>&1; then
     arguments+=("--pager='grcat conf.sql'")
   fi
 
