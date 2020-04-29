@@ -117,8 +117,7 @@ function terminator::profile::styles::command_symbol() {
     return 0
   fi
 
-  # export arrow_char=➜
-  echo '$'
+  terminator::styles::unicode::code 0x03BB
 }
 
 function terminator::profile::styles::error_symbol() {
@@ -127,7 +126,7 @@ function terminator::profile::styles::error_symbol() {
     return 0
   fi
 
-  echo '✘'
+  terminator::styles::unicode::code 0x2718
 }
 
 function terminator::profile::styles::error_color() {
@@ -164,7 +163,7 @@ function terminator::profile::styles::ok_symbol() {
     return 0
   fi
 
-  echo '✔'
+  terminator::styles::unicode::code 0x2714
 }
 
 function terminator::profile::styles::ok_color() {
@@ -183,8 +182,6 @@ function terminator::profile::styles::branch_symbol() {
     return 0
   fi
 
-  # export branch_char=⭠
-  # U+2B60 - 2640 menlo for powerline
   terminator::styles::unicode::code 0xE0A0
 }
 
@@ -194,6 +191,5 @@ function terminator::profile::styles::detached_head_symbol() {
     return 0
   fi
 
-  # echo '➦'
   terminator::styles::unicode::code 0x27A6
 }

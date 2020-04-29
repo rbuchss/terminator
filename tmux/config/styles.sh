@@ -1,4 +1,6 @@
 #!/bin/bash
+# shellcheck source=/dev/null
+source "${HOME}/.terminator/src/profile/styles.sh"
 
 # NOTE: to add scripts use this format #(~/.tmux/bin/foobar.sh)
 TMUX_HOST_COLOR="colour${HostColorNum}"
@@ -9,12 +11,16 @@ TMUX_MENU_COLOR="colour39"
 
 TMUX_DIVIDER_RIGHT="\
 #[fg=${TMUX_MENU_COLOR},bg=${TMUX_BG_COLOR}]\
-⮂#[fg=${TMUX_BG_COLOR},bg=${TMUX_MENU_COLOR}]\
-⮂#[fg=${TMUX_SESSION_COLOR},bg=${TMUX_BG_COLOR}]"
+$(terminator::styles::unicode::code 0xE0B2)\
+#[fg=${TMUX_BG_COLOR},bg=${TMUX_MENU_COLOR}]\
+$(terminator::styles::unicode::code 0xE0B2)\
+#[fg=${TMUX_SESSION_COLOR},bg=${TMUX_BG_COLOR}]"
 
 TMUX_DIVIDER_LEFT="\
-#[fg=${TMUX_BG_COLOR},bg=${TMUX_MENU_COLOR}]⮀\
-#[fg=${TMUX_MENU_COLOR},bg=${TMUX_BG_COLOR},nobold]⮀"
+#[fg=${TMUX_BG_COLOR},bg=${TMUX_MENU_COLOR}]\
+$(terminator::styles::unicode::code 0xE0B0)\
+#[fg=${TMUX_MENU_COLOR},bg=${TMUX_BG_COLOR},nobold]\
+$(terminator::styles::unicode::code 0xE0B0)"
 
 TMUX_PREFIX_STAT='#{?client_prefix,#[reverse]<Prefix>#[noreverse] , }'
 
