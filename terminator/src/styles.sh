@@ -1,4 +1,8 @@
 #!/bin/bash
+# shellcheck source=/dev/null
+source "${BASH_SOURCE[0]%/*}/color.sh"
+source "${BASH_SOURCE[0]%/*}/unicode.sh"
+source "${BASH_SOURCE[0]%/*}/user.sh"
 
 function terminator::styles::newline() {
   # shellcheck disable=SC2028
@@ -12,57 +16,193 @@ function terminator::styles::newline() {
   esac
 }
 
-function terminator::styles::highlight::demo() {
-  printf '\e[0;31m%s\n\e[0m' 'plain'
-  printf '\e[1;31m%s\n\e[0m' 'bold'
-  printf '\e[0;91m%s\n\e[0m' 'highlight'
-  printf '\e[1;91m%s\n\e[0m' 'bold+highlight'
+function terminator::styles::username() {
+  echo '\u'
 }
 
-function terminator::styles::color::demo() {
-  for index in {0..255} ; do
-    printf '%s%11s' \
-      "$(terminator::styles::color::code "38;5;${index}m")" \
-      "color${index}"
-    (( ((index + 1) % 8) == 0 )) && { echo ''; }
-  done
-}
-
-function terminator::styles::color::code() {
-  printf '\x1b[%s' "$1"
-}
-
-function terminator::styles::color::off() {
-  echo "\[\033[0m\]"
-}
-
-# unicode helper for lack of echo/printf code point
-# support in bash < 4.2
-function terminator::styles::unicode::code() {
-  local code_point="$1"
-  local ceiling=63
-  local bits=128
-  local output=''
-  local reply
-
-  (( code_point < 0x80 )) && {
-    reply="$(terminator::styles::unicode::octal "${code_point}")"
-    echo "${reply}"
+function terminator::styles::user_color() {
+  if terminator::user::is_root; then
+    terminator::styles::root::user_color
     return
-  }
+  fi
 
-  while (( code_point > ceiling )); do
-    reply="$(terminator::styles::unicode::octal "$(( 0x80 | code_point & 0x3f ))")"
-    output="${reply}${output}"
-    (( code_point >>= 6, bits += ceiling + 1, ceiling >>= 1 ))
-  done
+  if [[ -n "${TERMINATOR_STYLES_USER_COLOR}" ]]; then
+    echo "${TERMINATOR_STYLES_USER_COLOR}"
+    return 0
+  fi
 
-  reply="$(terminator::styles::unicode::octal "$(( bits | code_point ))")"
-  echo "${reply}${output}"
+  terminator::color::code '38;5;69m'
 }
 
-function terminator::styles::unicode::octal() {
-  local octal
-  printf -v octal '%03o' "$1"
-  printf '%b' "\\${octal}"
+function terminator::styles::root::user_color() {
+  if [[ -n "${TERMINATOR_STYLES_ROOT_USER_COLOR}" ]]; then
+    echo "${TERMINATOR_STYLES_ROOT_USER_COLOR}"
+    return 0
+  fi
+
+  terminator::color::code '0;91m'
+}
+
+function terminator::styles::user_separator() {
+  if terminator::user::is_root; then
+    echo '#'
+    return
+  fi
+
+  echo '@'
+}
+
+function terminator::styles::hostname() {
+  echo '\h'
+}
+
+function terminator::styles::host_color() {
+  if terminator::user::is_root; then
+    terminator::styles::root::host_color
+    return
+  fi
+
+  if [[ -n "${TERMINATOR_STYLES_HOST_COLOR}" ]]; then
+    echo "${TERMINATOR_STYLES_HOST_COLOR}"
+    return 0
+  fi
+
+  terminator::color::code '0;94m'
+}
+
+function terminator::styles::root::host_color() {
+  if [[ -n "${TERMINATOR_STYLES_ROOT_HOST_COLOR}" ]]; then
+    echo "${TERMINATOR_STYLES_ROOT_HOST_COLOR}"
+    return 0
+  fi
+
+  terminator::color::code '0;94m'
+}
+
+function terminator::styles::host_symbol() {
+  if [[ -n "${TERMINATOR_STYLES_HOST_SYMBOL}" ]]; then
+    echo "${TERMINATOR_STYLES_HOST_SYMBOL}"
+    return 0
+  fi
+
+  echo ''
+}
+
+function terminator::styles::path() {
+  echo '\w'
+}
+
+function terminator::styles::path_color() {
+  if terminator::user::is_root; then
+    terminator::styles::root::path_color
+    return
+  fi
+
+  if [[ -n "${TERMINATOR_STYLES_PATH_COLOR}" ]]; then
+    echo "${TERMINATOR_STYLES_PATH_COLOR}"
+    return 0
+  fi
+
+  terminator::color::code '38;5;186m'
+}
+
+function terminator::styles::root::path_color() {
+  if [[ -n "${TERMINATOR_STYLES_ROOT_PATH_COLOR}" ]]; then
+    echo "${TERMINATOR_STYLES_ROOT_PATH_COLOR}"
+    return 0
+  fi
+
+  terminator::color::code '0;94m'
+}
+
+function terminator::styles::jobs() {
+  echo '\j'
+}
+
+function terminator::styles::time() {
+  # shellcheck disable=SC2028
+  echo '\t'
+}
+
+function terminator::styles::command_symbol() {
+  if [[ -n "${TERMINATOR_STYLES_COMMAND_SYMBOL}" ]]; then
+    echo "${TERMINATOR_STYLES_COMMAND_SYMBOL}"
+    return 0
+  fi
+
+  terminator::unicode::code 0x03BB
+}
+
+function terminator::styles::error_symbol() {
+  if [[ -n "${TERMINATOR_STYLES_ERROR_SYMBOL}" ]]; then
+    echo "${TERMINATOR_STYLES_ERROR_SYMBOL}"
+    return 0
+  fi
+
+  terminator::unicode::code 0x2718
+}
+
+function terminator::styles::error_color() {
+  if [[ -n "${TERMINATOR_STYLES_ERROR_COLOR}" ]]; then
+    echo "${TERMINATOR_STYLES_ERROR_COLOR}"
+    return 0
+  fi
+
+  # color="$(color_code "38;5;9m")"
+  terminator::color::code '0;91m'
+}
+
+function terminator::styles::warning_symbol() {
+  if [[ -n "${TERMINATOR_STYLES_WARNING_SYMBOL}" ]]; then
+    echo "${TERMINATOR_STYLES_WARNING_SYMBOL}"
+    return 0
+  fi
+
+  echo '?'
+}
+
+function terminator::styles::warning_color() {
+  if [[ -n "${TERMINATOR_STYLES_WARNING_COLOR}" ]]; then
+    echo "${TERMINATOR_STYLES_WARNING_COLOR}"
+    return 0
+  fi
+
+  terminator::color::code '0;93m'
+}
+
+function terminator::styles::ok_symbol() {
+  if [[ -n "${TERMINATOR_STYLES_OK_SYMBOL}" ]]; then
+    echo "${TERMINATOR_STYLES_OK_SYMBOL}"
+    return 0
+  fi
+
+  terminator::unicode::code 0x2714
+}
+
+function terminator::styles::ok_color() {
+  if [[ -n "${TERMINATOR_STYLES_OK_COLOR}" ]]; then
+    echo "${TERMINATOR_STYLES_OK_COLOR}"
+    return 0
+  fi
+
+  # color="$(color_code "38;5;10m")"
+  terminator::color::code '0;92m'
+}
+
+function terminator::styles::branch_symbol() {
+  if [[ -n "${TERMINATOR_STYLES_BRANCH_SYMBOL}" ]]; then
+    echo "${TERMINATOR_STYLES_BRANCH_SYMBOL}"
+    return 0
+  fi
+
+  terminator::unicode::code 0xE0A0
+}
+
+function terminator::styles::detached_head_symbol() {
+  if [[ -n "${TERMINATOR_STYLES_DETACHED_HEAD_SYMBOL}" ]]; then
+    echo "${TERMINATOR_STYLES_DETACHED_HEAD_SYMBOL}"
+    return 0
+  fi
+
+  terminator::unicode::code 0x27A6
 }

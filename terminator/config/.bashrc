@@ -3,7 +3,7 @@
 # If not running interactively, don't do anything
 if [[ -n "${PS1}" ]]; then
   # shellcheck source=/dev/null
-  source "${HOME}/.terminator/src/profile/prompt.sh"
+  source "${HOME}/.terminator/src/prompt.sh"
 
   # append to the history file, don't overwrite it
   shopt -s histappend
@@ -48,5 +48,5 @@ if [[ -n "${PS1}" ]]; then
 
   # jenv uses PROMPT_COMMAND as a hook
   # which we have to preserve by chaining PROMPT_COMMAND
-  export PROMPT_COMMAND="terminator::profile::prompt;${PROMPT_COMMAND}"
+  export PROMPT_COMMAND="terminator::prompt;${PROMPT_COMMAND}"
 fi
