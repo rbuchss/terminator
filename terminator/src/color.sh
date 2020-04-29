@@ -5,7 +5,7 @@ function terminator::color::code() {
 }
 
 function terminator::color::off() {
-  echo "\[\033[0m\]"
+  terminator::color::code '0m'
 }
 
 function terminator::color::highlight_demo() {
