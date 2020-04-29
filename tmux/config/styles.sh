@@ -3,7 +3,7 @@
 source "${HOME}/.terminator/src/profile/styles.sh"
 
 # NOTE: to add scripts use this format #(~/.tmux/bin/foobar.sh)
-TMUX_HOST_COLOR="colour${HostColorNum}"
+TMUX_HOST_COLOR="colour${TMUX_HOST_COLOR_NUM}"
 TMUX_BG_COLOR="colour234"
 TMUX_SESSION_COLOR="colour10"
 TMUX_MESSAGE_COLOR="colour16"
