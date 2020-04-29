@@ -3,37 +3,33 @@
 source "${BASH_SOURCE[0]%/*/*}/styles.sh"
 
 function terminator::prompt::svn() {
-  local url version path working_path color
-
-  if stat .svn > /dev/null 2>&1; then
-    if ! command -v svn > /dev/null 2>&1; then
-      echo ''
-      return 0
-    fi
-
-    url="$(svn info | grep 'URL' | head -1 | perl -pe 's/URL: (.*)/\1/')"
-
-    if grep -q -E 'branches|tags' <<< "${url}"; then
-      version="$(echo "${url}" \
-        | perl -pe 's{.*/(branches|tags)/(.*)}{\1/\2}' \
-        | cut -d/ -f1-2)"
-      path="$(echo "${url}" \
-        | perl -pe 's{.*svnroot/(.*)/(branches|tags)/.*}{/\1}')"
-      working_path="${path}/${version}"
-      color="$(terminator::styles::ok_color)"
-    else
-      working_path="$(echo "${url}" \
-        | perl -pe 's{.*svnroot/(.*)/trunk(.*)}{/\1/trunk}')"
-      color="$(terminator::styles::warning_color)"
-    fi
-
-    if svn status | grep -q -E '.+'; then
-      color="$(terminator::styles::error_color)"
-    fi
-
-    echo "${color}[SVN: ${working_path}]"
+  if ! stat .svn > /dev/null 2>&1 \
+    || ! command -v svn > /dev/null 2>&1; then
+    echo ''
     return 0
   fi
 
-  echo ''
+  local url version path working_path color
+
+  url="$(svn info | grep 'URL' | head -1 | perl -pe 's/URL: (.*)/\1/')"
+
+  if grep -q -E 'branches|tags' <<< "${url}"; then
+    version="$(echo "${url}" \
+      | perl -pe 's{.*/(branches|tags)/(.*)}{\1/\2}' \
+      | cut -d/ -f1-2)"
+    path="$(echo "${url}" \
+      | perl -pe 's{.*svnroot/(.*)/(branches|tags)/.*}{/\1}')"
+    working_path="${path}/${version}"
+    color="$(terminator::styles::ok_color)"
+  else
+    working_path="$(echo "${url}" \
+      | perl -pe 's{.*svnroot/(.*)/trunk(.*)}{/\1/trunk}')"
+    color="$(terminator::styles::warning_color)"
+  fi
+
+  if svn status | grep -q -E '.+'; then
+    color="$(terminator::styles::error_color)"
+  fi
+
+  echo "${color}[SVN: ${working_path}]"
 }
