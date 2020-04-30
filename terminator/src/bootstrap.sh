@@ -48,13 +48,15 @@ function terminator::bootstrap() {
 }
 
 function terminator::bootstrap::tmux() {
-  # prevents duplicated path created when using tmux
+  # prevents duplicated path/cdpath/manpath/PROMPT_COMMAND
+  # created when using tmux
   # by clearing out the old path and then rebuilding it
   # like a brand new login shell
   # will not do this if bash_login has already been run
   if [[ -n "${TMUX}" ]] && [[ -z "${TMUX_PATH_INITIALIZED}" ]]; then
     terminator::log::debug 'initializing tmux ...'
     terminator::paths::clear
+    PROMPT_COMMAND=''
     export TMUX_PATH_INITIALIZED=1
   fi
 
