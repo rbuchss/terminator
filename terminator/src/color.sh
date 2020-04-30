@@ -1,7 +1,12 @@
 #!/bin/bash
 
 function terminator::color::code() {
-  printf '\x1b[%s' "$1"
+  if (( $# == 2 )) && [[ "$2" == 'bare' ]]; then
+    printf '\x1b[%s' "$1"
+    return
+  fi
+
+  printf '\[\x1b[%s\]' "$1"
 }
 
 function terminator::color::off() {
@@ -18,7 +23,7 @@ function terminator::color::highlight_demo() {
 function terminator::color::demo() {
   for index in {0..255} ; do
     printf '%s%11s' \
-      "$(terminator::color::code "38;5;${index}m")" \
+      "$(terminator::color::code "38;5;${index}m" 'bare')" \
       "color${index}"
     (( ((index + 1) % 8) == 0 )) && { echo ''; }
   done
