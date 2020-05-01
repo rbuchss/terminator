@@ -3,27 +3,33 @@
 function terminator::ssh::is_ssh_session() {
   [[ -n "${SSH_CLIENT}" ]] \
     || [[ -n "${SSH_TTY}" ]] \
-    || terminator::ssh::is_ssh_sudo "$@" # TODO is this really required?
-}
-
-function terminator::ssh::ppid() {
-  ps -p "${1:-$$}" -o ppid=
+    || terminator::ssh::is_ssh_sudo "$@"
 }
 
 function terminator::ssh::ppinfo() {
-  ps -p "${1:-$$}" -o ppid= -o user= -o comm=
+  command ps -p "${1:-$$}" -o ppid= -o comm=
 }
 
 function terminator::ssh::is_ssh_sudo() {
-  user="$(logname)"
-  ppid="$(terminator::ssh::ppid "${1:-$$}")"
-  is_ssh="$(terminator::ssh::ppinfo "${1:-$$}" | command grep "${user} sshd")"
+  local regexp='^([[:digit:]]+)[[:space:]]+(sshd: (.*))?'
+  local ppinfo ppid ssh_user
+  ppinfo="$(terminator::ssh::ppinfo "${1:-$$}")"
 
-  if [[ -n "${is_ssh}" ]]; then
-    return 0
-  elif [[ -z "${ppid}" ]] || [[ "${ppid}" -eq 0 ]]; then
-    return 1
+  if [[ "${ppinfo}" =~ $regexp ]]; then
+    ppid="${BASH_REMATCH[1]}"
+    ssh_user="${BASH_REMATCH[3]}"
+
+    # echo "ppid: '${ppid}' ssh_user: '${ssh_user}'"
+
+    if [[ -n "${ssh_user}" ]]; then
+      return 0
+    elif [[ -z "${ppid}" ]] || (( ppid == 0 )); then
+      return 1
+    fi
+
+    terminator::ssh::is_ssh_sudo "${ppid}"
+    return
   fi
 
-  terminator::ssh::is_ssh_sudo "${ppid}"
+  return 1
 }
