@@ -2,7 +2,7 @@
 # shellcheck source=/dev/null
 source "${BASH_SOURCE[0]%/*/*}/styles.sh"
 
-function terminator::prompt::git() {
+function terminator::prompt::git::old() {
   local inside_worktree
 
   if ! command -v git > /dev/null 2>&1 \
@@ -45,24 +45,46 @@ function terminator::prompt::git() {
   echo "${color}${branch_symbol} ${branch} ${status_symbol}${color_off}"
 }
 
-function terminator::prompt::git::full() {
-  terminator::prompt::git::status
+function terminator::prompt::git() {
+  local repo_info
+  if ! command -v git > /dev/null 2>&1 \
+    || ! repo_info="$(git rev-parse \
+    --git-dir \
+    --is-inside-git-dir \
+    --is-bare-repository \
+    --is-inside-work-tree 2>/dev/null)" \
+    || [[ -z "${repo_info}" ]]; then
+      return 0
+  fi
+
+  local inside_worktree="${repo_info##*$'\n'}"
+  repo_info="${repo_info%$'\n'*}"
+  local bare_repo="${repo_info##*$'\n'}"
+  repo_info="${repo_info%$'\n'*}"
+  local inside_gitdir="${repo_info##*$'\n'}"
+  local gitdir="${repo_info%$'\n'*}"
+
+  # echo "inside_worktree: ${inside_worktree}"
+  # echo "bare_repo: ${bare_repo}"
+  # echo "inside_gitdir: ${inside_gitdir}"
+  # echo "gitdir: ${gitdir}"
+
+  local response=()
+
+  if [[ 'true' == "${inside_gitdir}" ]] && [[ 'true' != "${bare_repo}" ]]; then
+    response+=('GIT_DIR!')
+  elif [[ 'true' == "${inside_worktree}" ]]; then
+    while IFS= read -r result; do
+      response+=("${result}")
+    done < <(terminator::prompt::git::status "${gitdir}")
+  fi
+
+  terminator::prompt::git::format "${response[@]}"
 }
 
 function terminator::prompt::git::status() {
-  local inside_worktree
-  # repo_info="$(git rev-parse --git-dir --is-inside-git-dir \
-    # --is-bare-repository --is-inside-work-tree \
-    # --short HEAD 2>/dev/null)"
-  if ! command -v git > /dev/null 2>&1 \
-    || ! inside_worktree="$(git rev-parse --is-inside-work-tree 2>/dev/null)"; then
-    echo ''
-    return 0
-  fi
+  local gitdir="$1"
 
-  # TODO check if git rev-parse --is-inside-git-dir and etc?
-
-  # get-status
   local branch
   local upstream
   local ahead_by=0
@@ -129,10 +151,8 @@ function terminator::prompt::git::status() {
     --ignore-submodules=dirty \
     "${untracked_files_option}" \
     --short --branch 2>/dev/null)
-    # TODO ignore submodules....!!!!
-    # none untracked dirty all
 
-  [[ -z "${branch}" ]] && branch="$(terminator::prompt::git::branch './git')"
+  [[ -z "${branch}" ]] && branch="$(terminator::prompt::git::branch "${gitdir}")"
 
   # echo "branch: ${branch}"
   # echo "upstream: ${upstream}"
@@ -147,6 +167,41 @@ function terminator::prompt::git::status() {
   # echo "${#files_modified[@]} files_modified: ${files_modified[*]}"
   # echo "${#files_deleted[@]} files_deleted: ${files_deleted[*]}"
   # echo "${#files_unmerged[@]} files_unmerged: ${files_unmerged[*]}"
+
+  local response=(
+    "${branch}"
+    "${upstream}"
+    "${ahead_by}"
+    "${behind_by}"
+    "${gone}"
+    "${#index_added[@]}"
+    "${#index_modified[@]}"
+    "${#index_deleted[@]}"
+    "${#index_unmerged[@]}"
+    "${#files_added[@]}"
+    "${#files_modified[@]}"
+    "${#files_deleted[@]}"
+    "${#files_unmerged[@]}"
+  )
+  printf '%s\n' "${response[@]}"
+}
+
+# shellcheck disable=SC2178,SC2128
+function terminator::prompt::git::format() {
+  local branch="$1"
+  local upstream="$2"
+  local ahead_by="$3"
+  local behind_by="$4"
+  local gone="$5"
+  local index_added="$6"
+  local index_modified="$7"
+  local index_deleted="$8"
+  local index_unmerged="$9"
+  local files_added="${10}"
+  local files_modified="${11}"
+  local files_deleted="${12}"
+  local files_unmerged="${13}"
+  local stash_count="${14}"
 
   local branch_symbol
   branch_symbol="$(terminator::styles::branch_symbol)"
@@ -173,44 +228,42 @@ function terminator::prompt::git::status() {
     fi
   fi
 
-  # add green_color color
   local index_message
-  if (( "${#index_added[@]}" != 0 )) \
-    || (( "${#index_modified[@]}" != 0 )) \
-    || (( "${#index_deleted[@]}" != 0 )) \
-    || (( "${#index_unmerged[@]}" != 0 )); then
+  if (( index_added != 0 )) \
+    || (( index_modified != 0 )) \
+    || (( index_deleted != 0 )) \
+    || (( index_unmerged != 0 )); then
       index_message+="${green_color}"
-      # (( "${#index_added[@]}" != 0 )) && index_message+=" +${#index_added[@]}"
-      index_message+=" +${#index_added[@]}"
-      # (( "${#index_modified[@]}" != 0 )) && index_message+=" ~${#index_modified[@]}"
-      index_message+=" ~${#index_modified[@]}"
-      # (( "${#index_deleted[@]}" != 0 )) && index_message+=" -${#index_deleted[@]}"
-      index_message+=" -${#index_deleted[@]}"
-      (( "${#index_unmerged[@]}" != 0 )) && index_message+=" !${#index_unmerged[@]}"
+      # (( index_added != 0 )) && index_message+=" +${index_added}"
+      index_message+=" +${index_added}"
+      # (( index_modified != 0 )) && index_message+=" ~${index_modified}"
+      index_message+=" ~${index_modified}"
+      # (( index_deleted != 0 )) && index_message+=" -${index_deleted}"
+      index_message+=" -${index_deleted}"
+      (( index_unmerged != 0 )) && index_message+=" !${index_unmerged}"
       index_message+="${color_off}"
   fi
 
-  # add red color
   local files_message
-  if (( "${#files_added[@]}" != 0 )) \
-    || (( "${#files_modified[@]}" != 0 )) \
-    || (( "${#files_deleted[@]}" != 0 )) \
-    || (( "${#files_unmerged[@]}" != 0 )); then
+  if (( files_added != 0 )) \
+    || (( files_modified != 0 )) \
+    || (( files_deleted != 0 )) \
+    || (( files_unmerged != 0 )); then
       # add divider only if index message exists
-      if (( "${#index_added[@]}" != 0 )) \
-        || (( "${#index_modified[@]}" != 0 )) \
-        || (( "${#index_deleted[@]}" != 0 )) \
-        || (( "${#index_unmerged[@]}" != 0 )); then
+      if (( index_added != 0 )) \
+        || (( index_modified != 0 )) \
+        || (( index_deleted != 0 )) \
+        || (( index_unmerged != 0 )); then
           files_message+=" ${yellow_color}|${color_off}"
       fi
       files_message+="${red_color}"
-      # (( "${#files_added[@]}" != 0 )) && files_message+=" +${#files_added[@]}"
-      files_message+=" +${#files_added[@]}"
-      # (( "${#files_modified[@]}" != 0 )) && files_message+=" ~${#files_modified[@]}"
-      files_message+=" ~${#files_modified[@]}"
-      # (( "${#files_deleted[@]}" != 0 )) && files_message+=" -${#files_deleted[@]}"
-      files_message+=" -${#files_deleted[@]}"
-      (( "${#files_unmerged[@]}" != 0 )) && files_message+=" !${#files_unmerged[@]}"
+      # (( files_added != 0 )) && files_message+=" +${files_added}"
+      files_message+=" +${files_added}"
+      # (( files_modified != 0 )) && files_message+=" ~${files_modified}"
+      files_message+=" ~${files_modified}"
+      # (( files_deleted != 0 )) && files_message+=" -${files_deleted}"
+      files_message+=" -${files_deleted}"
+      (( files_unmerged != 0 )) && files_message+=" !${files_unmerged}"
       files_message+="${color_off}"
   fi
 
@@ -233,6 +286,7 @@ function terminator::prompt::git::branch() {
 
   local mode branch config step total
 
+  # TODO verify structure here
   if [[ -d "${git_dir}/rebase-merge" ]]; then
     if [[ -f "${git_dir}/rebase-merge/interactive" ]]; then
       mode='|REBASE-i'
