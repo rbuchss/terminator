@@ -1,6 +1,7 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${BASH_SOURCE[0]%/*/*}/styles.sh"
+source "${BASH_SOURCE[0]%/*/*}/file.sh"
 
 function terminator::prompt::git::old() {
   local inside_worktree
@@ -286,22 +287,27 @@ function terminator::prompt::git::branch() {
 
   [[ -z "${git_dir}" ]] && return 1
 
-  local mode branch step total
+  local mode branch step total todo
 
   if [[ -d "${git_dir}/rebase-merge" ]]; then
     mode='|REBASE'
 
-    # TODO add guards to $(<thing)
-    branch="$(<"${git_dir}/rebase-merge/head-name")"
-    step="$(<"${git_dir}/rebase-merge/msgnum")"
-    total="$(<"${git_dir}/rebase-merge/end")"
+    terminator::file::read_first_line \
+      "${git_dir}/rebase-merge/head-name" branch
+    terminator::file::read_first_line \
+      "${git_dir}/rebase-merge/msgnum" step
+    terminator::file::read_first_line \
+      "${git_dir}/rebase-merge/end" total
   else
     if [[ -d "${git_dir}/rebase-apply" ]]; then
-      step="$(<"${git_dir}/rebase-apply/next")"
-      total="$(<"${git_dir}/rebase-apply/last")"
+      terminator::file::read_first_line \
+        "${git_dir}/rebase-apply/next" step
+      terminator::file::read_first_line \
+        "${git_dir}/rebase-apply/last" total
 
       if [[ -f "${git_dir}/rebase-apply/rebasing" ]]; then
-        branch="$(<"${git_dir}/rebase-apply/head-name")"
+        terminator::file::read_first_line \
+          "${git_dir}/rebase-apply/head-name" branch
         mode='|REBASE'
       elif [[ -f "${git_dir}/rebase-apply/applying" ]]; then
         mode='|AM'
@@ -314,13 +320,12 @@ function terminator::prompt::git::branch() {
       mode='|CHERRY-PICKING'
     elif [[ -f "${git_dir}/REVERT_HEAD" ]]; then
       mode='|REVERTING'
-    elif [[ -r "${git_dir}/sequencer/todo" ]]; then
-      local todo
-      todo="$(<"${git_dir}/sequencer/todo")"
-      case "${todo}" in
-        p[\ $'\t']|pick[\ $'\t']*) mode="|CHERRY-PICKING" ;;
-        revert[\ $'\t']*) mode="|REVERTING" ;;
-      esac
+    elif terminator::file::read_first_line \
+      "${git_dir}/sequencer/todo" todo; then
+          case "${todo}" in
+            p[\ $'\t']|pick[\ $'\t']*) mode="|CHERRY-PICKING" ;;
+            revert[\ $'\t']*) mode="|REVERTING" ;;
+          esac
     elif [[ -f "${git_dir}/BISECT_LOG" ]]; then
       mode='|BISECTING'
     fi
@@ -335,7 +340,8 @@ function terminator::prompt::git::branch() {
       local ref
 
       if [[ -f "${git_dir}/HEAD" ]]; then
-        ref="$(<"${git_dir}/HEAD")"
+        terminator::file::read_first_line \
+          "${git_dir}/HEAD" ref
       else
         ref="$(git rev-parse HEAD 2>/dev/null)"
       fi

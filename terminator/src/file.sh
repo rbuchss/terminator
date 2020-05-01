@@ -114,3 +114,7 @@ function terminator::file::dirsize() {
 function terminator::file::mkcd() {
   mkdir -p "$1" && cd "$1" || return 1
 }
+
+function terminator::file::read_first_line() {
+  [[ -r "$1" ]] && IFS=$'\r\n' read -r "$2" < "$1"
+}
