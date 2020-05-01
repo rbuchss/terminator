@@ -57,33 +57,37 @@ function terminator::prompt::git() {
       return 0
   fi
 
-  local inside_worktree="${repo_info##*$'\n'}"
+  local inside_work_tree="${repo_info##*$'\n'}"
   repo_info="${repo_info%$'\n'*}"
   local bare_repo="${repo_info##*$'\n'}"
   repo_info="${repo_info%$'\n'*}"
-  local inside_gitdir="${repo_info##*$'\n'}"
-  local gitdir="${repo_info%$'\n'*}"
+  local inside_git_dir="${repo_info##*$'\n'}"
+  local git_dir="${repo_info%$'\n'*}"
 
-  # echo "inside_worktree: ${inside_worktree}"
+  # echo "inside_work_tree: ${inside_work_tree}"
   # echo "bare_repo: ${bare_repo}"
-  # echo "inside_gitdir: ${inside_gitdir}"
-  # echo "gitdir: ${gitdir}"
+  # echo "inside_git_dir: ${inside_git_dir}"
+  # echo "git_dir: ${git_dir}"
 
   local response=()
 
-  if [[ 'true' == "${inside_gitdir}" ]] && [[ 'true' != "${bare_repo}" ]]; then
+  if [[ 'true' == "${inside_git_dir}" ]] && [[ 'true' != "${bare_repo}" ]]; then
     response+=('GIT_DIR!')
-  elif [[ 'true' == "${inside_worktree}" ]]; then
+  elif [[ 'true' == "${inside_work_tree}" ]]; then
     while IFS= read -r result; do
       response+=("${result}")
-    done < <(terminator::prompt::git::status "${gitdir}")
+    done < <(terminator::prompt::git::status "${git_dir}")
+  fi
+
+  if [[ 'true' == "${bare_repo}" ]]; then
+    response[0]="BARE:${response[0]}"
   fi
 
   terminator::prompt::git::format "${response[@]}"
 }
 
 function terminator::prompt::git::status() {
-  local gitdir="$1"
+  local git_dir="$1"
 
   local branch
   local upstream
@@ -98,7 +102,7 @@ function terminator::prompt::git::status() {
   local files_modified=()
   local files_deleted=()
   local files_unmerged=()
-  local stash_count=0
+  # local stash_count=0
 
   local untracked_files_option='-uall' # TODO add option for this? '-uno' '-unormal'
 
@@ -152,7 +156,7 @@ function terminator::prompt::git::status() {
     "${untracked_files_option}" \
     --short --branch 2>/dev/null)
 
-  [[ -z "${branch}" ]] && branch="$(terminator::prompt::git::branch "${gitdir}")"
+  [[ -z "${branch}" ]] && branch="$(terminator::prompt::git::branch "${git_dir}")"
 
   # echo "branch: ${branch}"
   # echo "upstream: ${upstream}"
@@ -201,7 +205,7 @@ function terminator::prompt::git::format() {
   local files_modified="${11}"
   local files_deleted="${12}"
   local files_unmerged="${13}"
-  local stash_count="${14}"
+  # local stash_count="${14}"
 
   local branch_symbol
   branch_symbol="$(terminator::styles::branch_symbol)"
@@ -267,9 +271,7 @@ function terminator::prompt::git::format() {
       files_message+="${color_off}"
   fi
 
-  # echo "${color}${branch_symbol} ${branch} ${status_symbol}${color_off}"
   # [{HEAD-name} S +A ~B -C !D | +E ~F -G !H W]
-  # printf '[%s%s%s%s%s%s%s%s%s%s%s%s]' \
   printf '%s%s%s%s%s%s' \
     "${yellow_color}[${color_off}" \
     "${cyan_color} ${branch_symbol} ${branch}${color_off}" \
@@ -284,16 +286,12 @@ function terminator::prompt::git::branch() {
 
   [[ -z "${git_dir}" ]] && return 1
 
-  local mode branch config step total
+  local mode branch step total
 
-  # TODO verify structure here
   if [[ -d "${git_dir}/rebase-merge" ]]; then
-    if [[ -f "${git_dir}/rebase-merge/interactive" ]]; then
-      mode='|REBASE-i'
-    else
-      mode='|REBASE-m'
-    fi
+    mode='|REBASE'
 
+    # TODO add guards to $(<thing)
     branch="$(<"${git_dir}/rebase-merge/head-name")"
     step="$(<"${git_dir}/rebase-merge/msgnum")"
     total="$(<"${git_dir}/rebase-merge/end")"
@@ -303,6 +301,7 @@ function terminator::prompt::git::branch() {
       total="$(<"${git_dir}/rebase-apply/last")"
 
       if [[ -f "${git_dir}/rebase-apply/rebasing" ]]; then
+        branch="$(<"${git_dir}/rebase-apply/head-name")"
         mode='|REBASE'
       elif [[ -f "${git_dir}/rebase-apply/applying" ]]; then
         mode='|AM'
@@ -315,22 +314,24 @@ function terminator::prompt::git::branch() {
       mode='|CHERRY-PICKING'
     elif [[ -f "${git_dir}/REVERT_HEAD" ]]; then
       mode='|REVERTING'
+    elif [[ -r "${git_dir}/sequencer/todo" ]]; then
+      local todo
+      todo="$(<"${git_dir}/sequencer/todo")"
+      case "${todo}" in
+        p[\ $'\t']|pick[\ $'\t']*) mode="|CHERRY-PICKING" ;;
+        revert[\ $'\t']*) mode="|REVERTING" ;;
+      esac
     elif [[ -f "${git_dir}/BISECT_LOG" ]]; then
       mode='|BISECTING'
     fi
 
-    branch="$(git symbolic-ref HEAD -q 2>/dev/null)"
-    # {
-      # dbg 'Trying describe' $sw
-      # switch ($Global:GitPromptSettings.DescribeStyle) {
-        # 'contains' { git describe --contains HEAD 2>$null }
-        # 'branch' { git describe --contains --all HEAD 2>$null }
-        # 'describe' { git describe HEAD 2>$null }
-        # default { git tag --points-at HEAD 2>$null }
-      # }
-    # } `
-    # Falling back on parsing HEAD
-    if [[ -z "${branch}" ]]; then
+    if [[ -n "${branch}" ]]; then
+      :
+    elif [[ -h "${git_dir}/HEAD" ]]; then
+      # symlink symbolic ref
+      branch="$(git symbolic-ref HEAD -q 2>/dev/null)"
+    else
+      # Falling back on parsing HEAD
       local ref
 
       if [[ -f "${git_dir}/HEAD" ]]; then
@@ -343,18 +344,10 @@ function terminator::prompt::git::branch() {
       if [[ "${ref}" =~ $ref_regexp ]]; then
         branch="${BASH_REMATCH[1]}"
       elif [[ -n "${ref}" ]] && (( "${#ref}" >= 7 )); then
-        branch="${ref:0:7}..."
+        branch="(${ref:0:7}...)"
       else
         branch='unknown'
       fi
-    fi
-  fi
-
-  if [[ 'true' == "$(git rev-parse --is-inside-git-dir 2>/dev/null)" ]]; then
-    if [[ 'true' == "$(git rev-parse --is-bare-repository 2>/dev/null)" ]]; then
-      config='BARE:'
-    else
-      branch='GIT_DIR!'
     fi
   fi
 
@@ -362,5 +355,5 @@ function terminator::prompt::git::branch() {
     mode+=" ${step}/${total}"
   fi
 
-  echo "${config}${branch##refs/heads/}${mode}"
+  echo "${branch##refs/heads/}${mode}"
 }
