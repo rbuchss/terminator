@@ -198,6 +198,15 @@ function terminator::styles::branch_symbol() {
   terminator::unicode::code 0xE0A0
 }
 
+function terminator::styles::branch_color() {
+  if [[ -n "${TERMINATOR_STYLES_BRANCH_COLOR}" ]]; then
+    echo "${TERMINATOR_STYLES_BRANCH_COLOR}"
+    return 0
+  fi
+
+  terminator::color::code '38;5;69m'
+}
+
 function terminator::styles::detached_head_symbol() {
   if [[ -n "${TERMINATOR_STYLES_DETACHED_HEAD_SYMBOL}" ]]; then
     echo "${TERMINATOR_STYLES_DETACHED_HEAD_SYMBOL}"
@@ -205,4 +214,76 @@ function terminator::styles::detached_head_symbol() {
   fi
 
   terminator::unicode::code 0x27A6
+}
+
+function terminator::styles::upstream_same_color() {
+  if [[ -n "${TERMINATOR_STYLES_UPSTREAM_SAME_COLOR}" ]]; then
+    echo "${TERMINATOR_STYLES_UPSTREAM_SAME_COLOR}"
+    return 0
+  fi
+
+  terminator::color::code '38;5;69m'
+}
+
+function terminator::styles::upstream_ahead_color() {
+  if [[ -n "${TERMINATOR_STYLES_UPSTREAM_AHEAD_COLOR}" ]]; then
+    echo "${TERMINATOR_STYLES_UPSTREAM_AHEAD_COLOR}"
+    return 0
+  fi
+
+  terminator::color::code '0;92m'
+}
+
+function terminator::styles::upstream_behind_color() {
+  if [[ -n "${TERMINATOR_STYLES_UPSTREAM_BEHIND_COLOR}" ]]; then
+    echo "${TERMINATOR_STYLES_UPSTREAM_BEHIND_COLOR}"
+    return 0
+  fi
+
+  terminator::color::code '0;91m'
+}
+
+function terminator::styles::upstream_gone_color() {
+  if [[ -n "${TERMINATOR_STYLES_UPSTREAM_GONE_COLOR}" ]]; then
+    echo "${TERMINATOR_STYLES_UPSTREAM_GONE_COLOR}"
+    return 0
+  fi
+
+  terminator::color::code '0;91m'
+}
+
+function terminator::styles::index_color() {
+  if [[ -n "${TERMINATOR_STYLES_INDEX_COLOR}" ]]; then
+    echo "${TERMINATOR_STYLES_INDEX_COLOR}"
+    return 0
+  fi
+
+  terminator::color::code '0;92m'
+}
+
+function terminator::styles::files_color() {
+  if [[ -n "${TERMINATOR_STYLES_FILES_COLOR}" ]]; then
+    echo "${TERMINATOR_STYLES_FILES_COLOR}"
+    return 0
+  fi
+
+  terminator::color::code '0;91m'
+}
+
+function terminator::styles::divider_color() {
+  if [[ -n "${TERMINATOR_STYLES_DIVIDER_COLOR}" ]]; then
+    echo "${TERMINATOR_STYLES_DIVIDER_COLOR}"
+    return 0
+  fi
+
+  terminator::color::code '0;93m'
+}
+
+function terminator::styles::enclosure_color() {
+  if [[ -n "${TERMINATOR_STYLES_ENCLOSURE_COLOR}" ]]; then
+    echo "${TERMINATOR_STYLES_ENCLOSURE_COLOR}"
+    return 0
+  fi
+
+  terminator::color::code '0;90m'
 }

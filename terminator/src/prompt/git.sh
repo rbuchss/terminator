@@ -209,27 +209,43 @@ function terminator::prompt::git::format() {
   # local stash_count="${14}"
 
   local branch_symbol
-  branch_symbol="$(terminator::styles::branch_symbol)"
+  if [[ "${branch:0:1}" != '(' ]]; then
+    branch_symbol="$(terminator::styles::branch_symbol)"
+  else
+    branch_symbol="$(terminator::styles::detached_head_symbol)"
+  fi
 
-  local yellow_color green_color red_color cyan_color grey_color color_off
-  green_color="$(terminator::color::code '0;92m' 'bare')"
-  red_color="$(terminator::color::code '0;91m' 'bare')"
-  yellow_color="$(terminator::color::code '0;93m' 'bare')"
-  cyan_color="$(terminator::color::code '0;94m' 'bare')"
-  grey_color="$(terminator::color::code '0;90m' 'bare')"
-  color_off="$(terminator::color::code '0m' 'bare')"
+  local branch_color
+  local upstream_same_color upstream_ahead_color upstream_behind_color upstream_gone_color
+  local index_color files_color
+  local divider_color enclosure_color
+  local color_off
+  branch_color="$(terminator::styles::branch_color)"
+  upstream_same_color="$(terminator::styles::upstream_same_color)"
+  upstream_ahead_color="$(terminator::styles::upstream_ahead_color)"
+  upstream_behind_color="$(terminator::styles::upstream_behind_color)"
+  upstream_gone_color="$(terminator::styles::upstream_gone_color)"
+  index_color="$(terminator::styles::index_color)"
+  files_color="$(terminator::styles::files_color)"
+  divider_color="$(terminator::styles::divider_color)"
+  enclosure_color="$(terminator::styles::enclosure_color)"
+  color_off="$(terminator::color::off)"
+
+  local branch_message="${branch_color}${branch_symbol} ${branch}${color_off}"
 
   local upstream_message
   if [[ -n "${upstream}" ]]; then
     if [[ -n "${gone}" ]]; then
-      upstream_message+=" ${red_color}x${color_off}"
+      upstream_message+=" ${upstream_gone_color}x${color_off}"
     elif (( ahead_by == 0 && behind_by == 0 )); then
-      upstream_message+=" ${grey_color}≡${color_off}"
+      upstream_message+=" ${upstream_same_color}≡${color_off}"
     # elif (( ahead_by != 0 && behind_by != 0 )); then # TODO add flag to enable
-    #   upstream_message=" ${ahead_by}↕${behind_by}"
+    #   upstream_message+=" ${upstream_ahead_color}${ahead_by}${color_off}"
+    #   upstream_message+="${upstream_same_color}↕${color_off}"
+    #   upstream_message+="${upstream_behind_color}${behind_by}${color_off}"
     else
-      (( ahead_by != 0 )) && upstream_message+=" ${green_color}↑${ahead_by}${color_off}"
-      (( behind_by != 0 )) && upstream_message+=" ${red_color}↓${behind_by}${color_off}"
+      (( ahead_by != 0 )) && upstream_message+=" ${upstream_ahead_color}↑${ahead_by}${color_off}"
+      (( behind_by != 0 )) && upstream_message+=" ${upstream_behind_color}↓${behind_by}${color_off}"
     fi
   fi
 
@@ -238,7 +254,7 @@ function terminator::prompt::git::format() {
     || (( index_modified != 0 )) \
     || (( index_deleted != 0 )) \
     || (( index_unmerged != 0 )); then
-      index_message+="${green_color}"
+      index_message+="${index_color}"
       # (( index_added != 0 )) && index_message+=" +${index_added}"
       index_message+=" +${index_added}"
       # (( index_modified != 0 )) && index_message+=" ~${index_modified}"
@@ -259,9 +275,9 @@ function terminator::prompt::git::format() {
         || (( index_modified != 0 )) \
         || (( index_deleted != 0 )) \
         || (( index_unmerged != 0 )); then
-          files_message+=" ${yellow_color}|${color_off}"
+          files_message+=" ${divider_color}|${color_off}"
       fi
-      files_message+="${red_color}"
+      files_message+="${files_color}"
       # (( files_added != 0 )) && files_message+=" +${files_added}"
       files_message+=" +${files_added}"
       # (( files_modified != 0 )) && files_message+=" ~${files_modified}"
@@ -274,12 +290,12 @@ function terminator::prompt::git::format() {
 
   # [{HEAD-name} S +A ~B -C !D | +E ~F -G !H W]
   printf '%s%s%s%s%s%s' \
-    "${yellow_color}[${color_off}" \
-    "${cyan_color} ${branch_symbol} ${branch}${color_off}" \
+    "${enclosure_color}[ ${color_off}" \
+    "${branch_message}" \
     "${upstream_message}" \
     "${index_message}" \
     "${files_message}" \
-    "${yellow_color} ]${color_off}"
+    "${enclosure_color} ]${color_off}"
 }
 
 function terminator::prompt::git::branch() {
