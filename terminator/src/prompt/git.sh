@@ -220,16 +220,16 @@ function terminator::prompt::git::format() {
   local index_color files_color
   local divider_color enclosure_color
   local color_off
-  branch_color="$(terminator::styles::branch_color)"
-  upstream_same_color="$(terminator::styles::upstream_same_color)"
-  upstream_ahead_color="$(terminator::styles::upstream_ahead_color)"
-  upstream_behind_color="$(terminator::styles::upstream_behind_color)"
-  upstream_gone_color="$(terminator::styles::upstream_gone_color)"
-  index_color="$(terminator::styles::index_color)"
-  files_color="$(terminator::styles::files_color)"
-  divider_color="$(terminator::styles::divider_color)"
-  enclosure_color="$(terminator::styles::enclosure_color)"
-  color_off="$(terminator::color::off)"
+  terminator::styles::branch_color branch_color
+  terminator::styles::upstream_same_color upstream_same_color
+  terminator::styles::upstream_ahead_color upstream_ahead_color
+  terminator::styles::upstream_behind_color upstream_behind_color
+  terminator::styles::upstream_gone_color upstream_gone_color
+  terminator::styles::index_color index_color
+  terminator::styles::files_color files_color
+  terminator::styles::divider_color divider_color
+  terminator::styles::enclosure_color enclosure_color
+  terminator::color::off color_off
 
   local branch_message="${branch_color}${branch_symbol} ${branch}${color_off}"
 
