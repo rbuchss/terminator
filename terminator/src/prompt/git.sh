@@ -84,7 +84,7 @@ function terminator::prompt::git() {
     response[0]="BARE:${response[0]}"
   fi
 
-  terminator::prompt::git::format "${response[@]}"
+  terminator::prompt::git::format "${response[@]}" "$@"
 }
 
 function terminator::prompt::git::status() {
@@ -157,7 +157,7 @@ function terminator::prompt::git::status() {
     "${untracked_files_option}" \
     --short --branch 2>/dev/null)
 
-  [[ -z "${branch}" ]] && branch="$(terminator::prompt::git::branch "${git_dir}")"
+  [[ -z "${branch}" ]] && terminator::prompt::git::branch "${git_dir}" branch
 
   # echo "branch: ${branch}"
   # echo "upstream: ${upstream}"
@@ -173,6 +173,7 @@ function terminator::prompt::git::status() {
   # echo "${#files_deleted[@]} files_deleted: ${files_deleted[*]}"
   # echo "${#files_unmerged[@]} files_unmerged: ${files_unmerged[*]}"
 
+  # TODO pass back by read/prinf -v ?
   local response=(
     "${branch}"
     "${upstream}"
@@ -208,18 +209,24 @@ function terminator::prompt::git::format() {
   local files_unmerged="${13}"
   # local stash_count="${14}"
 
-  local branch_symbol
+  local branch_symbol \
+    branch_color \
+    upstream_same_color \
+    upstream_ahead_color \
+    upstream_behind_color \
+    upstream_gone_color \
+    index_color \
+    files_color \
+    divider_color \
+    enclosure_color \
+    color_off
+
   if [[ "${branch:0:1}" != '(' ]]; then
-    branch_symbol="$(terminator::styles::branch_symbol)"
+    terminator::styles::branch_symbol branch_symbol
   else
-    branch_symbol="$(terminator::styles::detached_head_symbol)"
+    terminator::styles::detached_head_symbol branch_symbol
   fi
 
-  local branch_color
-  local upstream_same_color upstream_ahead_color upstream_behind_color upstream_gone_color
-  local index_color files_color
-  local divider_color enclosure_color
-  local color_off
   terminator::styles::branch_color branch_color
   terminator::styles::upstream_same_color upstream_same_color
   terminator::styles::upstream_ahead_color upstream_ahead_color
@@ -231,9 +238,13 @@ function terminator::prompt::git::format() {
   terminator::styles::enclosure_color enclosure_color
   terminator::color::off color_off
 
-  local branch_message="${branch_color}${branch_symbol} ${branch}${color_off}"
+  local branch_message \
+    upstream_message \
+    index_message \
+    files_message
 
-  local upstream_message
+  branch_message="${branch_color}${branch_symbol} ${branch}${color_off}"
+
   if [[ -n "${upstream}" ]]; then
     if [[ -n "${gone}" ]]; then
       upstream_message+=" ${upstream_gone_color}x${color_off}"
@@ -249,7 +260,6 @@ function terminator::prompt::git::format() {
     fi
   fi
 
-  local index_message
   if (( index_added != 0 )) \
     || (( index_modified != 0 )) \
     || (( index_deleted != 0 )) \
@@ -265,7 +275,6 @@ function terminator::prompt::git::format() {
       index_message+="${color_off}"
   fi
 
-  local files_message
   if (( files_added != 0 )) \
     || (( files_modified != 0 )) \
     || (( files_deleted != 0 )) \
@@ -289,13 +298,26 @@ function terminator::prompt::git::format() {
   fi
 
   # [{HEAD-name} S +A ~B -C !D | +E ~F -G !H W]
-  printf '%s%s%s%s%s%s' \
-    "${enclosure_color}[ ${color_off}" \
-    "${branch_message}" \
-    "${upstream_message}" \
-    "${index_message}" \
-    "${files_message}" \
-    "${enclosure_color} ]${color_off}"
+  case "$#" in
+    14)
+      printf -v "${14}" '%s%s%s%s%s%s' \
+        "${enclosure_color}[ ${color_off}" \
+        "${branch_message}" \
+        "${upstream_message}" \
+        "${index_message}" \
+        "${files_message}" \
+        "${enclosure_color} ]${color_off}"
+      ;;
+    *)
+      printf '%s%s%s%s%s%s' \
+        "${enclosure_color}[ ${color_off}" \
+        "${branch_message}" \
+        "${upstream_message}" \
+        "${index_message}" \
+        "${files_message}" \
+        "${enclosure_color} ]${color_off}"
+      ;;
+  esac
 }
 
 function terminator::prompt::git::branch() {
@@ -303,13 +325,13 @@ function terminator::prompt::git::branch() {
 
   [[ -z "${git_dir}" ]] && return 1
 
-  local mode branch step total todo
+  local mode branch_ step total todo
 
   if [[ -d "${git_dir}/rebase-merge" ]]; then
     mode='|REBASE'
 
     terminator::file::read_first_line \
-      "${git_dir}/rebase-merge/head-name" branch
+      "${git_dir}/rebase-merge/head-name" branch_
     terminator::file::read_first_line \
       "${git_dir}/rebase-merge/msgnum" step
     terminator::file::read_first_line \
@@ -323,7 +345,7 @@ function terminator::prompt::git::branch() {
 
       if [[ -f "${git_dir}/rebase-apply/rebasing" ]]; then
         terminator::file::read_first_line \
-          "${git_dir}/rebase-apply/head-name" branch
+          "${git_dir}/rebase-apply/head-name" branch_
         mode='|REBASE'
       elif [[ -f "${git_dir}/rebase-apply/applying" ]]; then
         mode='|AM'
@@ -346,11 +368,11 @@ function terminator::prompt::git::branch() {
       mode='|BISECTING'
     fi
 
-    if [[ -n "${branch}" ]]; then
+    if [[ -n "${branch_}" ]]; then
       :
     elif [[ -h "${git_dir}/HEAD" ]]; then
       # symlink symbolic ref
-      branch="$(git symbolic-ref HEAD -q 2>/dev/null)"
+      branch_="$(git symbolic-ref HEAD -q 2>/dev/null)"
     else
       # Falling back on parsing HEAD
       local ref
@@ -364,11 +386,11 @@ function terminator::prompt::git::branch() {
 
       local ref_regexp='ref: (.+)'
       if [[ "${ref}" =~ $ref_regexp ]]; then
-        branch="${BASH_REMATCH[1]}"
+        branch_="${BASH_REMATCH[1]}"
       elif [[ -n "${ref}" ]] && (( "${#ref}" >= 7 )); then
-        branch="(${ref:0:7}...)"
+        branch_="(${ref:0:7}...)"
       else
-        branch='unknown'
+        branch_='unknown'
       fi
     fi
   fi
@@ -377,5 +399,16 @@ function terminator::prompt::git::branch() {
     mode+=" ${step}/${total}"
   fi
 
-  echo "${branch##refs/heads/}${mode}"
+  case "$#" in
+    2)
+      printf -v "$2" '%s%s' \
+        "${branch_##refs/heads/}" \
+        "${mode}"
+      ;;
+    *)
+      printf '%s%s' \
+        "${branch_##refs/heads/}" \
+        "${mode}"
+      ;;
+  esac
 }
