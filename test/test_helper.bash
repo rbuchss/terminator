@@ -109,6 +109,12 @@ assert_output_exists() {
 
 # ShellCheck doesn't know about $output from Bats
 # shellcheck disable=SC2154
+assert_no_output_exists() {
+  [[ -z "$output" ]] || flunk "expected no output, actual:" "$output"
+}
+
+# ShellCheck doesn't know about $output from Bats
+# shellcheck disable=SC2154
 assert_output_contains() {
   local input="$output"; local expected="$1"; local count="${2:-1}"; local found=0
   until [ "${input/$expected/}" = "$input" ]; do
