@@ -1,9 +1,25 @@
 #!/bin/bash
 
 function terminator::ssh::is_ssh_session() {
+  if [[ -n "${TERMINATOR_SSH_IS_SSH_SESSION}" ]]; then
+    (( TERMINATOR_SSH_IS_SSH_SESSION == 0 )) && return 1
+    (( TERMINATOR_SSH_IS_SSH_SESSION == 1 )) && return 0
+  fi
+
   [[ -n "${SSH_CLIENT}" ]] \
     || [[ -n "${SSH_TTY}" ]] \
     || terminator::ssh::is_ssh_sudo "$@"
+
+  result=$?
+
+  if (( result == 0 )); then
+    TERMINATOR_SSH_IS_SSH_SESSION=1
+  else
+    TERMINATOR_SSH_IS_SSH_SESSION=0
+  fi
+
+  export TERMINATOR_SSH_IS_SSH_SESSION
+  return "${result}"
 }
 
 function terminator::ssh::ppinfo() {

@@ -72,26 +72,24 @@ function terminator::prompt::error() {
 }
 
 function terminator::prompt::ssh() {
-  # TODO cache this value
-  if declare -F terminator::ssh::is_ssh_session > /dev/null \
-    && terminator::ssh::is_ssh_session; then
-      local host_color host_symbol
+  if terminator::ssh::is_ssh_session; then
+    local host_color host_symbol
 
-      terminator::styles::host_color host_color
-      terminator::styles::host_symbol host_symbol
+    terminator::styles::host_color host_color
+    terminator::styles::host_symbol host_symbol
 
-      case "$#" in
-        1)
-          printf  -v "1" '%s%s ' \
-            "${host_color}" \
-            "${host_symbol}"
-          ;;
-        *)
-          printf '%s%s ' \
-            "${host_color}" \
-            "${host_symbol}"
-          ;;
-      esac
+    case "$#" in
+      1)
+        printf  -v "$1" '%s%s ' \
+          "${host_color}" \
+          "${host_symbol}"
+        ;;
+      *)
+        printf '%s%s ' \
+          "${host_color}" \
+          "${host_symbol}"
+        ;;
+    esac
     return
   fi
 }
