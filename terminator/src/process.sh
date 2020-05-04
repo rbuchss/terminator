@@ -32,7 +32,7 @@ function terminator::process::kill() {
   echo ''
 
   for pid in "${pids[@]}"; do
-    name="$(ps -p "${pid}" -o args=)"
+    name="$(command ps -p "${pid}" -o args=)"
     if terminator::utility::ask \
       "Kill process ${pid} <${name}> with signal ${signal}?"; then
       command kill "${signal}" "${pid}"
