@@ -15,7 +15,6 @@ function terminator::prompt::git() {
       return 0
   fi
 
-  # shellcheck disable=SC2034
   local inside_work_tree="${repo_info##*$'\n'}"
   repo_info="${repo_info%$'\n'*}"
   local bare_repo="${repo_info##*$'\n'}"
@@ -27,13 +26,13 @@ function terminator::prompt::git() {
 
   if [[ 'true' == "${inside_git_dir}" ]] && [[ 'true' != "${bare_repo}" ]]; then
     response+=('GIT_DIR!')
-    for _ in {1..12}; do
+    for _ in {1..13}; do
       response+=('')
     done
   else
     while IFS= read -r result; do
       response+=("${result}")
-    done < <(terminator::prompt::git::status "${git_dir}")
+    done < <(terminator::prompt::git::status "${git_dir}" "${inside_work_tree}")
   fi
 
   if [[ 'true' == "${bare_repo}" ]]; then
@@ -45,6 +44,7 @@ function terminator::prompt::git() {
 
 function terminator::prompt::git::status() {
   local git_dir="$1"
+  local inside_work_tree="$2"
 
   local branch
   local upstream
@@ -59,7 +59,7 @@ function terminator::prompt::git::status() {
   local files_modified=()
   local files_deleted=()
   local files_unmerged=()
-  # local stash_count=0
+  local stash_count=0
 
   # valid values: '-uall' '-uno' '-unormal'
   local untracked_files_option="${TERMINATOR_GIT_STATUS_UNTRACKED_FILES:--unormal}"
@@ -116,6 +116,11 @@ function terminator::prompt::git::status() {
 
   [[ -z "${branch}" ]] && terminator::prompt::git::branch "${git_dir}" branch
 
+  if [[ 'true' == "${inside_work_tree}" ]] \
+    && (( "${TERMINATOR_GIT_STATUS_STASH_ENABLED:-0}" == 1 )) ; then
+      terminator::prompt::git::stash "${git_dir}" stash_count
+  fi
+
   # echo "branch: ${branch}"
   # echo "upstream: ${upstream}"
   # echo "ahead_by: ${ahead_by}"
@@ -145,6 +150,7 @@ function terminator::prompt::git::status() {
     "${#files_modified[@]}"
     "${#files_deleted[@]}"
     "${#files_unmerged[@]}"
+    "${stash_count}"
   )
   printf '%s\n' "${response[@]}"
 }
@@ -164,7 +170,7 @@ function terminator::prompt::git::format() {
   local files_modified="${11}"
   local files_deleted="${12}"
   local files_unmerged="${13}"
-  # local stash_count="${14}"
+  local stash_count="${14}"
 
   local branch_symbol \
     branch_color \
@@ -175,6 +181,7 @@ function terminator::prompt::git::format() {
     index_color \
     files_color \
     divider_color \
+    stash_color \
     enclosure_color \
     color_off
 
@@ -192,14 +199,15 @@ function terminator::prompt::git::format() {
   terminator::styles::index_color index_color
   terminator::styles::files_color files_color
   terminator::styles::divider_color divider_color
+  terminator::styles::stash_color stash_color
   terminator::styles::enclosure_color enclosure_color
   terminator::color::off color_off
-  # terminator::color::code '38;5;214m' files_color
 
   local branch_message \
     upstream_message \
     index_message \
-    files_message
+    files_message \
+    stash_message
 
   branch_message="${branch_color}${branch_symbol} ${branch}${color_off}"
 
@@ -256,24 +264,31 @@ function terminator::prompt::git::format() {
       files_message+="${color_off}"
   fi
 
+  if (( "${TERMINATOR_GIT_STATUS_STASH_ENABLED:-0}" == 1 )) \
+    && (( stash_count > 0 )); then
+      stash_message+=" ${stash_color}#${stash_count}${color_off}"
+  fi
+
   # [{HEAD-name} S +A ~B -C !D | +E ~F -G !H W]
   case "$#" in
-    14)
-      printf -v "${14}" '%s%s%s%s%s%s' \
+    15)
+      printf -v "${15}" '%s%s%s%s%s%s%s' \
         "${enclosure_color}[ ${color_off}" \
         "${branch_message}" \
         "${upstream_message}" \
         "${index_message}" \
         "${files_message}" \
+        "${stash_message}" \
         "${enclosure_color} ]${color_off}"
       ;;
     *)
-      printf '%s%s%s%s%s%s' \
+      printf '%s%s%s%s%s%s%s' \
         "${enclosure_color}[ ${color_off}" \
         "${branch_message}" \
         "${upstream_message}" \
         "${index_message}" \
         "${files_message}" \
+        "${stash_message}" \
         "${enclosure_color} ]${color_off}"
       ;;
   esac
@@ -369,5 +384,24 @@ function terminator::prompt::git::branch() {
         "${branch_##refs/heads/}" \
         "${mode}"
       ;;
+  esac
+}
+
+function terminator::prompt::git::stash() {
+  local git_dir="$1" \
+    count=0
+
+  if [[ -n "${git_dir}" ]] \
+    && [[ -r "${git_dir}/logs/refs/stash" ]]; then
+      while IFS= read -r _; do
+        (( count++ ))
+      done < "${git_dir}/logs/refs/stash"
+  else
+    count="$(git stash list | wc -l)" # slow ... can take ~20ms
+  fi
+
+  case "$#" in
+    2) read -r "$2" <<< "${count}" ;;
+    *) echo "${count}" ;;
   esac
 }

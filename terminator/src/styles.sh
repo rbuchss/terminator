@@ -326,6 +326,14 @@ function terminator::styles::divider_color() {
     "$@"
 }
 
+function terminator::styles::stash_color() {
+  terminator::styles::color_coalesce \
+    "${TERMINATOR_STYLES_STASH_COLOR}" \
+    "${TERMINATOR_STYLES_STASH_COLOR_CODE}" \
+    '38;5;214m' \
+    "$@"
+}
+
 function terminator::styles::enclosure_color() {
   terminator::styles::color_coalesce \
     "${TERMINATOR_STYLES_ENCLOSURE_COLOR}" \
