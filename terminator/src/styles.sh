@@ -5,204 +5,331 @@ source "${BASH_SOURCE[0]%/*}/unicode.sh"
 source "${BASH_SOURCE[0]%/*}/user.sh"
 
 function terminator::styles::newline() {
-  # shellcheck disable=SC2028
+  local symbol
+
   case "${OSTYPE}" in
-    msys*) echo '\r\n' ;; # windows
+    msys*) symbol='\r\n' ;; # windows
     # solaris*) ;& # case fall-through not supported until bash-4
     # darwin*) ;&
     # linux*) ;&
     # bsd*) ;&
-    *) echo '\n' ;;
+    *) symbol='\n' ;;
+  esac
+
+  case "$#" in
+    1) read -r "$1" <<< "${symbol}" ;;
+    *) echo "${symbol}" ;;
+  esac
+}
+
+function terminator::styles::coalesce() {
+  local cmd="$1"
+  local environment_value="$2"
+  local environment_code="$3"
+  local default="$4"
+
+  if [[ -n "${environment_value}" ]]; then
+    case "$#" in
+      5) read -r "$5" <<< "${environment_value}" ;;
+      *) echo "${environment_value}" ;;
+    esac
+    return
+  fi
+
+  local code="${environment_code:-$default}"
+
+  case "$#" in
+    5) "${cmd}" "${code}" "$5" ;;
+    *) "${cmd}" "${code}" ;;
+  esac
+}
+
+function terminator::styles::color_coalesce() {
+  terminator::styles::coalesce 'terminator::color::code' "$@"
+}
+
+function terminator::styles::unicode_coalesce() {
+  terminator::styles::coalesce 'terminator::unicode::code' "$@"
+}
+
+function terminator::styles::char_coalesce() {
+  local environment_value="$1"
+  local default="$2"
+  local symbol="${environment_value:-$default}"
+
+  case "$#" in
+    3) read -r "$3" <<< "${symbol}" ;;
+    *) echo "${symbol}" ;;
   esac
 }
 
 function terminator::styles::username() {
-  echo '\u'
+  terminator::styles::char_coalesce \
+    "${TERMINATOR_STYLES_USERNAME}" \
+    '\u' \
+    "$@"
 }
 
 function terminator::styles::user_color() {
   if terminator::user::is_root; then
-    terminator::styles::root::user_color
+    terminator::styles::root::user_color "$@"
     return
   fi
 
-  if [[ -n "${TERMINATOR_STYLES_USER_COLOR}" ]]; then
-    echo "${TERMINATOR_STYLES_USER_COLOR}"
-    return 0
-  fi
-
-  terminator::color::code '38;5;69m'
+  terminator::styles::color_coalesce \
+    "${TERMINATOR_STYLES_USER_COLOR}" \
+    "${TERMINATOR_STYLES_USER_COLOR_CODE}" \
+    '38;5;69m' \
+    "$@"
 }
 
 function terminator::styles::root::user_color() {
-  if [[ -n "${TERMINATOR_STYLES_ROOT_USER_COLOR}" ]]; then
-    echo "${TERMINATOR_STYLES_ROOT_USER_COLOR}"
-    return 0
-  fi
-
-  terminator::color::code '0;91m'
+  terminator::styles::color_coalesce \
+    "${TERMINATOR_STYLES_ROOT_USER_COLOR}" \
+    "${TERMINATOR_STYLES_ROOT_USER_COLOR_CODE}" \
+    '0;91m' \
+    "$@"
 }
 
 function terminator::styles::user_separator() {
   if terminator::user::is_root; then
-    echo '#'
+    terminator::styles::root::user_separator "$@"
     return
   fi
 
-  echo '@'
+  terminator::styles::char_coalesce \
+    "${TERMINATOR_STYLES_USER_SEPARATOR}" \
+    '@' \
+    "$@"
+}
+
+function terminator::styles::root::user_separator() {
+  terminator::styles::char_coalesce \
+    "${TERMINATOR_STYLES_ROOT_USER_SEPARATOR}" \
+    '#' \
+    "$@"
 }
 
 function terminator::styles::hostname() {
-  echo '\h'
+  terminator::styles::char_coalesce \
+    "${TERMINATOR_STYLES_HOSTNAME}" \
+    '\h' \
+    "$@"
 }
 
 function terminator::styles::host_color() {
   if terminator::user::is_root; then
-    terminator::styles::root::host_color
+    terminator::styles::root::host_color "$@"
     return
   fi
 
-  if [[ -n "${TERMINATOR_STYLES_HOST_COLOR}" ]]; then
-    echo "${TERMINATOR_STYLES_HOST_COLOR}"
-    return 0
-  fi
-
-  terminator::color::code '0;94m'
+  terminator::styles::color_coalesce \
+    "${TERMINATOR_STYLES_HOST_COLOR}" \
+    "${TERMINATOR_STYLES_HOST_COLOR_CODE}" \
+    '0;94m' \
+    "$@"
 }
 
 function terminator::styles::root::host_color() {
-  if [[ -n "${TERMINATOR_STYLES_ROOT_HOST_COLOR}" ]]; then
-    echo "${TERMINATOR_STYLES_ROOT_HOST_COLOR}"
-    return 0
-  fi
-
-  terminator::color::code '0;94m'
+  terminator::styles::color_coalesce \
+    "${TERMINATOR_STYLES_ROOT_HOST_COLOR}" \
+    "${TERMINATOR_STYLES_ROOT_HOST_COLOR_CODE}" \
+    '0;94m' \
+    "$@"
 }
 
 function terminator::styles::host_symbol() {
-  if [[ -n "${TERMINATOR_STYLES_HOST_SYMBOL}" ]]; then
-    echo "${TERMINATOR_STYLES_HOST_SYMBOL}"
-    return 0
-  fi
-
-  echo ''
+  terminator::styles::unicode_coalesce \
+    "${TERMINATOR_STYLES_HOST_SYMBOL}" \
+    "${TERMINATOR_STYLES_HOST_SYMBOL_CODE}" \
+    0x262F \
+    "$@"
 }
 
 function terminator::styles::path() {
-  echo '\w'
+  terminator::styles::char_coalesce \
+    "${TERMINATOR_STYLES_PATH}" \
+    '\w' \
+    "$@"
 }
 
 function terminator::styles::path_color() {
   if terminator::user::is_root; then
-    terminator::styles::root::path_color
+    terminator::styles::root::path_color "$@"
     return
   fi
 
-  if [[ -n "${TERMINATOR_STYLES_PATH_COLOR}" ]]; then
-    echo "${TERMINATOR_STYLES_PATH_COLOR}"
-    return 0
-  fi
-
-  terminator::color::code '38;5;186m'
+  terminator::styles::color_coalesce \
+    "${TERMINATOR_STYLES_PATH_COLOR}" \
+    "${TERMINATOR_STYLES_PATH_COLOR_CODE}" \
+    '38;5;186m' \
+    "$@"
 }
 
 function terminator::styles::root::path_color() {
-  if [[ -n "${TERMINATOR_STYLES_ROOT_PATH_COLOR}" ]]; then
-    echo "${TERMINATOR_STYLES_ROOT_PATH_COLOR}"
-    return 0
-  fi
-
-  terminator::color::code '0;94m'
+  terminator::styles::color_coalesce \
+    "${TERMINATOR_STYLES_ROOT_PATH_COLOR}" \
+    "${TERMINATOR_STYLES_ROOT_PATH_COLOR_CODE}" \
+    '0;94m' \
+    "$@"
 }
 
 function terminator::styles::jobs() {
-  echo '\j'
+  terminator::styles::char_coalesce \
+    "${TERMINATOR_STYLES_JOBS}" \
+    '\j' \
+    "$@"
 }
 
 function terminator::styles::time() {
-  # shellcheck disable=SC2028
-  echo '\t'
+  terminator::styles::char_coalesce \
+    "${TERMINATOR_STYLES_TIME}" \
+    '\t' \
+    "$@"
 }
 
 function terminator::styles::command_symbol() {
-  if [[ -n "${TERMINATOR_STYLES_COMMAND_SYMBOL}" ]]; then
-    echo "${TERMINATOR_STYLES_COMMAND_SYMBOL}"
-    return 0
-  fi
-
-  terminator::unicode::code 0x03BB
+  terminator::styles::unicode_coalesce \
+    "${TERMINATOR_STYLES_COMMAND_SYMBOL}" \
+    "${TERMINATOR_STYLES_COMMAND_SYMBOL_CODE}" \
+    0x03BB \
+    "$@"
 }
 
 function terminator::styles::error_symbol() {
-  if [[ -n "${TERMINATOR_STYLES_ERROR_SYMBOL}" ]]; then
-    echo "${TERMINATOR_STYLES_ERROR_SYMBOL}"
-    return 0
-  fi
-
-  terminator::unicode::code 0x2718
+  terminator::styles::unicode_coalesce \
+    "${TERMINATOR_STYLES_ERROR_SYMBOL}" \
+    "${TERMINATOR_STYLES_ERROR_SYMBOL_CODE}" \
+    0x2718 \
+    "$@"
 }
 
 function terminator::styles::error_color() {
-  if [[ -n "${TERMINATOR_STYLES_ERROR_COLOR}" ]]; then
-    echo "${TERMINATOR_STYLES_ERROR_COLOR}"
-    return 0
-  fi
-
-  # color="$(color_code "38;5;9m")"
-  terminator::color::code '0;91m'
+  # '38;5;9m'
+  terminator::styles::color_coalesce \
+    "${TERMINATOR_STYLES_ERROR_COLOR}" \
+    "${TERMINATOR_STYLES_ERROR_COLOR_CODE}" \
+    '0;91m' \
+    "$@"
 }
 
 function terminator::styles::warning_symbol() {
-  if [[ -n "${TERMINATOR_STYLES_WARNING_SYMBOL}" ]]; then
-    echo "${TERMINATOR_STYLES_WARNING_SYMBOL}"
-    return 0
-  fi
-
-  echo '?'
+  terminator::styles::unicode_coalesce \
+    "${TERMINATOR_STYLES_WARNING_SYMBOL}" \
+    "${TERMINATOR_STYLES_WARNING_SYMBOL_CODE}" \
+    0x3F \
+    "$@"
 }
 
 function terminator::styles::warning_color() {
-  if [[ -n "${TERMINATOR_STYLES_WARNING_COLOR}" ]]; then
-    echo "${TERMINATOR_STYLES_WARNING_COLOR}"
-    return 0
-  fi
-
-  terminator::color::code '0;93m'
+  terminator::styles::color_coalesce \
+    "${TERMINATOR_STYLES_WARNING_COLOR}" \
+    "${TERMINATOR_STYLES_WARNING_COLOR_CODE}" \
+    '0;93m' \
+    "$@"
 }
 
 function terminator::styles::ok_symbol() {
-  if [[ -n "${TERMINATOR_STYLES_OK_SYMBOL}" ]]; then
-    echo "${TERMINATOR_STYLES_OK_SYMBOL}"
-    return 0
-  fi
-
-  terminator::unicode::code 0x2714
+  terminator::styles::unicode_coalesce \
+    "${TERMINATOR_STYLES_OK_SYMBOL}" \
+    "${TERMINATOR_STYLES_OK_SYMBOL_CODE}" \
+    0x2714 \
+    "$@"
 }
 
 function terminator::styles::ok_color() {
-  if [[ -n "${TERMINATOR_STYLES_OK_COLOR}" ]]; then
-    echo "${TERMINATOR_STYLES_OK_COLOR}"
-    return 0
-  fi
-
-  # color="$(color_code "38;5;10m")"
-  terminator::color::code '0;92m'
+  # '38;5;10m'
+  terminator::styles::color_coalesce \
+    "${TERMINATOR_STYLES_OK_COLOR}" \
+    "${TERMINATOR_STYLES_OK_COLOR_CODE}" \
+    '0;92m' \
+    "$@"
 }
 
 function terminator::styles::branch_symbol() {
-  if [[ -n "${TERMINATOR_STYLES_BRANCH_SYMBOL}" ]]; then
-    echo "${TERMINATOR_STYLES_BRANCH_SYMBOL}"
-    return 0
-  fi
+  terminator::styles::unicode_coalesce \
+    "${TERMINATOR_STYLES_BRANCH_SYMBOL}" \
+    "${TERMINATOR_STYLES_BRANCH_SYMBOL_CODE}" \
+    0xE0A0 \
+    "$@"
+}
 
-  terminator::unicode::code 0xE0A0
+function terminator::styles::branch_color() {
+  terminator::styles::color_coalesce \
+    "${TERMINATOR_STYLES_BRANCH_COLOR}" \
+    "${TERMINATOR_STYLES_BRANCH_COLOR_CODE}" \
+    '38;5;69m' \
+    "$@"
 }
 
 function terminator::styles::detached_head_symbol() {
-  if [[ -n "${TERMINATOR_STYLES_DETACHED_HEAD_SYMBOL}" ]]; then
-    echo "${TERMINATOR_STYLES_DETACHED_HEAD_SYMBOL}"
-    return 0
-  fi
+  terminator::styles::unicode_coalesce \
+    "${TERMINATOR_STYLES_DETACHED_HEAD_SYMBOL}" \
+    "${TERMINATOR_STYLES_DETACHED_HEAD_SYMBOL_CODE}" \
+    0x27A6 \
+    "$@"
+}
 
-  terminator::unicode::code 0x27A6
+function terminator::styles::upstream_same_color() {
+  terminator::styles::color_coalesce \
+    "${TERMINATOR_STYLES_UPSTREAM_SAME_COLOR}" \
+    "${TERMINATOR_STYLES_UPSTREAM_SAME_COLOR_CODE}" \
+    '38;5;69m' \
+    "$@"
+}
+
+function terminator::styles::upstream_ahead_color() {
+  terminator::styles::color_coalesce \
+    "${TERMINATOR_STYLES_UPSTREAM_AHEAD_COLOR}" \
+    "${TERMINATOR_STYLES_UPSTREAM_AHEAD_COLOR_CODE}" \
+    '0;92m' \
+    "$@"
+}
+
+function terminator::styles::upstream_behind_color() {
+  terminator::styles::color_coalesce \
+    "${TERMINATOR_STYLES_UPSTREAM_BEHIND_COLOR}" \
+    "${TERMINATOR_STYLES_UPSTREAM_BEHIND_COLOR_CODE}" \
+    '0;91m' \
+    "$@"
+}
+
+function terminator::styles::upstream_gone_color() {
+  terminator::styles::color_coalesce \
+    "${TERMINATOR_STYLES_UPSTREAM_GONE_COLOR}" \
+    "${TERMINATOR_STYLES_UPSTREAM_GONE_COLOR_CODE}" \
+    '0;91m' \
+    "$@"
+}
+
+function terminator::styles::index_color() {
+  terminator::styles::color_coalesce \
+    "${TERMINATOR_STYLES_INDEX_COLOR}" \
+    "${TERMINATOR_STYLES_INDEX_COLOR_CODE}" \
+    '0;92m' \
+    "$@"
+}
+
+function terminator::styles::files_color() {
+  terminator::styles::color_coalesce \
+    "${TERMINATOR_STYLES_FILES_COLOR}" \
+    "${TERMINATOR_STYLES_FILES_COLOR_CODE}" \
+    '0;91m' \
+    "$@"
+}
+
+function terminator::styles::divider_color() {
+  terminator::styles::color_coalesce \
+    "${TERMINATOR_STYLES_DIVIDER_COLOR}" \
+    "${TERMINATOR_STYLES_DIVIDER_COLOR_CODE}" \
+    '0;93m' \
+    "$@"
+}
+
+function terminator::styles::enclosure_color() {
+  terminator::styles::color_coalesce \
+    "${TERMINATOR_STYLES_ENCLOSURE_COLOR}" \
+    "${TERMINATOR_STYLES_ENCLOSURE_COLOR_CODE}" \
+    '0;90m' \
+    "$@"
 }
