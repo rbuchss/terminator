@@ -27,11 +27,9 @@ function terminator::bootstrap() {
     "${HOME}"
 
   terminator::bootstrap::os
-  terminator::bootstrap::pyenv
-  terminator::bootstrap::rbenv
-  terminator::bootstrap::jenv
 
   terminator::config::load \
+    '.bash_opt' \
     '.bash_styles' \
     '.bashrc' \
     '.bash_aliases'
@@ -94,26 +92,4 @@ function terminator::bootstrap::autoload() {
   for autoload_file in "${HOME}"/.bash_autoload*; do
     terminator::source "${autoload_file}"
   done
-}
-
-function terminator::bootstrap::pyenv() {
-  if command -v pyenv > /dev/null 2>&1; then
-    eval "$(pyenv init -)"
-    eval "$(pyenv virtualenv-init -)"
-    source "$(brew --prefix pyenv)/completions/pyenv.bash"
-  fi
-}
-
-function terminator::bootstrap::rbenv() {
-  if command -v rbenv > /dev/null 2>&1; then
-    eval "$(rbenv init -)" > /dev/null
-    source "$(brew --prefix rbenv)/completions/rbenv.bash"
-  fi
-}
-
-function terminator::bootstrap::jenv() {
-  if command -v jenv > /dev/null 2>&1; then
-    # export PATH="${HOME}/.jenv/bin:$PATH"
-    eval "$(jenv init -)"
-  fi
 }
