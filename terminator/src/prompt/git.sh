@@ -3,49 +3,6 @@
 source "${BASH_SOURCE[0]%/*/*}/styles.sh"
 source "${BASH_SOURCE[0]%/*/*}/file.sh"
 
-function terminator::prompt::git::old() {
-  local inside_worktree
-
-  if ! command -v git > /dev/null 2>&1 \
-    || ! command -v __git_ps1 > /dev/null 2>&1 \
-    || ! inside_worktree="$(git rev-parse --is-inside-work-tree 2>/dev/null)"; then
-    echo ''
-    return 0
-  fi
-
-  local branch branch_symbol color status_symbol color_off
-
-  branch="$(__git_ps1 '%s')"
-  branch_symbol="$(terminator::styles::branch_symbol)"
-  color_off="$(terminator::color::off)"
-
-  if [[ "${branch}" =~ ^\( ]]; then
-    branch_symbol="$(terminator::styles::detached_head_symbol)"
-  fi
-
-  if [[ "${inside_worktree}" != 'true' ]]; then
-    echo "${branch_symbol} ${branch}${color_off}"
-    return 0
-  fi
-
-  if [[ -z "$(git status --porcelain)" ]]; then
-    # Clean repository - nothing to commit
-    color="$(terminator::styles::ok_color)"
-    status_symbol="$(terminator::styles::ok_symbol)"
-  elif ! (git diff --no-ext-diff --cached --quiet --exit-code \
-    && git diff --no-ext-diff --quiet --exit-code); then
-    # Changes exist on working tree
-    color="$(terminator::styles::error_color)"
-    status_symbol="$(terminator::styles::error_symbol)"
-  else
-    # Untracked files exist
-    color="$(terminator::color::code '38;5;214m')"
-    status_symbol="$(terminator::styles::warning_symbol)"
-  fi
-
-  echo "${color}${branch_symbol} ${branch} ${status_symbol}${color_off}"
-}
-
 function terminator::prompt::git() {
   local repo_info
   if ! command -v git > /dev/null 2>&1 \
@@ -58,6 +15,7 @@ function terminator::prompt::git() {
       return 0
   fi
 
+  # shellcheck disable=SC2034
   local inside_work_tree="${repo_info##*$'\n'}"
   repo_info="${repo_info%$'\n'*}"
   local bare_repo="${repo_info##*$'\n'}"
@@ -65,16 +23,14 @@ function terminator::prompt::git() {
   local inside_git_dir="${repo_info##*$'\n'}"
   local git_dir="${repo_info%$'\n'*}"
 
-  # echo "inside_work_tree: ${inside_work_tree}"
-  # echo "bare_repo: ${bare_repo}"
-  # echo "inside_git_dir: ${inside_git_dir}"
-  # echo "git_dir: ${git_dir}"
-
   local response=()
 
   if [[ 'true' == "${inside_git_dir}" ]] && [[ 'true' != "${bare_repo}" ]]; then
     response+=('GIT_DIR!')
-  elif [[ 'true' == "${inside_work_tree}" ]]; then
+    for _ in {1..12}; do
+      response+=('')
+    done
+  else
     while IFS= read -r result; do
       response+=("${result}")
     done < <(terminator::prompt::git::status "${git_dir}")
@@ -105,7 +61,8 @@ function terminator::prompt::git::status() {
   local files_unmerged=()
   # local stash_count=0
 
-  local untracked_files_option='-uall' # TODO add option for this? '-uno' '-unormal'
+  # valid values: '-uall' '-uno' '-unormal'
+  local untracked_files_option="${TERMINATOR_GIT_STATUS_UNTRACKED_FILES:--unormal}"
 
   local index_and_working_regexp='^([^#])(.) ([^[:space:]]*)( -> (.*))?$'
   local branch_and_upstream_regexp='^## ([^[:space:].]+)(\.\.\.([^[:space:]]+))?( \[(ahead ([[:digit:]]+))?(, )?(behind ([[:digit:]]+))?(gone)?\])?$'
@@ -237,6 +194,7 @@ function terminator::prompt::git::format() {
   terminator::styles::divider_color divider_color
   terminator::styles::enclosure_color enclosure_color
   terminator::color::off color_off
+  # terminator::color::code '38;5;214m' files_color
 
   local branch_message \
     upstream_message \
@@ -250,10 +208,11 @@ function terminator::prompt::git::format() {
       upstream_message+=" ${upstream_gone_color}x${color_off}"
     elif (( ahead_by == 0 && behind_by == 0 )); then
       upstream_message+=" ${upstream_same_color}≡${color_off}"
-    # elif (( ahead_by != 0 && behind_by != 0 )); then # TODO add flag to enable
-    #   upstream_message+=" ${upstream_ahead_color}${ahead_by}${color_off}"
-    #   upstream_message+="${upstream_same_color}↕${color_off}"
-    #   upstream_message+="${upstream_behind_color}${behind_by}${color_off}"
+    elif [[ "${TERMINATOR_GIT_STATUS_BRANCH_BEHIND_AND_AHEAD}" == 'compact' ]] \
+      && (( ahead_by != 0 && behind_by != 0 )); then
+          upstream_message+=" ${upstream_ahead_color}${ahead_by}${color_off}"
+          upstream_message+="${upstream_same_color}↕${color_off}"
+          upstream_message+="${upstream_behind_color}${behind_by}${color_off}"
     else
       (( ahead_by != 0 )) && upstream_message+=" ${upstream_ahead_color}↑${ahead_by}${color_off}"
       (( behind_by != 0 )) && upstream_message+=" ${upstream_behind_color}↓${behind_by}${color_off}"
