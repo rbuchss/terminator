@@ -2,6 +2,8 @@
 
 # If not running interactively, don't do anything
 if [[ -n "${PS1}" ]]; then
+  export TERMINATOR_GIT_STATUS_STASH_ENABLED=1
+
   # make less and man pages more readable
   LESS_TERMCAP_mb="$(printf "\e[1;31m")"
   LESS_TERMCAP_md="$(printf "\e[1;31m")"
