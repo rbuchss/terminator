@@ -6,7 +6,8 @@ source "${HOME}/.terminator/src/homebrew.sh"
 # using GNU for coreutils vs BSD
 terminator::homebrew::add_paths \
   'coreutils' \
-  'gnu-sed'
+  'gnu-sed' \
+  'make'
 
 # If not running interactively, don't do anything
 if [[ -n "${PS1}" ]]; then
