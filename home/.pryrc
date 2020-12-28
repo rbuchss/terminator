@@ -35,10 +35,20 @@ Pry.config.hooks.add_hook(:after_session, :say_bye) do
 end
 
 # Prompt with ruby version
-Pry.prompt = [
-  proc { |obj, nest_level, pry| "[#{pry.input_array.size}] #{RUBY_ENGINE}-#{RUBY_VERSION} (#{obj})#{":#{nest_level}" if nest_level > 0}> " },
-  proc { |obj, nest_level, pry| "[#{pry.input_array.size}] #{RUBY_ENGINE}-#{RUBY_VERSION} (#{obj})#{":#{nest_level}" if nest_level > 0}* " }
-]
+PROMPT_PREFIX = "#{RUBY_ENGINE}-#{RUBY_VERSION}"
+
+def prompt_prefix(obj, nest_level, pry)
+  "[#{pry.input_ring.size}] #{PROMPT_PREFIX} (#{obj})#{":#{nest_level}" if nest_level > 0}"
+end
+
+Pry.config.prompt = Pry::Prompt.new(
+  'custom',
+  'custom-prompt',
+  [
+    proc { |obj, nest_level, pry| "#{prompt_prefix(obj, nest_level, pry)}> " },
+    proc { |obj, nest_level, pry| "#{prompt_prefix(obj, nest_level, pry)}* " }
+  ]
+)
 
 Gem.path.each do |gemset|
   puts gemset
