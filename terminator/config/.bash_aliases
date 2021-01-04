@@ -54,7 +54,7 @@ if [[ -n "${PS1}" ]]; then
   # file helpers
   alias t1='tail -n1'
   alias h1='head -n1'
-  alias tree='tree -I "\.git|\.svn|sandcube"'
+  alias tree='tree -I "\.git|\.svn|sandcube|node_modules"'
   alias diffs='diff -y --suppress-common-lines'
   alias extract='terminator::file::extract'
   alias mktar='terminator::file::mktar'
