@@ -1,9 +1,10 @@
 #!/bin/bash
 # shellcheck source=/dev/null
+source "${HOME}/.terminator/src/dotnet.sh"
+source "${HOME}/.terminator/src/go.sh"
+source "${HOME}/.terminator/src/jenv.sh"
 source "${HOME}/.terminator/src/pyenv.sh"
 source "${HOME}/.terminator/src/rbenv.sh"
-source "${HOME}/.terminator/src/jenv.sh"
-source "${HOME}/.terminator/src/dotnet.sh"
 source "${HOME}/.terminator/src/rust.sh"
 
 terminator::rbenv::bootstrap
@@ -17,5 +18,7 @@ terminator::pyenv::bootstrap
 # terminator::jenv::bootstrap
 
 terminator::dotnet::bootstrap
+
+terminator::go::bootstrap
 
 terminator::rust::bootstrap
