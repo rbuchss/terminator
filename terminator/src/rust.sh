@@ -7,5 +7,6 @@ function terminator::rust::bootstrap() {
 
   # NOTE: This enables cargo completion and must be loaded after
   # cargo is added to the path
-  source $(rustc --print sysroot)/etc/bash_completion.d/cargo
+  # shellcheck source=/dev/null
+  source "$(rustc --print sysroot)"/etc/bash_completion.d/cargo
 }

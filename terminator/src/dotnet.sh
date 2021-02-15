@@ -8,13 +8,17 @@ function terminator::dotnet::bootstrap() {
 
 # bash parameter completion for the dotnet CLI
 function terminator::dotnet::complete() {
-  local word=${COMP_WORDS[COMP_CWORD]}
+  COMPREPLY=()
+  local word completions
 
-  local completions
-  completions="$(dotnet complete --position "${COMP_POINT}" "${COMP_LINE}" 2>/dev/null)"
-  if [ $? -ne 0 ]; then
-    completions=""
+  word="${COMP_WORDS[COMP_CWORD]}"
+
+  if ! completions="$(dotnet complete \
+    --position "${COMP_POINT}" "${COMP_LINE}" 2>/dev/null)"; then
+      completions=""
   fi
 
-  COMPREPLY=( $(compgen -W "$completions" -- "$word") )
+  while IFS='' read -r completion; do
+    COMPREPLY+=("${completion}")
+  done < <(compgen -W "${completions}" -- "${word}")
 }
