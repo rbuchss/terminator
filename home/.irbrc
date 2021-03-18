@@ -1,19 +1,18 @@
-require 'rubygems'
+# frozen_string_literal: true
 
-# This makes pry itself and all pry gems available
-# $LOAD_PATH.push(*Dir["#{ENV['HOME']}/.prygems/gems/*/lib"]).uniq!
+# begin
+#   require 'pry'
+#   Pry.start
+#   exit
+# rescue LoadError => e
+#   warn "=> Unable to load pry #{e}"
+# end
 
 begin
-  require "pry"
-  Pry.start
-  exit
+  require '~/.ruby_friends/repl/support.rb'
+  module IRB::ExtendCommandBundle
+    include ::Terminator::REPL::Support
+  end
 rescue LoadError => e
-  warn "=> Unable to load pry #{e}"
-end
-
-if defined? Pry
-  Pry.start
-  exit
-else
-  # Do your normal IRB stuff in case Pry is not available
+  warn "=> #{e}"
 end

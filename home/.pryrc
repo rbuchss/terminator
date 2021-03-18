@@ -5,6 +5,13 @@ module Terminator
   class PryConfig
     extend Forwardable
 
+    begin
+      require '~/.ruby_friends/repl/support.rb'
+      include ::Terminator::REPL::Support
+    rescue LoadError => e
+      warn "=> #{e}"
+    end
+
     def_delegators(
       :@pry,
       :editor, :editor=,
@@ -48,8 +55,6 @@ module Terminator
       hooks.add_hook(:after_session, :say_bye) do
         puts 'tchau'
       end
-
-      setup_custom_commands
     end
 
     private
@@ -78,16 +83,6 @@ module Terminator
     def prompt_proc(suffix)
       proc do |obj, nest_level, pry|
         "#{prompt_prefix(obj, nest_level, pry)}#{suffix} "
-      end
-    end
-
-    def setup_custom_commands
-      if defined?(::ActiveRecord)
-        Pry::Commands.block_command(:show_tables,
-                                    'Shows tables in the database',
-                                    keep_retval: true) do
-          ::ActiveRecord::Base.connection.tables
-        end
       end
     end
   end
