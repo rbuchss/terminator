@@ -9,7 +9,7 @@
 # end
 
 begin
-  require '~/.ruby_friends/repl/support.rb'
+  require '~/.terminator/tools/ruby/repl/support.rb'
   module IRB::ExtendCommandBundle
     include ::Terminator::REPL::Support
   end

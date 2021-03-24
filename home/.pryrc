@@ -6,7 +6,7 @@ module Terminator
     extend Forwardable
 
     begin
-      require '~/.ruby_friends/repl/support.rb'
+      require '~/.terminator/tools/ruby/repl/support.rb'
       include ::Terminator::REPL::Support
     rescue LoadError => e
       warn "=> #{e}"
