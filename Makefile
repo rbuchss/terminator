@@ -7,8 +7,8 @@ LINT_IGNORE := \
   Makefile \
   terminator/bin/dotfile-info \
   terminator/bin/uppercut \
+  terminator/tools/grc/* \
   terminator/tools/ruby/* \
-  grc/* \
   home/* \
   test/fixtures/* \
   vendor/*
