@@ -1,0 +1,39 @@
+bind '^B' ed-command
+bind '^K' ed-kill-line
+bind '^L' ed-clear-screen
+bind '^R' em-inc-search-prev
+bind '^S' em-inc-search-next
+bind '^U' vi-kill-line-prev
+bind '^W' ed-delete-prev-word
+bind '\e[1;5C' vi-next-word
+bind '\e[1;5D' vi-prev-word
+bind '\e[1~' ed-move-to-beg
+bind '\e[4~' ed-move-to-end
+
+lldb:bind '\t' lldb_complete
+
+# NOTE: sqlite3 does not appear to set prog in el_init
+#   so prog specific bindings fail...
+# sqlite:bind -s '^xt' '.tables'
+
+mysql:bind -s '^xd' 'show databases;'
+mysql:bind -s '^xt' 'show tables;'
+mysql:bind -s "^xu" "select user, host from mysql.user order by user, host;"
+mysql:bind -s "^xb" "select user, host, db from mysql.db order by user, host;"
+mysql:bind -s "^xc" "show create table T\\\\G"
+mysql:bind -s "^xn" "select count(*) from T;"
+mysql:bind -s "^xv" "show variables like '%%';"
+mysql:bind -s "^xs" "show slave status\\\\G"
+mysql:bind -s "^xm" "show master status\\\\G"
+mysql:bind -s "^xp" "show full processlist;"
+mysql:bind -s "^xa" "show table status like 'T'\\\\G"
+mysql:bind -s "^x^t" "select table_name,
+  engine,
+  table_rows as tbl_rows,
+  avg_row_length as rlen,
+  floor((data_length+index_length)/1024/1024) as allMB,
+  floor((data_length)/1024/1024) as dMB,
+  floor((index_length)/1024/1024) as iMB
+  from information_schema.tables
+  where table_schema=database()
+  order by (data_length+index_length) desc;"
