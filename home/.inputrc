@@ -14,3 +14,7 @@ set visible-stats on
 
 "\e[1;6C":end-of-line
 "\e[1;6D":beginning-of-line
+
+"\C-x\C-f":dump-functions
+"\C-x\C-m":dump-macros
+"\C-x\C-v":dump-variables
