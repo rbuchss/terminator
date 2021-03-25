@@ -2,9 +2,10 @@
 
 module Terminator
   module REPL
-    Command = Struct.new(:name, :desc, :command, :options) do
+    Command = Struct.new(:name, :desc, :aliases, :command, :options) do
       extend Enumerable
       @_all = {}
+      @_aliases = {}
 
       class << self
         extend Forwardable
@@ -18,18 +19,21 @@ module Terminator
 
         def add(member)
           @_all[member.name] = member
+          member.aliases.each do |alias_name|
+            @_aliases[alias_name] = member
+          end
         end
 
         def help(name)
-          unless command = @_all[name]
+          unless command = @_all[name] || @_aliases[name]
             return warn "#{self}: '#{name}' not found!"
           end
           command.help
         end
       end
 
-      def initialize(name:, desc: '', command: proc {}, options: {}, &block)
-        super(name, desc, command, { context: :command }.merge(options))
+      def initialize(name:, desc: '', aliases: [], command: proc {}, options: {}, &block)
+        super(name, desc, aliases, command, { context: :command }.merge(options))
         self.class.add(self)
         define_singleton_method(:run, &command)
         instance_eval(&block) if block_given?
@@ -44,6 +48,10 @@ module Terminator
           end
         else
           base.send(:define_method, name, &command)
+        end
+
+        aliases.each do |alias_name|
+          base.send(:alias_method, alias_name, name)
         end
       end
 
