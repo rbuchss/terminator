@@ -8,7 +8,7 @@ module Terminator
         mod = Module.new do
           Command.each { |command| command.bind(self) }
 
-          def custom_help(name)
+          def custom_help(name = nil)
             Command.help(name)
           end
 

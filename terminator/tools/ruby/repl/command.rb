@@ -24,10 +24,18 @@ module Terminator
           end
         end
 
-        def help(name)
+        def help(name = nil)
+          unless name
+            puts "#{self}: available commands:"
+            longest_name = @_all.keys.max_by(&:length)
+            all.each { |member| member.short_help(longest_name.length) }
+            return
+          end
+
           unless command = @_all[name] || @_aliases[name]
             return warn "#{self}: '#{name}' not found!"
           end
+
           command.help
         end
       end
@@ -56,10 +64,14 @@ module Terminator
       end
 
       def help
-        printf("%s[:%s]: %s\nparameters:\t%s\nlocation:\t%s:%s\n",
-               self.class, name, desc, command.parameters, *command.source_location)
+        printf("%s[:%s]: %s\nparameters:\t%s\naliases:\t%s\nlocation:\t%s:%s\n",
+               self.class, name, desc, command.parameters, aliases, *command.source_location)
         printf("source:\n%s", command.respond_to?(:source) ?
                command.source : "\t\tNot available [method_source gem missing!]\n")
+      end
+
+      def short_help(padding = 0)
+        printf("\t%1$*2$s: %3$s\n", name, padding, desc)
       end
     end
   end
