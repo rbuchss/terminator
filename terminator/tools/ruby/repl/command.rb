@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+require 'forwardable'
 
 module Terminator
   module REPL
@@ -19,9 +20,7 @@ module Terminator
 
         def add(member)
           @_all[member.name] = member
-          member.aliases.each do |alias_name|
-            @_aliases[alias_name] = member
-          end
+          member.aliases.each { |alias_name| @_aliases[alias_name] = member }
         end
 
         def help(name = nil)
@@ -51,16 +50,24 @@ module Terminator
         case options[:context]
         when :command
           this = self
-          base.send(:define_method, name) do |*args, &block|
-            this.run(*args, &block)
+
+          # NOTE: keyword arguments are handled differently over ruby 2.6, 2.7, and 3.0
+          # see:
+          #   https://www.ruby-lang.org/en/news/2019/12/12/separation-of-positional-and-keyword-arguments-in-ruby-3-0/
+          #
+          ruby_version = Gem::Version.new(RUBY_VERSION)
+
+          if ruby_version >= Gem::Version.new('3.0')
+            base.send(:define_method, name) { |*args, **kwargs, &block| this.run(*args, **kwargs, &block) }
+          else
+            base.send(:define_method, name) { |*args, &block| this.run(*args, &block) }
+            base.send(:ruby2_keywords, name) if ruby_version >= Gem::Version.new('2.7')
           end
         else
           base.send(:define_method, name, &command)
         end
 
-        aliases.each do |alias_name|
-          base.send(:alias_method, alias_name, name)
-        end
+        aliases.each { |alias_name| base.send(:alias_method, alias_name, name) }
       end
 
       def help

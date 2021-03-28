@@ -18,7 +18,7 @@ module Terminator
         if defined?(::Pry)
           TOPLEVEL_BINDING.receiver.extend(mod)
         else
-          include mod
+          base.send(:include, mod)
         end
       end
     end
