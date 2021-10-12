@@ -41,11 +41,6 @@ if [[ -n "${PS1}" ]]; then
   export HSR="${HOME}/.homesick/repos"
   terminator::cdpath::prepend "${HSR}"
 
-  # use homeshick to manage dot-files
-  terminator::source \
-    "${HSR}/homeshick/homeshick.sh" \
-    "${HSR}/homeshick/completions/homeshick-completion.bash"
-
   # jenv uses PROMPT_COMMAND as a hook
   # which we have to preserve by chaining PROMPT_COMMAND
   export PROMPT_COMMAND="terminator::prompt;${PROMPT_COMMAND}"

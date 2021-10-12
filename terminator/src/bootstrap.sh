@@ -89,7 +89,11 @@ function terminator::bootstrap::os::unsupported() {
 }
 
 function terminator::bootstrap::autoload() {
-  for autoload_file in "${HOME}"/.bash_autoload*; do
-    terminator::source "${autoload_file}"
-  done
+  if compgen -G "${HOME}/.bash_autoload*" > /dev/null 2>&1; then
+    for autoload_file in "${HOME}"/.bash_autoload*; do
+      terminator::source "${autoload_file}"
+    done
+  else
+    terminator::log::debug 'skipping - no ~/.bash_autoload* files found'
+  fi
 }

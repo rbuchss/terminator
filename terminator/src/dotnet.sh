@@ -3,6 +3,8 @@
 function terminator::dotnet::bootstrap() {
   if command -v dotnet > /dev/null 2>&1; then
     complete -f -F terminator::dotnet::complete dotnet
+  else
+    terminator::log::warning 'dotnet is not installed'
   fi
 }
 

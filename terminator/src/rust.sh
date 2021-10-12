@@ -1,12 +1,16 @@
 #!/bin/bash
 
 function terminator::rust::bootstrap() {
-  terminator::path::prepend "$HOME/.cargo/bin"
-  # NOTE: to enable rustup completion use the following command:
-  #   rustup completions bash > ${system_completion_path}
+  if command -v rustc > /dev/null 2>&1; then
+    terminator::path::prepend "${HOME}/.cargo/bin"
+    # NOTE: to enable rustup completion use the following command:
+    #   rustup completions bash > ${system_completion_path}
 
-  # NOTE: This enables cargo completion and must be loaded after
-  # cargo is added to the path
-  # shellcheck source=/dev/null
-  source "$(rustc --print sysroot)"/etc/bash_completion.d/cargo
+    # NOTE: This enables cargo completion and must be loaded after
+    # cargo is added to the path
+    # shellcheck source=/dev/null
+    source "$(rustc --print sysroot)"/etc/bash_completion.d/cargo
+  else
+    terminator::log::warning 'rustc is not installed'
+  fi
 }
