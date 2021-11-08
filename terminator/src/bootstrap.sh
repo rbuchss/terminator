@@ -1,6 +1,7 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${BASH_SOURCE[0]%/*}/config.sh"
+source "${BASH_SOURCE[0]%/*}/os.sh"
 source "${BASH_SOURCE[0]%/*}/path.sh"
 
 function terminator::bootstrap() {
@@ -26,7 +27,11 @@ function terminator::bootstrap() {
     '/opt' \
     "${HOME}"
 
-  terminator::bootstrap::os
+  terminator::os::switch \
+    --darwin terminator::bootstrap::os::darwin \
+    --linux terminator::bootstrap::os::linux \
+    --windows terminator::bootstrap::os::windows \
+    --unsupported terminator::bootstrap::os::unsupported
 
   terminator::config::load \
     '.bash_opt' \
@@ -60,15 +65,6 @@ function terminator::bootstrap::tmux() {
 
   # shellcheck source=/dev/null
   source "${HOME}/.tmux/config/tmux.sh"
-}
-
-function terminator::bootstrap::os() {
-  case "${OSTYPE}" in
-    darwin*) terminator::bootstrap::os::darwin ;;
-    linux*) terminator::bootstrap::os::linux ;;
-    msys*) terminator::bootstrap::os::windows ;;
-    *) terminator::bootstrap::os::unsupported ;;
-  esac
 }
 
 function terminator::bootstrap::os::darwin() {
