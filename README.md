@@ -16,3 +16,8 @@ homesick link terminator
 homeshick clone https://github.com/rbuchss/terminator.git
 homeshick link terminator
 ```
+
+### Dependencies
+---
+
+- Powerline fonts (If using iTerm2 use built-in powerline glyphs)
