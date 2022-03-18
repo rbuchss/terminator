@@ -19,7 +19,11 @@ function terminator::utility::history_stats() {
 }
 
 function terminator::utility::hack() {
-  history | ack "$1"
+  if command -v ag > /dev/null 2>&1; then
+    history | ag "$1"
+  else
+    history | grep "$1"
+  fi
 }
 
 function terminator::utility::reverse_endianness() {
