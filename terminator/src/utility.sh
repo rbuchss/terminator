@@ -39,3 +39,7 @@ function terminator::utility::reverse_endianness() {
 
   echo ''
 }
+
+function terminator::utility::trace_environment() {
+  PS4='+$BASH_SOURCE> ' BASH_XTRACEFD=7 bash -xl 7>&2
+}
