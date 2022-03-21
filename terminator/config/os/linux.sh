@@ -4,9 +4,12 @@ source "${HOME}/.terminator/src/source.sh"
 
 # If not running interactively, don't do anything
 if [[ -n "${PS1}" ]]; then
-  # make caps lock actually useful (in linux)
-  if command -v xmodmap > /dev/null 2>&1; then
-    xmodmap -e 'clear Lock' -e 'keycode 0x42 = Escape'
+  # Check if display is available
+  if [[ -n "${DISPLAY+x}" ]]; then
+    # make caps lock actually useful (in linux)
+    if command -v xmodmap > /dev/null 2>&1; then
+      xmodmap -e 'clear Lock' -e 'keycode 0x42 = Escape'
+    fi
   fi
 
   # enable bash completion in interactive shells
