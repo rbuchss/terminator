@@ -18,3 +18,7 @@ set visible-stats on
 "\C-x\C-f":dump-functions
 "\C-x\C-m":dump-macros
 "\C-x\C-v":dump-variables
+
+$if psql
+  "\C-xd": "show databases;"
+$endif
