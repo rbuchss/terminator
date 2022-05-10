@@ -17,7 +17,7 @@ function terminator::styles::newline() {
   esac
 
   case "$#" in
-    1) read -r "$1" <<< "${symbol}" ;;
+    1) IFS='' read -r "$1" <<< "${symbol}" ;;
     *) echo "${symbol}" ;;
   esac
 }
@@ -30,7 +30,7 @@ function terminator::styles::coalesce() {
 
   if [[ -n "${environment_value}" ]]; then
     case "$#" in
-      5) read -r "$5" <<< "${environment_value}" ;;
+      5) IFS='' read -r "$5" <<< "${environment_value}" ;;
       *) echo "${environment_value}" ;;
     esac
     return
@@ -58,9 +58,79 @@ function terminator::styles::char_coalesce() {
   local symbol="${environment_value:-$default}"
 
   case "$#" in
-    3) read -r "$3" <<< "${symbol}" ;;
+    3) IFS='' read -r "$3" <<< "${symbol}" ;;
     *) echo "${symbol}" ;;
   esac
+}
+
+function terminator::styles::command_coalesce() {
+  local commands=() \
+    invalid_commands=() \
+    arguments=()
+
+  while (( $# != 0 )); do
+    case "$1" in
+      -h | --help)
+        terminator::styles::command_coalesce::usage
+        return 0
+        ;;
+      -c | --command)
+        shift
+        commands+=("$1")
+        ;;
+      -*)
+        >&2 echo "ERROR: ${FUNCNAME[0]} invalid option: '$1'"
+        terminator::styles::command_coalesce::usage >&2
+        return 1
+        ;;
+      *)
+        arguments+=("$1")
+        ;;
+    esac
+    shift
+  done
+
+  until (( ${#commands[@]} == 0 )) \
+    || command -v "${commands[0]}" > /dev/null 2>&1; do
+    invalid_commands+=("${commands[0]}")
+    commands=("${commands[@]:1}")
+  done
+
+  if (( ${#commands[@]} == 0 )); then
+      >&2 printf 'ERROR: %s no valid commands specified. Invalid commands: [%s]\n' \
+        "${FUNCNAME[0]}" \
+        "${invalid_commands[*]}"
+      terminator::styles::command_coalesce::usage >&2
+      return 1
+  fi
+
+  "${commands[0]}" "${arguments[@]}"
+}
+
+function terminator::styles::command_coalesce::usage() {
+  cat <<USAGE_TEXT
+Usage: ${FUNCNAME[1]} [OPTIONS] <args>
+
+  -c, --command      Function, command or script used to run if defined.
+                     Uses first one that exists
+
+  -h, --help         Display this help message
+USAGE_TEXT
+}
+
+function terminator::styles::user_prefix() {
+  terminator::styles::char_coalesce \
+    "${TERMINATOR_STYLES_USER_PREFIX}" \
+    '' \
+    "$@"
+}
+
+function terminator::styles::user_prefix_color() {
+  terminator::styles::color_coalesce \
+    "${TERMINATOR_STYLES_USER_PREFIX_COLOR}" \
+    "${TERMINATOR_STYLES_USER_PREFIX_COLOR_CODE}" \
+    '38;5;69m' \
+    "$@"
 }
 
 function terminator::styles::username() {
@@ -91,22 +161,58 @@ function terminator::styles::root::user_color() {
     "$@"
 }
 
-function terminator::styles::user_separator() {
+function terminator::styles::user_suffix_color() {
   if terminator::user::is_root; then
-    terminator::styles::root::user_separator "$@"
+    terminator::styles::root::user_suffix_color "$@"
+    return
+  fi
+
+  terminator::styles::color_coalesce \
+    "${TERMINATOR_STYLES_USER_SUFFIX_COLOR}" \
+    "${TERMINATOR_STYLES_USER_SUFFIX_COLOR_CODE}" \
+    '38;5;69m' \
+    "$@"
+}
+
+function terminator::styles::root::user_suffix_color() {
+  terminator::styles::color_coalesce \
+    "${TERMINATOR_STYLES_ROOT_USER_SUFFIX_COLOR}" \
+    "${TERMINATOR_STYLES_ROOT_USER_SUFFIX_COLOR_CODE}" \
+    '0;91m' \
+    "$@"
+}
+
+function terminator::styles::user_suffix() {
+  if terminator::user::is_root; then
+    terminator::styles::root::user_suffix "$@"
     return
   fi
 
   terminator::styles::char_coalesce \
-    "${TERMINATOR_STYLES_USER_SEPARATOR}" \
+    "${TERMINATOR_STYLES_USER_SUFFIX}" \
     '@' \
     "$@"
 }
 
-function terminator::styles::root::user_separator() {
+function terminator::styles::root::user_suffix() {
   terminator::styles::char_coalesce \
-    "${TERMINATOR_STYLES_ROOT_USER_SEPARATOR}" \
+    "${TERMINATOR_STYLES_ROOT_USER_SUFFIX}" \
     '#' \
+    "$@"
+}
+
+function terminator::styles::host_prefix() {
+  terminator::styles::char_coalesce \
+    "${TERMINATOR_STYLES_HOST_PREFIX}" \
+    '' \
+    "$@"
+}
+
+function terminator::styles::host_prefix_color() {
+  terminator::styles::color_coalesce \
+    "${TERMINATOR_STYLES_HOST_PREFIX_COLOR}" \
+    "${TERMINATOR_STYLES_HOST_PREFIX_COLOR_CODE}" \
+    '0m' \
     "$@"
 }
 
@@ -146,31 +252,76 @@ function terminator::styles::host_symbol() {
     "$@"
 }
 
-function terminator::styles::path() {
+function terminator::styles::host_suffix() {
   terminator::styles::char_coalesce \
-    "${TERMINATOR_STYLES_PATH}" \
+    "${TERMINATOR_STYLES_HOST_SUFFIX}" \
+    '' \
+    "$@"
+}
+
+function terminator::styles::host_suffix_color() {
+  terminator::styles::color_coalesce \
+    "${TERMINATOR_STYLES_HOST_SUFFIX_COLOR}" \
+    "${TERMINATOR_STYLES_HOST_SUFFIX_COLOR_CODE}" \
+    '0m' \
+    "$@"
+}
+
+function terminator::styles::directory_prefix() {
+  terminator::styles::char_coalesce \
+    "${TERMINATOR_STYLES_DIRECTORY_PREFIX}" \
+    ' ' \
+    "$@"
+}
+
+function terminator::styles::directory_prefix_color() {
+  terminator::styles::color_coalesce \
+    "${TERMINATOR_STYLES_DIRECTORY_PREFIX_COLOR}" \
+    "${TERMINATOR_STYLES_DIRECTORY_PREFIX_COLOR_CODE}" \
+    '0m' \
+    "$@"
+}
+
+function terminator::styles::directory() {
+  terminator::styles::char_coalesce \
+    "${TERMINATOR_STYLES_DIRECTORY}" \
     '\w' \
     "$@"
 }
 
-function terminator::styles::path_color() {
+function terminator::styles::directory_color() {
   if terminator::user::is_root; then
-    terminator::styles::root::path_color "$@"
+    terminator::styles::root::directory_color "$@"
     return
   fi
 
   terminator::styles::color_coalesce \
-    "${TERMINATOR_STYLES_PATH_COLOR}" \
-    "${TERMINATOR_STYLES_PATH_COLOR_CODE}" \
+    "${TERMINATOR_STYLES_DIRECTORY_COLOR}" \
+    "${TERMINATOR_STYLES_DIRECTORY_COLOR_CODE}" \
     '38;5;186m' \
     "$@"
 }
 
-function terminator::styles::root::path_color() {
+function terminator::styles::root::directory_color() {
   terminator::styles::color_coalesce \
-    "${TERMINATOR_STYLES_ROOT_PATH_COLOR}" \
-    "${TERMINATOR_STYLES_ROOT_PATH_COLOR_CODE}" \
+    "${TERMINATOR_STYLES_ROOT_DIRECTORY_COLOR}" \
+    "${TERMINATOR_STYLES_ROOT_DIRECTORY_COLOR_CODE}" \
     '0;94m' \
+    "$@"
+}
+
+function terminator::styles::directory_suffix() {
+  terminator::styles::char_coalesce \
+    "${TERMINATOR_STYLES_DIRECTORY_SUFFIX}" \
+    ' ' \
+    "$@"
+}
+
+function terminator::styles::directory_suffix_color() {
+  terminator::styles::color_coalesce \
+    "${TERMINATOR_STYLES_DIRECTORY_SUFFIX_COLOR}" \
+    "${TERMINATOR_STYLES_DIRECTORY_SUFFIX_COLOR_CODE}" \
+    '0m' \
     "$@"
 }
 
@@ -188,11 +339,86 @@ function terminator::styles::time() {
     "$@"
 }
 
+function terminator::styles::command_symbol_prefix() {
+  terminator::styles::char_coalesce \
+    "${TERMINATOR_STYLES_COMMAND_SYMBOL_PREFIX}" \
+    '' \
+    "$@"
+}
+
+function terminator::styles::command_symbol_prefix_color() {
+  terminator::styles::color_coalesce \
+    "${TERMINATOR_STYLES_COMMAND_SYMBOL_PREFIX_COLOR}" \
+    "${TERMINATOR_STYLES_COMMAND_SYMBOL_PREFIX_COLOR_CODE}" \
+    '0m' \
+    "$@"
+}
+
 function terminator::styles::command_symbol() {
   terminator::styles::unicode_coalesce \
     "${TERMINATOR_STYLES_COMMAND_SYMBOL}" \
     "${TERMINATOR_STYLES_COMMAND_SYMBOL_CODE}" \
     0x03BB \
+    "$@"
+}
+
+function terminator::styles::command_symbol_suffix() {
+  terminator::styles::char_coalesce \
+    "${TERMINATOR_STYLES_COMMAND_SYMBOL_SUFFIX}" \
+    ' ' \
+    "$@"
+}
+
+function terminator::styles::command_symbol_suffix_color() {
+  terminator::styles::color_coalesce \
+    "${TERMINATOR_STYLES_COMMAND_SYMBOL_SUFFIX_COLOR}" \
+    "${TERMINATOR_STYLES_COMMAND_SYMBOL_SUFFIX_COLOR_CODE}" \
+    '0m' \
+    "$@"
+}
+
+function terminator::styles::right_prompt_prefix() {
+  terminator::styles::char_coalesce \
+    "${TERMINATOR_STYLES_RIGHT_PROMPT_PREFIX}" \
+    '' \
+    "$@"
+}
+
+function terminator::styles::right_prompt_prefix_color() {
+  terminator::styles::color_coalesce \
+    "${TERMINATOR_STYLES_RIGHT_PROMPT_PREFIX_COLOR}" \
+    "${TERMINATOR_STYLES_RIGHT_PROMPT_PREFIX_COLOR_CODE}" \
+    '0m' \
+    "$@"
+}
+
+function terminator::styles::right_prompt_content() {
+  terminator::styles::char_coalesce \
+    "${TERMINATOR_STYLES_RIGHT_PROMPT_CONTENT}" \
+    '' \
+    "$@"
+}
+
+function terminator::styles::right_prompt_content_color() {
+  terminator::styles::color_coalesce \
+    "${TERMINATOR_STYLES_RIGHT_PROMPT_CONTENT_COLOR}" \
+    "${TERMINATOR_STYLES_RIGHT_PROMPT_CONTENT_COLOR_CODE}" \
+    '0m' \
+    "$@"
+}
+
+function terminator::styles::right_prompt_suffix() {
+  terminator::styles::char_coalesce \
+    "${TERMINATOR_STYLES_RIGHT_PROMPT_SUFFIX}" \
+    '' \
+    "$@"
+}
+
+function terminator::styles::right_prompt_suffix_color() {
+  terminator::styles::color_coalesce \
+    "${TERMINATOR_STYLES_RIGHT_PROMPT_SUFFIX_COLOR}" \
+    "${TERMINATOR_STYLES_RIGHT_PROMPT_SUFFIX_COLOR_CODE}" \
+    '0m' \
     "$@"
 }
 
