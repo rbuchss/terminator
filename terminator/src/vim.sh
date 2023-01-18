@@ -12,5 +12,5 @@ function terminator::vim::open::content_match() {
 
 function terminator::vim::open::git_diff() {
   # shellcheck disable=SC2046
-  vim -p $(git diff --name-only "$1")
+  vim -p $(git diff --name-only "${1:-HEAD}")
 }
