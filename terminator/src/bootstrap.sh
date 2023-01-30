@@ -63,8 +63,7 @@ function terminator::bootstrap::tmux() {
     export TMUX_PATH_INITIALIZED=1
   fi
 
-  # shellcheck source=/dev/null
-  source "${HOME}/.tmux/config/tmux.sh"
+  terminator::source "${HOME}/.tmux/config/tmux.sh"
 }
 
 function terminator::bootstrap::os::darwin() {

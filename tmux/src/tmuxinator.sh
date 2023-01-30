@@ -1,6 +1,13 @@
 #!/bin/bash
 
-function tmuxinator::command::invoke() {
+function tmux::tmuxinator::bootstrap() {
+  alias tmuxinator='tmux::tmuxinator::command::invoke'
+  alias mux='tmux::tmuxinator::command::invoke'
+  tmux::tmuxinator::completion::add_alias 'tmuxinator'
+  tmux::tmuxinator::completion::add_alias 'mux'
+}
+
+function tmux::tmuxinator::command::invoke() {
   if [[ -z "${TMUX_PATH_INITIALIZED}" ]]; then
     # shellcheck source=/dev/null
     source "${HOME}/.tmux/bin/session-create"
