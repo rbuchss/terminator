@@ -1,5 +1,13 @@
 #!/bin/bash
 
+function tmuxinator::command::invoke() {
+  if [[ -z "${TMUX_PATH_INITIALIZED}" ]]; then
+    # shellcheck source=/dev/null
+    source "${HOME}/.tmux/bin/session-create"
+  fi
+  command tmuxinator "$@"
+}
+
 function tmux::tmuxinator::completion() {
   COMPREPLY=()
   local word
