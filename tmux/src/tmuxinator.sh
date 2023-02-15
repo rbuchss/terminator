@@ -23,18 +23,18 @@ function tmux::tmuxinator::completion() {
   if [ "${COMP_CWORD}" -eq 1 ]; then
     while IFS='' read -r completion; do
       COMPREPLY+=("${completion}")
-    done < <(compgen -W "$(tmuxinator commands)" -- "${word}")
+    done < <(compgen -W "$(command tmuxinator commands)" -- "${word}")
 
     while IFS='' read -r completion; do
       COMPREPLY+=("${completion}")
-    done < <(compgen -W "$(tmuxinator completions start)" -- "${word}")
+    done < <(compgen -W "$(command tmuxinator completions start)" -- "${word}")
   elif [ "${COMP_CWORD}" -eq 2 ]; then
     local words
     words=("${COMP_WORDS[@]}")
     unset 'words[0]'
     unset words["${COMP_CWORD}"]
     local completions
-    completions=$(tmuxinator completions "${words[@]}")
+    completions=$(command tmuxinator completions "${words[@]}")
 
     while IFS='' read -r completion; do
       COMPREPLY+=("${completion}")
