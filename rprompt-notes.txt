@@ -1,0 +1,14 @@
+  # https://superuser.com/questions/187455/right-align-part-of-prompt
+  # https://stackoverflow.com/questions/17998978/removing-colors-from-output
+  # https://stackoverflow.com/questions/17368067/length-of-string-in-bash
+
+  # echo "columns____: ${COLUMNS}"
+  # echo "buffer__len: ${#right_prompt_buffer}"
+  # echo "content_len: ${#right_prompt_content}"
+  # echo "bare_buffer: '${sanitized_buffer}'"
+  # echo "bare____len: ${#sanitized_buffer}"
+  # echo "mutlibyte_o: ${multi_byte_offset}"
+  # echo "offset_____: ${total_offset}"
+
+    # "\[$(tput sc; echo -n "${right_prompt}"; tput rc)\]" \
+
