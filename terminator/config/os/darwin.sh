@@ -9,6 +9,8 @@ terminator::homebrew::bootstrap
 
 # If not running interactively, don't do anything
 if [[ -n "${PS1}" ]]; then
+  export BASH_SILENCE_DEPRECATION_WARNING=1
+
   # We need to reload tmuxinator -> mux alias again since homebrew
   # /usr/local/etc/bash_completion.d/tmuxinator overwrites it
   tmux::tmuxinator::bootstrap
