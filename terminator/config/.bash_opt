@@ -5,6 +5,7 @@ source "${HOME}/.terminator/src/go.sh"
 source "${HOME}/.terminator/src/java.sh"
 source "${HOME}/.terminator/src/jenv.sh"
 source "${HOME}/.terminator/src/pyenv.sh"
+source "${HOME}/.terminator/src/pipx.sh"
 source "${HOME}/.terminator/src/rbenv.sh"
 source "${HOME}/.terminator/src/rust.sh"
 
@@ -13,6 +14,8 @@ terminator::rbenv::bootstrap
 # pyenv uses PROMPT_COMMAND as a hook (_pyenv_virtualenv_hook)
 # and is slow ... ~70-100ms
 terminator::pyenv::bootstrap
+
+terminator::pipx::bootstrap
 
 terminator::java::bootstrap
 
