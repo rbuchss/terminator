@@ -15,6 +15,7 @@ if [[ -n "${PS1}" ]]; then
     "${HOME}/.terminator/src/network.sh" \
     "${HOME}/.terminator/src/postgresql.sh" \
     "${HOME}/.terminator/src/process.sh" \
+    "${HOME}/.terminator/src/python.sh" \
     "${HOME}/.terminator/src/ruby.sh" \
     "${HOME}/.terminator/src/utility.sh" \
     "${HOME}/.terminator/src/vagrant.sh" \
@@ -103,6 +104,9 @@ if [[ -n "${PS1}" ]]; then
   alias psql_list_config='terminator::postgresql::list_config'
   alias psql_edit_config='terminator::postgresql::edit_config'
   alias psql_clear_pid='terminator::postgresql::clear_pid'
+
+  # python helpers
+  alias p='terminator::python::invoke'
 
   # network helpers
   alias expand_url='terminator::network::expand_url'
