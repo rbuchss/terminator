@@ -19,6 +19,8 @@ function terminator::homebrew::package::is_installed() {
 }
 
 function terminator::homebrew::bootstrap() {
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+
   if terminator::homebrew::is_installed; then
     # using GNU for coreutils vs BSD
     terminator::homebrew::add_paths \
