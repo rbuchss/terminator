@@ -8,6 +8,7 @@ source "${HOME}/.terminator/src/pyenv.sh"
 source "${HOME}/.terminator/src/pipx.sh"
 source "${HOME}/.terminator/src/rbenv.sh"
 source "${HOME}/.terminator/src/rust.sh"
+source "${HOME}/.terminator/src/terraform.sh"
 
 terminator::rbenv::bootstrap
 
@@ -28,3 +29,5 @@ terminator::dotnet::bootstrap
 terminator::go::bootstrap
 
 terminator::rust::bootstrap
+
+terminator::terraform::bootstrap
