@@ -19,7 +19,21 @@ function terminator::homebrew::package::is_installed() {
 }
 
 function terminator::homebrew::bootstrap() {
-  eval "$(/opt/homebrew/bin/brew shellenv)"
+  local brew_path_exists=0 \
+    possible_brew_paths=(/usr/local/bin/brew /opt/homebrew/bin/brew)
+
+  for brew_path in "${possible_brew_paths[@]}"; do
+    if [[ -x "${brew_path}" ]]; then
+      eval "$("${brew_path}" shellenv)"
+      brew_path_exists=1
+      break
+    fi
+  done
+
+  if (( brew_path_exists == 0 )); then
+    terminator::log::warning "homebrew path is not found in possible paths: ${possible_brew_paths[*]}"
+    return
+  fi
 
   if terminator::homebrew::is_installed; then
     # using GNU for coreutils vs BSD
