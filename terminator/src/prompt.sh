@@ -41,6 +41,7 @@ function terminator::prompt::left() {
     directory_prefix \
     directory \
     directory_suffix \
+    jobs_info \
     version_control \
     newline \
     command_symbol_prefix \
@@ -61,13 +62,14 @@ function terminator::prompt::left() {
   terminator::prompt::directory directory
   terminator::prompt::directory_suffix directory_suffix
   terminator::prompt::version_control version_control
+  terminator::prompt::jobs_info jobs_info
   terminator::styles::newline newline
   terminator::prompt::command_symbol_prefix command_symbol_prefix
   terminator::prompt::command_symbol "${last_command_exit}" command_symbol
   terminator::prompt::command_symbol_suffix command_symbol_suffix
   terminator::color::off color_off
 
-  printf -v left_prompt_buffer '%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s' \
+  printf -v left_prompt_buffer '%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s' \
     "${error_status}" \
     "${ssh_status}" \
     "${user_prefix}" \
@@ -80,6 +82,7 @@ function terminator::prompt::left() {
     "${directory}" \
     "${directory_suffix}" \
     "${version_control}" \
+    "${jobs_info}" \
     "${newline}" \
     "${command_symbol_prefix}" \
     "${command_symbol}" \
@@ -324,6 +327,30 @@ function terminator::prompt::version_control() {
 
   terminator::prompt::print_if_exists \
     --content "${svn_status}${git_status}" \
+    --right 1 \
+    "$@"
+}
+
+function terminator::prompt::jobs_info() {
+  local jobs_symbol_color \
+    jobs_symbol \
+    jobs_content \
+    enclosure_color \
+    color_off
+
+  terminator::styles::jobs jobs_symbol
+  terminator::styles::ok_color jobs_symbol_color
+  terminator::styles::enclosure_color enclosure_color
+  terminator::color::off color_off
+
+  printf -v jobs_content '%s%s%s%s' \
+    "${enclosure_color}{${color_off}" \
+    "${jobs_symbol_color}" \
+    "${jobs_symbol}" \
+    "${enclosure_color}}${color_off}"
+
+  terminator::prompt::print_if_exists \
+    --content "${jobs_content}" \
     "$@"
 }
 
