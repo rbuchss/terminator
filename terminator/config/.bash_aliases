@@ -16,6 +16,7 @@ if [[ -n "${PS1}" ]]; then
     "${HOME}/.terminator/src/postgresql.sh" \
     "${HOME}/.terminator/src/process.sh" \
     "${HOME}/.terminator/src/python.sh" \
+    "${HOME}/.terminator/src/rg.sh" \
     "${HOME}/.terminator/src/ruby.sh" \
     "${HOME}/.terminator/src/utility.sh" \
     "${HOME}/.terminator/src/vagrant.sh" \
@@ -78,6 +79,9 @@ if [[ -n "${PS1}" ]]; then
 
   # ag helpers
   alias ag='terminator::ag::invoke'
+
+  # rg helpers
+  alias rg='terminator::rg::invoke'
 
   # vim helpers
   alias vi='vim'
