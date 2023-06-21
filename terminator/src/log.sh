@@ -90,9 +90,16 @@ function terminator::log::severity() {
 }
 
 function terminator::log::level() {
-  local variable
+  local variable default
   variable="$(terminator::log::level::variable)"
-  terminator::log::severity "${!variable:-warning}"
+  default="$(terminator::log::level_default)"
+  terminator::log::severity "${!variable:-${default}}"
+}
+
+function terminator::log::level_default() {
+  local variable
+  variable="$(terminator::log::level_default::variable)"
+  echo "${!variable:-info}"
 }
 
 function terminator::log::level::variable() {
@@ -105,6 +112,18 @@ function terminator::log::level::set_variable() {
 
 function terminator::log::level::unset_variable() {
   unset TERMINATOR_LOG_LEVEL_VARIABLE
+}
+
+function terminator::log::level_default::variable() {
+  echo "${TERMINATOR_LOG_LEVEL_DEFAULT_VARIABLE:-TERMINATOR_LOG_LEVEL_DEFAULT}"
+}
+
+function terminator::log::level_default::set_variable() {
+  TERMINATOR_LOG_LEVEL_DEFAULT_VARIABLE="$1"
+}
+
+function terminator::log::level_default::unset_variable() {
+  unset TERMINATOR_LOG_LEVEL_DEFAULT_VARIABLE
 }
 
 function terminator::log::is_silenced() {
