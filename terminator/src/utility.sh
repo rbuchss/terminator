@@ -19,11 +19,46 @@ function terminator::utility::history_stats() {
 }
 
 function terminator::utility::hack() {
-  if command -v ag > /dev/null 2>&1; then
-    history | ag "$1"
-  else
-    history | grep "$1"
-  fi
+  local search_command \
+    search_commands=(
+      'rg'
+      'ag'
+      'ack'
+      'grep'
+    )
+
+  for search_command in "${search_commands[@]}"; do
+    if command -v "${search_command}" > /dev/null 2>&1; then
+      history \
+        | "terminator::utility::hack::${search_command}" "$1" \
+        | less \
+          --quit-if-one-screen \
+          --RAW-CONTROL-CHARS \
+          --no-init
+      return
+    fi
+  done
+
+  terminator::log::error \
+    "No matching command installed in possible search commands: [${search_commands[*]}]"
+
+  return 1
+}
+
+function terminator::utility::hack::rg() {
+  command rg --color always "$@"
+}
+
+function terminator::utility::hack::ag() {
+  command ag --color "$@"
+}
+
+function terminator::utility::hack::ack() {
+  command ack --color "$@"
+}
+
+function terminator::utility::hack::grep() {
+  command grep --color=always "$@"
 }
 
 function terminator::utility::reverse_endianness() {
