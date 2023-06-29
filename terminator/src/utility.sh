@@ -19,7 +19,8 @@ function terminator::utility::history_stats() {
 }
 
 function terminator::utility::hack() {
-  local search_command \
+  local found_command=0 \
+    search_command \
     search_commands=(
       'rg'
       'ag'
@@ -29,20 +30,21 @@ function terminator::utility::hack() {
 
   for search_command in "${search_commands[@]}"; do
     if command -v "${search_command}" > /dev/null 2>&1; then
+      found_command=1
       history \
         | "terminator::utility::hack::${search_command}" "$1" \
         | less \
           --quit-if-one-screen \
           --RAW-CONTROL-CHARS \
           --no-init
-      return
+      break
     fi
   done
 
-  terminator::log::error \
-    "No matching command installed in possible search commands: [${search_commands[*]}]"
-
-  return 1
+  if (( found_command == 0 )); then
+    terminator::log::error "No possible search commands found: [${search_commands[*]}]"
+    return 1
+  fi
 }
 
 function terminator::utility::hack::rg() {
