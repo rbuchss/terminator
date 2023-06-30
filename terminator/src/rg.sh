@@ -1,5 +1,13 @@
 #!/bin/bash
 
+function terminator::rg::bootstrap() {
+  if command -v rg > /dev/null 2>&1; then
+    alias rg='terminator::rg::invoke'
+  else
+    terminator::log::warning 'rg is not installed'
+  fi
+}
+
 function terminator::rg::invoke() {
   # STDOUT is attached to a pipe: -p /dev/stdout
   # STDOUT is attached to a redirection: ! -t 1 && ! -p /dev/stdout

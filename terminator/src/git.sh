@@ -1,5 +1,15 @@
 #!/bin/bash
 
+function terminator::git::bootstrap() {
+  if command -v git > /dev/null 2>&1; then
+    alias git='terminator::git::invoke'
+    alias g='terminator::git::invoke'
+    __git_complete g __git_main
+  else
+    terminator::log::warning 'git is not installed'
+  fi
+}
+
 function terminator::git::url_parse() {
   sed -E 's#(git\@|https://)([^/:]+)(:|/)([^/]+)/(.+$)#'\\"$2"'#g' \
     <<< "$1"

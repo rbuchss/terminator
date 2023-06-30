@@ -8,9 +8,9 @@ function terminator::terraform::bootstrap() {
       # shellcheck source=/dev/null
       complete -C "$(brew --prefix)/bin/terraform" terraform
       complete -C "$(brew --prefix)/bin/terraform" tf
-
-      alias tf='terraform'
     fi
+
+    alias tf='terraform'
   else
     terminator::log::warning 'terraform is not installed'
   fi

@@ -1,5 +1,18 @@
 #!/bin/bash
 
+function terminator::ruby::bootstrap() {
+  if ! command -v rbenv > /dev/null 2>&1 \
+      && ! command -v ruby > /dev/null 2>&1; then
+    terminator::log::warning 'ruby is not installed'
+    return
+  fi
+
+  alias be='bundle exec'
+  alias ruby_bundle_search='terminator::ruby::bundle_search'
+  alias rails_diff='terminator::ruby::rails::diff'
+  alias rails_db_clean='terminator::ruby::rails::create_clean_database'
+}
+
 function terminator::ruby::bundle_search() {
   for gem in "$@"; do
     echo -n "Searching for ${gem} in bundle gempath  ...  "

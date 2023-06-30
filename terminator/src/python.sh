@@ -1,5 +1,16 @@
 #!/bin/bash
 
+function terminator::python::bootstrap() {
+  if ! command -v pyenv > /dev/null 2>&1 \
+      && ! command -v python3 > /dev/null 2>&1 \
+      && ! command -v python > /dev/null 2>&1; then
+    terminator::log::warning 'python is not installed'
+    return
+  fi
+
+  alias py='terminator::python::invoke'
+}
+
 function terminator::python::invoke() {
   local major_version="${TERMINATOR_PYTHON_MAJOR_VERSION:-3}"
 
@@ -12,7 +23,6 @@ function terminator::python::invoke() {
     terminator::log::debug "Using pyenv python version: ${full_version} -> ${short_version}"
 
     command "python${short_version}" "$@"
-
     return
   fi
 
@@ -35,7 +45,6 @@ function terminator::python::invoke() {
       terminator::python::invoke::error "${major_version}"
       ;;
   esac
-
 }
 
 function terminator::python::invoke::error() {

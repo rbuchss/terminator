@@ -3,12 +3,22 @@
 source "${BASH_SOURCE[0]%/*}/utility.sh"
 source "${BASH_SOURCE[0]%/*}/homebrew.sh"
 
+function terminator::postgresql::bootstrap() {
+  if command -v psql > /dev/null 2>&1; then
+    alias psql_list_config='terminator::postgresql::list_config'
+    alias psql_edit_config='terminator::postgresql::edit_config'
+    alias psql_clear_pid='terminator::postgresql::clear_pid'
+  else
+    terminator::log::warning 'postgresql is not installed'
+  fi
+}
+
 function terminator::postgresql::list_config() {
   psql -qAt -c 'show hba_file' | xargs grep -v -E '^[[:space:]]*#'
 }
 
 function terminator::postgresql::edit_config() {
-  vi "$(psql -qAt  -c 'SHOW config_file')"
+  vim "$(psql -qAt  -c 'SHOW config_file')"
 }
 
 # from https://stackoverflow.com/questions/13573204/psql-could-not-connect-to-server-no-such-file-or-directory-mac-os-x

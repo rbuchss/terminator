@@ -1,36 +1,46 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${HOME}/.terminator/src/dotnet.sh"
-source "${HOME}/.terminator/src/go.sh"
-source "${HOME}/.terminator/src/java.sh"
-source "${HOME}/.terminator/src/jenv.sh"
-source "${HOME}/.terminator/src/nodenv.sh"
-source "${HOME}/.terminator/src/pipx.sh"
-source "${HOME}/.terminator/src/pyenv.sh"
-source "${HOME}/.terminator/src/rbenv.sh"
-source "${HOME}/.terminator/src/rust.sh"
-source "${HOME}/.terminator/src/terraform.sh"
+source "${HOME}/.terminator/src/source.sh"
 
-terminator::rbenv::bootstrap
+terminator::source \
+  "${HOME}/.terminator/src/ag.sh" \
+  "${HOME}/.terminator/src/dotnet.sh" \
+  "${HOME}/.terminator/src/git.sh" \
+  "${HOME}/.terminator/src/go.sh" \
+  "${HOME}/.terminator/src/grep.sh" \
+  "${HOME}/.terminator/src/java.sh" \
+  "${HOME}/.terminator/src/jenv.sh" \
+  "${HOME}/.terminator/src/mysql.sh" \
+  "${HOME}/.terminator/src/nodenv.sh" \
+  "${HOME}/.terminator/src/pipx.sh" \
+  "${HOME}/.terminator/src/postgresql.sh" \
+  "${HOME}/.terminator/src/pyenv.sh" \
+  "${HOME}/.terminator/src/python.sh" \
+  "${HOME}/.terminator/src/rbenv.sh" \
+  "${HOME}/.terminator/src/rg.sh" \
+  "${HOME}/.terminator/src/ruby.sh" \
+  "${HOME}/.terminator/src/rust.sh" \
+  "${HOME}/.terminator/src/terraform.sh" \
+  "${HOME}/.terminator/src/vagrant.sh" \
+  "${HOME}/.terminator/src/vim.sh"
 
-terminator::nodenv::bootstrap
-
-# pyenv uses PROMPT_COMMAND as a hook (_pyenv_virtualenv_hook)
-# and is slow ... ~70-100ms
-terminator::pyenv::bootstrap
-
-terminator::pipx::bootstrap
-
-terminator::java::bootstrap
-
-# jenv uses PROMPT_COMMAND as a hook (_jenv_export_hook)
-# and is slow ... ~70-90ms
-# terminator::jenv::bootstrap
-
+terminator::ag::bootstrap
 terminator::dotnet::bootstrap
-
+terminator::git::bootstrap
 terminator::go::bootstrap
-
+terminator::grep::bootstrap
+# terminator::jenv::bootstrap # jenv uses PROMPT_COMMAND as a hook (_jenv_export_hook) and is slow ~90ms
+terminator::java::bootstrap
+terminator::mysql::bootstrap
+terminator::nodenv::bootstrap
+terminator::pipx::bootstrap
+terminator::postgresql::bootstrap
+terminator::pyenv::bootstrap
+terminator::python::bootstrap
+terminator::rbenv::bootstrap
+terminator::rg::bootstrap
+terminator::ruby::bootstrap
 terminator::rust::bootstrap
-
 terminator::terraform::bootstrap
+terminator::vagrant::bootstrap
+terminator::vim::bootstrap

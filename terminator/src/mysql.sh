@@ -1,5 +1,15 @@
 #!/bin/bash
 
+function terminator::mysql::bootstrap() {
+  if command -v mysql > /dev/null 2>&1; then
+    alias mysql='terminator::mysql::invoke'
+    alias mysql_spl='terminator::mysql::show_process_list'
+    alias mysql_find_column='terminator::mysql::find_column'
+  else
+    terminator::log::warning 'mysql is not installed'
+  fi
+}
+
 function terminator::mysql::show_process_list() {
   command mysql -e 'show processlist' | grep -E "$1"
 }
