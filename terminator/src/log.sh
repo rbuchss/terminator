@@ -50,7 +50,7 @@ function terminator::log::logger() (
   (( severity < $(terminator::log::level) )) && return
 
   local datetime progname caller_info
-  datetime="$(date +%Y-%m-%dT%H:%M:%S%z)"
+  datetime="$(terminator::log::datetime)"
   progname="${FUNCNAME[${caller_level}+1]}"
 
   case "${level}" in
@@ -76,6 +76,27 @@ function terminator::log::logger() (
       >> "${output}"
   done
 )
+
+function terminator::log::datetime() {
+  local found_command=0 \
+    date_command \
+    date_commands=(
+      'date'
+      '/bin/date'
+    )
+
+  for date_command in "${date_commands[@]}"; do
+    if command -v "${date_command}" > /dev/null 2>&1; then
+      found_command=1
+      "${date_command}" '+%Y-%m-%dT%H:%M:%S%z'
+      break
+    fi
+  done
+
+  if (( found_command == 0 )); then
+    echo ' NO-DATE-COMMAND-FOUND! '
+  fi
+}
 
 function terminator::log::severity() {
   local severity
