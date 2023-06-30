@@ -17,7 +17,7 @@ function terminator::bootstrap() {
     '/usr/local/share/man' \
     '/usr/share/man'
 
-  source /etc/profile
+  terminator::source /etc/profile
 
   terminator::path::prepend \
     "${HOME}/.terminator/bin" \
