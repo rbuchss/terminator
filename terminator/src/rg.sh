@@ -14,6 +14,7 @@ function terminator::rg::invoke() {
   if [[ -p /dev/stdout || (! -t 1 && ! -p /dev/stdout) ]]; then
     command rg \
       --hidden \
+      --smart-case \
       --line-number \
       "$@"
     return
@@ -22,6 +23,7 @@ function terminator::rg::invoke() {
   # STDOUT is attached to TTY
   command rg \
     --hidden \
+    --smart-case \
     --pretty \
     "$@" \
     | less \
