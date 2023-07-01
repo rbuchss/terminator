@@ -12,6 +12,9 @@ function terminator::vim::bootstrap() {
   alias vf='terminator::vim::open::filename_match'
   alias vg='terminator::vim::open::content_match'
   alias vd='terminator::vim::open::git_diff'
+
+  # We need to export the vim wrapper function for it to be accessible via xargs
+  export -f terminator::vim::invoke
 }
 
 function terminator::vim::invoke() {
@@ -42,8 +45,71 @@ function terminator::vim::open::filename_match() {
 }
 
 function terminator::vim::open::content_match() {
-  # shellcheck disable=SC2046
-  vim -p $(ag -l "$1" "${2:-./}")
+  local found_command=0 \
+    search_command \
+    search_commands=(
+      'rg'
+      'ag'
+      'ack'
+      'grep'
+    )
+
+  for search_command in "${search_commands[@]}"; do
+    if command -v "${search_command}" > /dev/null 2>&1; then
+      found_command=1
+      # using subshell to invoke exported wrapper function - see shellcheck SC2033.
+      # vim expects tty to be attached and will not work without.
+      # ${FUNCNAME[0]} is a placeholder for the $0 var and without we'd lose the first file passed to vim.
+      "terminator::vim::open::content_match::${search_command}" "$@" \
+        | xargs -0 bash -c 'terminator::vim::invoke -p "$@" < /dev/tty' "${FUNCNAME[0]}"
+      break
+    fi
+  done
+
+  if (( found_command == 0 )); then
+    terminator::log::error "No possible search commands found: [${search_commands[*]}]"
+    return 1
+  fi
+}
+
+function terminator::vim::open::content_match::rg() {
+  command rg \
+    --hidden \
+    --smart-case \
+    -l \
+    --null \
+    "$1" \
+    "${2:-./}"
+}
+
+function terminator::vim::open::content_match::ag() {
+  command ag \
+    --hidden \
+    --smart-case \
+    -l \
+    --null \
+    "$1" \
+    "${2:-./}"
+}
+
+function terminator::vim::open::content_match::ack() {
+  command ack \
+    --ignore-dir=.git \
+    --smart-case \
+    -l \
+    --print0 \
+    "$1" \
+    "${2:-./}"
+}
+
+function terminator::vim::open::content_match::grep() {
+  command grep \
+    -R \
+    --exclude-dir=.git \
+    -l \
+    --null \
+    "$1" \
+    "${2:-./}"
 }
 
 function terminator::vim::open::git_diff() {
