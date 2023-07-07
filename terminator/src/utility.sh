@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function terminator::utility::ask() {
-  echo -n "$@" '[y/n] '
+  echo -n "$*" '[y/n] '
   read -r response
   case "${response}" in
     y*|Y*) return 0 ;;
