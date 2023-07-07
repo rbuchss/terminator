@@ -113,6 +113,46 @@ function terminator::vim::open::content_match::grep() {
 }
 
 function terminator::vim::open::git_diff() {
-  # shellcheck disable=SC2046
-  vim -p $(git diff --name-only "${1:-HEAD}")
+  local found_ref=0 \
+    ref \
+    refs=("$@") \
+    default_refs=(
+      'HEAD'
+      'HEAD^!'
+    )
+
+  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    terminator::log::error "Not in git repo!"
+    return 1
+  fi
+
+  if (( ${#refs[@]} > 0 )); then
+    terminator::log::debug "Using refs specified: [${refs[*]}]"
+  else
+    terminator::log::debug "No refs specified - Using defaults: [${default_refs[*]}]"
+    refs=("${default_refs[@]}")
+  fi
+
+  for ref in "${refs[@]}"; do
+    terminator::log::debug "Trying to find git diff with ref: ${ref}"
+
+    if ! command git diff --name-only --exit-code "${ref}" > /dev/null 2>&1; then
+      terminator::log::debug "Found git diff with ref: ${ref}"
+
+      found_ref=1
+
+      # using subshell to invoke exported wrapper function - see shellcheck SC2033.
+      # vim expects tty to be attached and will not work without.
+      # ${FUNCNAME[0]} is a placeholder for the $0 var and without we'd lose the first file passed to vim.
+      command git diff --name-only -z "${ref}" \
+        | xargs -0 bash -c 'terminator::vim::invoke -p "$@" < /dev/tty' "${FUNCNAME[0]}"
+
+      break
+    fi
+  done
+
+  if (( found_ref == 0 )); then
+    terminator::log::error "No possible git diff refs found: [${refs[*]}]"
+    return 1
+  fi
 }
