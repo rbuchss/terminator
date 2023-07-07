@@ -376,9 +376,9 @@ function terminator::prompt::static::command_symbol_prefix() {
 function terminator::prompt::command_symbol() {
   local last_command_exit="${1:-$?}" \
     command_symbol_color \
-    command_symbol_symbol
+    command_symbol_
 
-  terminator::styles::command_symbol command_symbol
+  terminator::styles::command_symbol command_symbol_
 
   if (( last_command_exit != 0 )); then
     terminator::styles::error_color command_symbol_color
@@ -388,7 +388,7 @@ function terminator::prompt::command_symbol() {
 
   terminator::prompt::print_if_exists \
     --color "${command_symbol_color}" \
-    --content "${command_symbol}" \
+    --content "${command_symbol_}" \
     "${@:2}"
 }
 
@@ -549,7 +549,7 @@ function terminator::prompt::print_if_exists() {
       --output right_padding_content
 
     if [[ -n "${output}" ]]; then
-        printf -v "${output}" '%s%s%s%s' \
+        printf -v "${output}" '%s%s%s%s%s' \
           "${left_padding_content}" \
           "${message_color}" \
           "${message_content}" \
@@ -558,7 +558,7 @@ function terminator::prompt::print_if_exists() {
         return
     fi
 
-    printf '%s%s%s%s' \
+    printf '%s%s%s%s%s' \
       "${left_padding_content}" \
       "${message_color}" \
       "${message_content}" \
