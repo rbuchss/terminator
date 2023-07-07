@@ -72,15 +72,15 @@ USAGE_TEXT
 }
 
 function terminator::os::switch::darwin_default() {
-  terminator::log::warning "${FUNCNAME[0]}: noop -> args: $@"
+  terminator::log::warning "${FUNCNAME[0]}: noop -> args: $*"
 }
 
 function terminator::os::switch::linux_default() {
-  terminator::log::warning "${FUNCNAME[0]}: noop -> args: $@"
+  terminator::log::warning "${FUNCNAME[0]}: noop -> args: $*"
 }
 
 function terminator::os::switch::windows_default() {
-  terminator::log::warning "${FUNCNAME[0]}: noop -> args: $@"
+  terminator::log::warning "${FUNCNAME[0]}: noop -> args: $*"
 }
 
 function terminator::os::switch::unsupported_default() {
