@@ -17,6 +17,9 @@ function terminator::vim::bootstrap() {
 
   # We need to export the vim wrapper function for it to be accessible via xargs
   export -f terminator::vim::invoke
+
+  # Sets up completion for git branches
+  __git_complete vd _git_checkout
 }
 
 function terminator::vim::invoke() {
