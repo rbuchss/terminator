@@ -1,5 +1,9 @@
 #!/bin/bash
 
+function terminator::log::trace() {
+  terminator::log::logger -l trace "$@"
+}
+
 function terminator::log::debug() {
   terminator::log::logger -l debug "$@"
 }
@@ -16,21 +20,16 @@ function terminator::log::error() {
   terminator::log::logger -l error "$@"
 }
 
-function terminator::log::logger() (
+function terminator::log::logger() {
   terminator::log::is_silenced && return
 
-  function usage() {
-    >&2 echo "Usage: ${FUNCNAME[1]} [-clo] # prints log message"
-    >&2 echo "    -c: caller level (default: 1)"
-    >&2 echo "    -l: level (default: info)"
-    >&2 echo "    -o: output (default: /dev/stderr)"
-  }
-
   local OPTIND flag
-  local level='info'
+  local level
   local caller_level=1
   local output=/dev/stderr
   local severity
+
+  level="$(terminator::log::level_default)"
 
   while getopts 'c:l:o:' flag; do
     case "${flag}" in
@@ -38,7 +37,7 @@ function terminator::log::logger() (
       l) level="${OPTARG}" ;;
       o) output="${OPTARG}" ;;
       *)
-        usage
+        terminator::log::logger::usage >&2
         return 1
         ;;
     esac
@@ -54,9 +53,10 @@ function terminator::log::logger() (
   progname="${FUNCNAME[${caller_level}+1]}"
 
   case "${level}" in
-    debug) level='DEBUG' ;;
-    info)level='INFO' ;;
-    warning) level='WARNING' ;;
+    [Tt][Rr][Aa][Cc][Ee]) level='TRACE' ;;
+    [Dd][Ee][Bb][Uu][Gg]) level='DEBUG' ;;
+    [Ii][Nn][Ff][Oo]) level='INFO' ;;
+    [Ww][Aa][Rr][Nn][Ii][Nn][Gg]) level='WARNING' ;;
     *)
       level='ERROR'
       caller_info=" -> from: $(terminator::log::caller_formatter \
@@ -65,7 +65,7 @@ function terminator::log::logger() (
   esac
 
   for message in "$@"; do
-    printf '%s, [%s #%d] %7s -- %s: %s\n%b' \
+    printf '%s, [%s #%d] %7s -- %s: %b\n%b' \
       "${level:0:1}" \
       "${datetime}" \
       "$$" \
@@ -75,7 +75,22 @@ function terminator::log::logger() (
       "${caller_info}" \
       >> "${output}"
   done
-)
+}
+
+function terminator::log::logger::usage() {
+  cat <<USAGE_TEXT
+Usage: ${FUNCNAME[1]} [OPTIONS] # prints log message
+
+    -c    Caller level
+          Default: 1
+
+    -l    Level
+          Default: $(terminator::log::level_default)
+
+    -o    Output stream
+          Default: /dev/stderr
+USAGE_TEXT
+}
 
 function terminator::log::datetime() {
   local found_command=0 \
@@ -101,10 +116,11 @@ function terminator::log::datetime() {
 function terminator::log::severity() {
   local severity
   case "$1" in
-    debug|DEBUG) severity=0 ;;
-    info|INFO) severity=1 ;;
-    warning|WARNING) severity=2 ;;
-    *) severity=3 ;;
+    [Tt][Rr][Aa][Cc][Ee]) severity=0 ;;
+    [Dd][Ee][Bb][Uu][Gg]) severity=1 ;;
+    [Ii][Nn][Ff][Oo]) severity=2 ;;
+    [Ww][Aa][Rr][Nn][Ii][Nn][Gg]) severity=3 ;;
+    *) severity=4 ;;
   esac
 
   echo "${severity}"
