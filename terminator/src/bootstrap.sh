@@ -1,8 +1,11 @@
 #!/bin/bash
 # shellcheck source=/dev/null
+source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
 source "${BASH_SOURCE[0]%/*}/config.sh"
 source "${BASH_SOURCE[0]%/*}/os.sh"
 source "${BASH_SOURCE[0]%/*}/path.sh"
+
+terminator::__pragma__::once || return 0
 
 function terminator::bootstrap() {
   terminator::bootstrap::tmux
@@ -45,9 +48,9 @@ function terminator::bootstrap() {
   terminator::cdpath::prepend '.'
 
   terminator::log::debug \
-    "Profile PATH: $PATH" \
-    "Profile MANPATH: $MANPATH" \
-    "Profile CDPATH: $CDPATH"
+    "Profile PATH: ${PATH}" \
+    "Profile MANPATH: ${MANPATH}" \
+    "Profile CDPATH: ${CDPATH}"
 }
 
 function terminator::bootstrap::tmux() {

@@ -1,6 +1,9 @@
 #!/bin/bash
 # shellcheck source=/dev/null
+source "${BASH_SOURCE[0]%/*/*}/__pragma__.sh"
 source "${BASH_SOURCE[0]%/*/*}/styles.sh"
+
+terminator::__pragma__::once || return 0
 
 function terminator::prompt::svn() {
   if ! stat .svn > /dev/null 2>&1 \

@@ -1,7 +1,10 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/source.sh"
+source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
 source "${BASH_SOURCE[0]%/*}/path.sh"
+source "${BASH_SOURCE[0]%/*}/source.sh"
+
+terminator::__pragma__::once || return 0
 
 function terminator::homebrew::is_installed() {
   command -v brew > /dev/null 2>&1

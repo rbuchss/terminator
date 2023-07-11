@@ -1,9 +1,12 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${HOME}/.terminator/src/array.sh"
-source "${HOME}/.terminator/src/log.sh"
-source "${HOME}/.terminator/src/utility.sh"
-source "${HOME}/.terminator/src/vim.sh"
+source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*}/array.sh"
+source "${BASH_SOURCE[0]%/*}/log.sh"
+source "${BASH_SOURCE[0]%/*}/utility.sh"
+source "${BASH_SOURCE[0]%/*}/vim.sh"
+
+terminator::__pragma__::once || return 0
 
 function terminator::myjournal::bootstrap() {
   alias myjournal='terminator::myjournal::invoke'

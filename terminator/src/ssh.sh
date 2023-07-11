@@ -1,4 +1,8 @@
 #!/bin/bash
+# shellcheck source=/dev/null
+source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+
+terminator::__pragma__::once || return 0
 
 function terminator::ssh::is_ssh_session() {
   if [[ -n "${TERMINATOR_SSH_IS_SSH_SESSION}" ]]; then

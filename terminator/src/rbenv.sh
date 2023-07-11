@@ -1,6 +1,9 @@
 #!/bin/bash
 # shellcheck source=/dev/null
+source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
 source "${BASH_SOURCE[0]%/*}/homebrew.sh"
+
+terminator::__pragma__::once || return 0
 
 function terminator::rbenv::bootstrap() {
   if command -v rbenv > /dev/null 2>&1; then

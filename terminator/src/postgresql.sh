@@ -1,7 +1,10 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/utility.sh"
+source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
 source "${BASH_SOURCE[0]%/*}/homebrew.sh"
+source "${BASH_SOURCE[0]%/*}/utility.sh"
+
+terminator::__pragma__::once || return 0
 
 function terminator::postgresql::bootstrap() {
   if command -v psql > /dev/null 2>&1; then

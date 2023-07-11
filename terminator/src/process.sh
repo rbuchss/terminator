@@ -1,6 +1,9 @@
 #!/bin/bash
 # shellcheck source=/dev/null
+source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
 source "${BASH_SOURCE[0]%/*}/utility.sh"
+
+terminator::__pragma__::once || return 0
 
 function terminator::process::kill() {
   if (( $# < 1 )) || (( $# > 2 )); then

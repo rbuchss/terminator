@@ -1,4 +1,8 @@
 #!/bin/bash
+# shellcheck source=/dev/null
+source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+
+terminator::__pragma__::once || return 0
 
 # unicode helper for lack of echo/printf code point
 # support in bash < 4.2

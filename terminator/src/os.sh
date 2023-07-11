@@ -1,6 +1,9 @@
 #!/bin/bash
 # shellcheck source=/dev/null
+source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
 source "${BASH_SOURCE[0]%/*}/log.sh"
+
+terminator::__pragma__::once || return 0
 
 function terminator::os::switch() {
   local darwin_block=terminator::os::switch::darwin_default \
