@@ -1,4 +1,6 @@
 #!/bin/bash
+# shellcheck source=/dev/null
+source "${BASH_SOURCE[0]%/*}/log.sh"
 
 function terminator::vim::bootstrap() {
   if ! command -v nvim > /dev/null 2>&1 \
@@ -28,7 +30,9 @@ function terminator::vim::invoke() {
   for vim_command in "${vim_commands[@]}"; do
     if command -v "${vim_command}" > /dev/null 2>&1; then
       found_command=1
+
       command "${vim_command}" "$@"
+
       break
     fi
   done
@@ -40,8 +44,75 @@ function terminator::vim::invoke() {
 }
 
 function terminator::vim::open::filename_match() {
-  # shellcheck disable=SC2046
-  vim -p $(ag -g "$1" "${2:-./}")
+  local found_command=0 \
+    search_command \
+    search_commands=(
+      'rg'
+      'ag'
+      'ack'
+      'find'
+    )
+
+  for search_command in "${search_commands[@]}"; do
+    terminator::log::debug "Trying to search with command: ${search_command}"
+
+    if command -v "${search_command}" > /dev/null 2>&1; then
+      terminator::log::debug "Found search command: ${search_command}"
+
+      found_command=1
+
+      # using subshell to invoke exported wrapper function - see shellcheck SC2033.
+      # vim expects tty to be attached and will not work without.
+      # ${FUNCNAME[0]} is a placeholder for the $0 var and without we'd lose the first file passed to vim.
+      "terminator::vim::open::filename_match::${search_command}" "$@" \
+        | xargs -0 bash -c 'terminator::vim::invoke -p "$@" < /dev/tty' "${FUNCNAME[0]}"
+
+      break
+    fi
+  done
+
+  if (( found_command == 0 )); then
+    terminator::log::error "No possible search commands found: [${search_commands[*]}]"
+    return 1
+  fi
+}
+
+function terminator::vim::open::filename_match::rg() {
+  command rg \
+    --files \
+    --hidden \
+    --null \
+    "${2:-./}" \
+    | command rg \
+      --null-data \
+      --smart-case \
+      "$1"
+}
+
+function terminator::vim::open::filename_match::ag() {
+  command ag \
+    --hidden \
+    --smart-case \
+    --null \
+    -g "$1" \
+    "${2:-./}"
+}
+
+function terminator::vim::open::filename_match::ack() {
+  command ack \
+    --ignore-dir=.git \
+    --smart-case \
+    --print0 \
+    -g "$1" \
+    "${2:-./}"
+}
+
+function terminator::vim::open::filename_match::find() {
+  command find "${2:-.}" \
+    -not \( -path "${2:-.}/.git" -prune \) \
+    -type f \
+    -regex ".*$1.*" \
+    -print0
 }
 
 function terminator::vim::open::content_match() {
@@ -55,13 +126,19 @@ function terminator::vim::open::content_match() {
     )
 
   for search_command in "${search_commands[@]}"; do
+    terminator::log::debug "Trying to search with command: ${search_command}"
+
     if command -v "${search_command}" > /dev/null 2>&1; then
+      terminator::log::debug "Found search command: ${search_command}"
+
       found_command=1
+
       # using subshell to invoke exported wrapper function - see shellcheck SC2033.
       # vim expects tty to be attached and will not work without.
       # ${FUNCNAME[0]} is a placeholder for the $0 var and without we'd lose the first file passed to vim.
       "terminator::vim::open::content_match::${search_command}" "$@" \
         | xargs -0 bash -c 'terminator::vim::invoke -p "$@" < /dev/tty' "${FUNCNAME[0]}"
+
       break
     fi
   done
