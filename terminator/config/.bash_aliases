@@ -13,7 +13,7 @@ if [[ -n "${PS1}" ]]; then
     "${HOME}/.terminator/src/utility.sh"
 
   # bash helpers
-  alias sbp='terminator::source "${HOME}/.bash_profile"'
+  terminator::source::bootstrap
   alias clr='clear'
   alias df='df -kTh'
   alias du='du -kh'
