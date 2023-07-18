@@ -3,16 +3,33 @@
 function tmux::tmuxinator::bootstrap() {
   alias tmuxinator='tmux::tmuxinator::command::invoke'
   alias mux='tmux::tmuxinator::command::invoke'
-  tmux::tmuxinator::completion::add_alias 'tmuxinator'
-  tmux::tmuxinator::completion::add_alias 'mux'
+
+  tmux::tmuxinator::completion::add_alias \
+    'tmuxinator' \
+    'mux'
 }
 
 function tmux::tmuxinator::command::invoke() {
+  local deinitialize_called=0
+
   if [[ -z "${TMUX_PATH_INITIALIZED}" ]]; then
     # shellcheck source=/dev/null
     source "${HOME}/.tmux/bin/session-create"
+
+    # We need to remove exported log functions otherwise tmux will not be happy.
+    terminator::log::__deinitialize__
+    deinitialize_called=1
   fi
+
   command tmuxinator "$@"
+  local exit_status=$?
+
+  if (( deinitialize_called == 1 )); then
+    # Re-init removed exported log functions.
+    terminator::log::__initialize__
+  fi
+
+  return "${exit_status}"
 }
 
 function tmux::tmuxinator::completion() {

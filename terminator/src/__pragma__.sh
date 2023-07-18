@@ -29,14 +29,31 @@ function terminator::__pragma__::once() {
 
     local root_dir="${BASH_SOURCE[0]%/*/*/*}"
     local source_filepath="${BASH_SOURCE[1]/${root_dir}/}"
-
     guard_name="${source_filepath//[\/.\- ]/_}"
   fi
 
+  terminator::__pragma__::__invoke_function_if_exists__ \
+    'terminator::log::trace' -c 2 "Using guard name: '${guard_name}' for file: '${BASH_SOURCE[1]}'"
+
   local element
   for element in "${TERMINATOR_PRAGMA_LOADED_FILES[@]}"; do
-    [[ "${element}" == "${guard_name}" ]] && return "${should_not_source_status}"
+    if [[ "${element}" == "${guard_name}" ]]; then
+      terminator::__pragma__::__invoke_function_if_exists__ \
+        'terminator::log::trace' -c 2 \
+        "Skipping: '${guard_name}' since it already exists in the TERMINATOR_PRAGMA_LOADED_FILES cache"
+
+      return "${should_not_source_status}"
+    fi
   done
+
+  terminator::__pragma__::__invoke_function_if_exists__ \
+    'terminator::log::debug' -c 2 "Added: '${guard_name}'"
+
+  if terminator::__pragma__::__function_exists__ 'terminator::log::trace'; then
+    local trace_message
+    printf -v trace_message '  %s\n' "${TERMINATOR_PRAGMA_LOADED_FILES[@]}"
+    terminator::log::trace -- "-> To TERMINATOR_PRAGMA_LOADED_FILES cache: [\n${trace_message}]"
+  fi
 
   TERMINATOR_PRAGMA_LOADED_FILES+=("${guard_name}")
 
@@ -53,7 +70,18 @@ function terminator::__pragma__::remove() {
     for index in "${!TERMINATOR_PRAGMA_LOADED_FILES[@]}"; do
       if [[ "${TERMINATOR_PRAGMA_LOADED_FILES[index]}" == "${element}" ]]; then
         unset 'TERMINATOR_PRAGMA_LOADED_FILES[index]'
+        break # no duplicates should exist so exit early is fine
       fi
     done
   done
+}
+
+function terminator::__pragma__::__function_exists__() {
+  declare -F "$1" > /dev/null 2>&1
+}
+
+function terminator::__pragma__::__invoke_function_if_exists__() {
+  if terminator::__pragma__::__function_exists__ "$1"; then
+    "$1" "${@:2}"
+  fi
 }

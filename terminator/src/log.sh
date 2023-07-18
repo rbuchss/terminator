@@ -205,3 +205,81 @@ function terminator::log::caller_formatter() {
   done
   echo ''
 }
+
+function terminator::log::__initialize__() {
+  # We need to export the log functions for them to be accessible via xargs
+  #
+  # Helper script:
+  # command rg --no-line-number 'function terminator::log' terminator/src/log.sh \
+  #   | command rg -v 'terminator::log::__' \
+  #   | sed -E 's/function (.+)\(\) [{(]/export -f \1/' >> terminator/src/log.sh
+  #
+  # NOTE: calling any exported function within terminator::__pragma__::once does not
+  # play nice with tmux. Due to invalid function references across bash login shells.
+  # To avoid this issue we need to either:
+  #   - Not call any of these functions within tmux/terminator::__pragma__::once
+  #   - Remove exports or unset these functions prior to calling tmux/terminator::__pragma__::once
+  export -f terminator::log::trace
+  export -f terminator::log::debug
+  export -f terminator::log::info
+  export -f terminator::log::warning
+  export -f terminator::log::error
+  export -f terminator::log::logger
+  export -f terminator::log::logger::usage
+  export -f terminator::log::datetime
+  export -f terminator::log::severity
+  export -f terminator::log::level
+  export -f terminator::log::level_default
+  export -f terminator::log::level::variable
+  export -f terminator::log::level::set_variable
+  export -f terminator::log::level::unset_variable
+  export -f terminator::log::level_default::variable
+  export -f terminator::log::level_default::set_variable
+  export -f terminator::log::level_default::unset_variable
+  export -f terminator::log::is_silenced
+  export -f terminator::log::silence
+  export -f terminator::log::silence::variable
+  export -f terminator::log::silence::set_variable
+  export -f terminator::log::silence::unset_variable
+  export -f terminator::log::caller_formatter
+}
+
+function terminator::log::__deinitialize__() {
+  # We need to remove these exported functions otherwise tmux will not
+  # properly load the .bash_profile if any of them are called during
+  # the bash --login process.
+  #
+  # Calling any will cause a corruption of the bash call stack based
+  # on bash 3.2.57. This appears to be due corrupted function references
+  # from the parent inherited env.
+  #
+  # To use these within tmux we must first remove these exported function
+  # references and then re-init them just like we would with a new
+  # bash --login session.
+  export -fn terminator::log::trace
+  export -fn terminator::log::debug
+  export -fn terminator::log::info
+  export -fn terminator::log::warning
+  export -fn terminator::log::error
+  export -fn terminator::log::logger
+  export -fn terminator::log::logger::usage
+  export -fn terminator::log::datetime
+  export -fn terminator::log::severity
+  export -fn terminator::log::level
+  export -fn terminator::log::level_default
+  export -fn terminator::log::level::variable
+  export -fn terminator::log::level::set_variable
+  export -fn terminator::log::level::unset_variable
+  export -fn terminator::log::level_default::variable
+  export -fn terminator::log::level_default::set_variable
+  export -fn terminator::log::level_default::unset_variable
+  export -fn terminator::log::is_silenced
+  export -fn terminator::log::silence
+  export -fn terminator::log::silence::variable
+  export -fn terminator::log::silence::set_variable
+  export -fn terminator::log::silence::unset_variable
+  export -fn terminator::log::caller_formatter
+}
+
+# Auto-initializes this module so we can use these exported functions by just sourcing this file
+terminator::log::__initialize__

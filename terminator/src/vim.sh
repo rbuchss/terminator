@@ -34,7 +34,15 @@ function terminator::vim::invoke() {
     )
 
   for vim_command in "${vim_commands[@]}"; do
+    if declare -F terminator::log::debug > /dev/null 2>&1; then
+      terminator::log::debug "Trying to use vim command: ${vim_command}"
+    fi
+
     if command -v "${vim_command}" > /dev/null 2>&1; then
+      if declare -F terminator::log::debug > /dev/null 2>&1; then
+        terminator::log::debug "Found vim command: ${vim_command}"
+      fi
+
       found_command=1
 
       command "${vim_command}" "$@"
