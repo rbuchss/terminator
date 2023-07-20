@@ -10,6 +10,7 @@ terminator::source \
   "${HOME}/.terminator/src/grep.sh" \
   "${HOME}/.terminator/src/java.sh" \
   "${HOME}/.terminator/src/jenv.sh" \
+  "${HOME}/.terminator/src/jetbrains.sh" \
   "${HOME}/.terminator/src/myjournal.sh" \
   "${HOME}/.terminator/src/mysql.sh" \
   "${HOME}/.terminator/src/nodenv.sh" \
@@ -30,8 +31,9 @@ terminator::dotnet::bootstrap
 terminator::git::bootstrap
 terminator::go::bootstrap
 terminator::grep::bootstrap
-# terminator::jenv::bootstrap # jenv uses PROMPT_COMMAND as a hook (_jenv_export_hook) and is slow ~90ms
 terminator::java::bootstrap
+# terminator::jenv::bootstrap # jenv uses PROMPT_COMMAND as a hook (_jenv_export_hook) and is slow ~90ms
+terminator::jetbrains::bootstrap
 terminator::myjournal::bootstrap
 terminator::mysql::bootstrap
 terminator::nodenv::bootstrap
