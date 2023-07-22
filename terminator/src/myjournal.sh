@@ -8,7 +8,7 @@ source "${BASH_SOURCE[0]%/*}/vim.sh"
 
 terminator::__pragma__::once || return 0
 
-function terminator::myjournal::bootstrap() {
+function terminator::myjournal::__initialize__() {
   alias myjournal='terminator::myjournal::invoke'
   alias mj='terminator::myjournal::invoke'
 

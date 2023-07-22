@@ -18,7 +18,7 @@ function terminator::source() {
   done
 }
 
-function terminator::source::bootstrap() {
+function terminator::source::__initialize__() {
   alias source_bash_profile='terminator::source::bash_profile'
   alias sbp='terminator::source::bash_profile'
 

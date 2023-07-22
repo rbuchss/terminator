@@ -4,12 +4,13 @@ source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
 
 terminator::__pragma__::once || return 0
 
-function terminator::dotnet::bootstrap() {
-  if command -v dotnet > /dev/null 2>&1; then
-    complete -f -F terminator::dotnet::complete dotnet
-  else
+function terminator::dotnet::__initialize__() {
+  if ! command -v dotnet > /dev/null 2>&1; then
     terminator::log::warning 'dotnet is not installed'
+    return
   fi
+
+  complete -f -F terminator::dotnet::complete dotnet
 }
 
 # bash parameter completion for the dotnet CLI

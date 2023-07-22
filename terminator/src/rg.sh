@@ -4,12 +4,13 @@ source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
 
 terminator::__pragma__::once || return 0
 
-function terminator::rg::bootstrap() {
-  if command -v rg > /dev/null 2>&1; then
-    alias rg='terminator::rg::invoke'
-  else
+function terminator::rg::__initialize__() {
+  if ! command -v rg > /dev/null 2>&1; then
     terminator::log::warning 'rg is not installed'
+    return
   fi
+
+  alias rg='terminator::rg::invoke'
 }
 
 function terminator::rg::invoke() {

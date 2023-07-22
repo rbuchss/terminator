@@ -21,7 +21,7 @@ function terminator::homebrew::package::is_installed() {
     ls "$(brew --prefix "$1")" > /dev/null 2>&1
 }
 
-function terminator::homebrew::bootstrap() {
+function terminator::homebrew::__initialize__() {
   local brew_path_exists=0 \
     possible_brew_paths=(/usr/local/bin/brew /opt/homebrew/bin/brew)
 
@@ -38,22 +38,23 @@ function terminator::homebrew::bootstrap() {
     return
   fi
 
-  if terminator::homebrew::is_installed; then
-    # using GNU for coreutils vs BSD
-    terminator::homebrew::add_paths \
-      'coreutils' \
-      'gnu-sed' \
-      'make'
-
-    # If not running interactively, don't do anything
-    if [[ -n "${PS1}" ]]; then
-      terminator::homebrew::bootstrap::bash_completion
-
-      alias brew-cleaner='terminator::homebrew::clean'
-      alias brew-cask-cleaner='terminator::homebrew::cask::clean'
-    fi
-  else
+  if ! terminator::homebrew::is_installed; then
     terminator::log::warning 'homebrew is not installed'
+    return
+  fi
+
+  # using GNU for coreutils vs BSD
+  terminator::homebrew::add_paths \
+    'coreutils' \
+    'gnu-sed' \
+    'make'
+
+  # If not running interactively, don't do anything
+  if [[ -n "${PS1}" ]]; then
+    terminator::homebrew::__initialize__::bash_completion
+
+    alias brew-cleaner='terminator::homebrew::clean'
+    alias brew-cask-cleaner='terminator::homebrew::cask::clean'
   fi
 }
 
@@ -80,7 +81,7 @@ function terminator::homebrew::cask::clean() {
   brew upgrade brew-cask && brew cask cleanup
 }
 
-function terminator::homebrew::bootstrap::bash_completion() {
+function terminator::homebrew::__initialize__::bash_completion() {
   if terminator::homebrew::package::is_installed bash-completion; then
     terminator::source "$(brew --prefix)/etc/bash_completion"
   else

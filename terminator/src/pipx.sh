@@ -4,7 +4,7 @@ source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
 
 terminator::__pragma__::once || return 0
 
-function terminator::pipx::bootstrap() {
+function terminator::pipx::__initialize__() {
   local local_bin_path="${HOME}/.local/bin"
 
   if [[ ! -d "${local_bin_path}" ]]; then

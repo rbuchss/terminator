@@ -6,14 +6,15 @@ source "${BASH_SOURCE[0]%/*}/utility.sh"
 
 terminator::__pragma__::once || return 0
 
-function terminator::postgresql::bootstrap() {
-  if command -v psql > /dev/null 2>&1; then
-    alias psql_list_config='terminator::postgresql::list_config'
-    alias psql_edit_config='terminator::postgresql::edit_config'
-    alias psql_clear_pid='terminator::postgresql::clear_pid'
-  else
+function terminator::postgresql::__initialize__() {
+  if ! command -v psql > /dev/null 2>&1; then
     terminator::log::warning 'postgresql is not installed'
+    return
   fi
+
+  alias psql_list_config='terminator::postgresql::list_config'
+  alias psql_edit_config='terminator::postgresql::edit_config'
+  alias psql_clear_pid='terminator::postgresql::clear_pid'
 }
 
 function terminator::postgresql::list_config() {

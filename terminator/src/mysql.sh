@@ -4,14 +4,15 @@ source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
 
 terminator::__pragma__::once || return 0
 
-function terminator::mysql::bootstrap() {
-  if command -v mysql > /dev/null 2>&1; then
-    alias mysql='terminator::mysql::invoke'
-    alias mysql_spl='terminator::mysql::show_process_list'
-    alias mysql_find_column='terminator::mysql::find_column'
-  else
+function terminator::mysql::__initialize__() {
+  if ! command -v mysql > /dev/null 2>&1; then
     terminator::log::warning 'mysql is not installed'
+    return
   fi
+
+  alias mysql='terminator::mysql::invoke'
+  alias mysql_spl='terminator::mysql::show_process_list'
+  alias mysql_find_column='terminator::mysql::find_column'
 }
 
 function terminator::mysql::show_process_list() {

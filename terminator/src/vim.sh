@@ -5,7 +5,7 @@ source "${BASH_SOURCE[0]%/*}/log.sh"
 
 terminator::__pragma__::once || return 0
 
-function terminator::vim::bootstrap() {
+function terminator::vim::__initialize__() {
   if ! command -v nvim > /dev/null 2>&1 \
       && ! command -v vim > /dev/null 2>&1; then
     terminator::log::warning 'vim and nvim are not installed'

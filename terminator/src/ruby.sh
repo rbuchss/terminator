@@ -4,7 +4,7 @@ source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
 
 terminator::__pragma__::once || return 0
 
-function terminator::ruby::bootstrap() {
+function terminator::ruby::__initialize__() {
   if ! command -v rbenv > /dev/null 2>&1 \
       && ! command -v ruby > /dev/null 2>&1; then
     terminator::log::warning 'ruby is not installed'

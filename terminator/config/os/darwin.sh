@@ -5,7 +5,7 @@ source "${HOME}/.terminator/src/dircolors.sh"
 source "${HOME}/.terminator/src/homebrew.sh"
 source "${HOME}/.tmux/src/tmuxinator.sh"
 
-terminator::homebrew::bootstrap
+terminator::homebrew::__initialize__
 
 # If not running interactively, don't do anything
 if [[ -n "${PS1}" ]]; then
@@ -17,7 +17,7 @@ if [[ -n "${PS1}" ]]; then
 
   terminator::cdpath::prepend "${HOME}/Library/Services/"
 
-  terminator::dircolors::bootstrap
+  terminator::dircolors::__initialize__
 
   alias show-files='terminator::os::darwin::finder::show_hidden_files'
   alias hide-files='terminator::os::darwin::finder::hide_hidden_files'

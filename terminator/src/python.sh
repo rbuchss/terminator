@@ -4,7 +4,7 @@ source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
 
 terminator::__pragma__::once || return 0
 
-function terminator::python::bootstrap() {
+function terminator::python::__initialize__() {
   if ! command -v pyenv > /dev/null 2>&1 \
       && ! command -v python3 > /dev/null 2>&1 \
       && ! command -v python > /dev/null 2>&1; then

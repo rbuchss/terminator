@@ -4,12 +4,13 @@ source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
 
 terminator::__pragma__::once || return 0
 
-function terminator::vagrant::bootstrap() {
-  if command -v vagrant > /dev/null 2>&1; then
-    alias vagrant_scp='terminator::vagrant::scp'
-  else
+function terminator::vagrant::__initialize__() {
+  if ! command -v vagrant > /dev/null 2>&1; then
     terminator::log::warning 'vagrant is not installed'
+    return
   fi
+
+  alias vagrant_scp='terminator::vagrant::scp'
 }
 
 function terminator::vagrant::scp() {
