@@ -7,8 +7,8 @@ source "${BASH_SOURCE[0]%/*}/path.sh"
 
 terminator::__pragma__::once || return 0
 
-function terminator::bootstrap() {
-  terminator::bootstrap::tmux
+function terminator::profile::__initialize__() {
+  terminator::profile::tmux
 
   # MANPATH must be defined, even if empty
   # before /etc/profile -> path_helper runs
@@ -31,10 +31,10 @@ function terminator::bootstrap() {
     "${HOME}"
 
   terminator::os::switch \
-    --darwin terminator::bootstrap::os::darwin \
-    --linux terminator::bootstrap::os::linux \
-    --windows terminator::bootstrap::os::windows \
-    --unsupported terminator::bootstrap::os::unsupported
+    --darwin terminator::profile::os::darwin \
+    --linux terminator::profile::os::linux \
+    --windows terminator::profile::os::windows \
+    --unsupported terminator::profile::os::unsupported
 
   terminator::config::load \
     '.bash_opt' \
@@ -42,7 +42,7 @@ function terminator::bootstrap() {
     '.bashrc' \
     '.bash_aliases'
 
-  terminator::bootstrap::autoload
+  terminator::profile::autoload
 
   # ensure CDPATH has . as first element
   terminator::cdpath::prepend '.'
@@ -53,7 +53,7 @@ function terminator::bootstrap() {
     "Profile CDPATH: ${CDPATH}"
 }
 
-function terminator::bootstrap::tmux() {
+function terminator::profile::tmux() {
   # prevents duplicated path/cdpath/manpath/PROMPT_COMMAND
   # created when using tmux
   # by clearing out the old path and then rebuilding it
@@ -69,24 +69,24 @@ function terminator::bootstrap::tmux() {
   terminator::source "${HOME}/.tmux/config/tmux.sh"
 }
 
-function terminator::bootstrap::os::darwin() {
+function terminator::profile::os::darwin() {
   terminator::config::load 'os/darwin.sh'
 }
 
-function terminator::bootstrap::os::linux() {
+function terminator::profile::os::linux() {
   terminator::config::load 'os/linux.sh'
 }
 
-function terminator::bootstrap::os::windows() {
+function terminator::profile::os::windows() {
   terminator::config::load 'os/windows.sh'
 }
 
-function terminator::bootstrap::os::unsupported() {
+function terminator::profile::os::unsupported() {
   terminator::log::error "OS '${OSTYPE}' not supported"
   return 1
 }
 
-function terminator::bootstrap::autoload() {
+function terminator::profile::autoload() {
   if compgen -G "${HOME}/.bash_autoload*" > /dev/null 2>&1; then
     for autoload_file in "${HOME}"/.bash_autoload*; do
       terminator::source "${autoload_file}"
