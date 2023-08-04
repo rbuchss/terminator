@@ -45,6 +45,7 @@ function terminator::prompt::left() {
     directory \
     directory_suffix \
     jobs_info \
+    timestamp \
     version_control \
     newline \
     command_symbol_prefix \
@@ -66,13 +67,14 @@ function terminator::prompt::left() {
   terminator::prompt::directory_suffix directory_suffix
   terminator::prompt::version_control version_control
   terminator::prompt::jobs_info jobs_info
+  terminator::prompt::timestamp timestamp
   terminator::styles::newline newline
   terminator::prompt::command_symbol_prefix command_symbol_prefix
   terminator::prompt::command_symbol "${last_command_exit}" command_symbol
   terminator::prompt::command_symbol_suffix command_symbol_suffix
   terminator::color::off color_off
 
-  printf -v left_prompt_buffer '%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s' \
+  printf -v left_prompt_buffer '%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s' \
     "${error_status}" \
     "${ssh_status}" \
     "${user_prefix}" \
@@ -86,6 +88,7 @@ function terminator::prompt::left() {
     "${directory_suffix}" \
     "${version_control}" \
     "${jobs_info}" \
+    "${timestamp}" \
     "${newline}" \
     "${command_symbol_prefix}" \
     "${command_symbol}" \
@@ -354,6 +357,30 @@ function terminator::prompt::jobs_info() {
 
   terminator::prompt::print_if_exists \
     --content "${jobs_content}" \
+    "$@"
+}
+
+function terminator::prompt::timestamp() {
+  local timestamp_symbol_color \
+    timestamp_symbol \
+    timestamp_content \
+    enclosure_color \
+    color_off
+
+  terminator::styles::timestamp timestamp_symbol
+  terminator::styles::enclosure_color timestamp_symbol_color
+  terminator::styles::enclosure_color enclosure_color
+  terminator::color::off color_off
+
+  printf -v timestamp_content '%s%s%s%s' \
+    "${enclosure_color}(${color_off}" \
+    "${timestamp_symbol_color}" \
+    "${timestamp_symbol}" \
+    "${enclosure_color})${color_off}"
+
+  terminator::prompt::print_if_exists \
+    --content "${timestamp_content}" \
+    --left 1 \
     "$@"
 }
 

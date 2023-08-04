@@ -335,6 +335,13 @@ function terminator::styles::jobs() {
     "$@"
 }
 
+function terminator::styles::timestamp() {
+  terminator::styles::char_coalesce \
+    "${TERMINATOR_STYLES_TIMESTAMP}" \
+    '\D{%FT%T%z}' \
+    "$@"
+}
+
 function terminator::styles::time() {
   terminator::styles::char_coalesce \
     "${TERMINATOR_STYLES_TIME}" \
