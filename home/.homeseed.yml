@@ -1,5 +1,0 @@
-:repos:
-  terminator:
-    :origin: git@github.com:rbuchss/terminator.git
-  vim-4-eva:
-    :origin: git@github.com:rbuchss/vim-4-eva.git
