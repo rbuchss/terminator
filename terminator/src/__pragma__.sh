@@ -47,7 +47,7 @@ function terminator::__pragma__::once() {
   done
 
   terminator::__pragma__::__invoke_function_if_exists__ \
-    'terminator::log::debug' -c 2 "Added: '${guard_name}'"
+    'terminator::log::trace' -c 2 "Added: '${guard_name}'"
 
   if terminator::__pragma__::__function_exists__ 'terminator::log::trace'; then
     local trace_message
