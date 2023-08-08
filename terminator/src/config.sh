@@ -5,18 +5,76 @@ source "${BASH_SOURCE[0]%/*}/source.sh"
 
 terminator::__pragma__::once || return 0
 
+TERMINATOR_CONFIG_DIR="${HOME}/.config/terminator"
+TERMINATOR_HOOKS_DIR="${TERMINATOR_CONFIG_DIR}/hooks"
+
 function terminator::config::path() {
-  local result="${HOME}/.terminator/config"
+  local filepath="$1" \
+    config_dir="${2:-${TERMINATOR_CONFIG_DIR}}"
 
-  for element in "$@"; do
-    result="${result}/${element}"
-  done
+  if [[ -z "${filepath}" ]]; then
+    echo "${config_dir}"
+  elif terminator::config::is_path_absolute "${filepath}"; then
+    echo "${filepath}"
+  else
+    echo "${config_dir}/${filepath}"
+  fi
+}
 
-  echo "${result}"
+function terminator::config::is_path_absolute() {
+  local filepath="$1"
+  [[ "${filepath:0:1}" == / || "${filepath:0:2}" == '~/' ]]
 }
 
 function terminator::config::load() {
-  for element in "$@"; do
-    terminator::source "$(terminator::config::path "${element}")"
+  local filepath
+  for filepath in "$@"; do
+    terminator::source "$(terminator::config::path "${filepath}")"
   done
+}
+
+function terminator::config::hooks::invoke() {
+  local hook_type="$1" \
+    hooks_dir="$2" \
+    hook_files=()
+
+  if [[ -z "${hook_type}" ]]; then
+    terminator::log::error 'hook type not specified'
+    return 1
+  fi
+
+  hook_dir="$(terminator::config::path "${hook_type}" "${hooks_dir:-${TERMINATOR_HOOKS_DIR}}")"
+
+  while IFS='' read -r hook_file; do
+    hook_files+=("${hook_file}")
+  done < <(
+    find "${hook_dir}" \
+      -depth 1 \
+      -type f \
+      -or \
+      -type l \
+      -name '*.sh' \
+      -or \
+      -name '*.bash' \
+      | sort -n
+  )
+
+  if (( ${#hook_files[@]} == 0 )); then
+    terminator::log::debug "SKIPPING hook: '${hook_type}' - no files found in: '${hook_dir}'"
+    return
+  fi
+
+  terminator::config::load "${hook_files[@]}"
+}
+
+function terminator::config::hooks::before() {
+  terminator::config::hooks::invoke \
+    'before' \
+    "${TERMINATOR_HOOKS_DIR}"
+}
+
+function terminator::config::hooks::after() {
+  terminator::config::hooks::invoke \
+    'after' \
+    "${TERMINATOR_HOOKS_DIR}"
 }

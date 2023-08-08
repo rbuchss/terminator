@@ -8,7 +8,7 @@ source "${BASH_SOURCE[0]%/*}/path.sh"
 terminator::__pragma__::once || return 0
 
 function terminator::profile::__initialize__() {
-  terminator::profile::tmux
+  terminator::config::hooks::before
 
   # MANPATH must be defined, even if empty
   # before /etc/profile -> path_helper runs
@@ -37,12 +37,12 @@ function terminator::profile::__initialize__() {
     --unsupported terminator::profile::os::unsupported
 
   terminator::config::load \
-    '.bash_opt' \
-    '.bash_styles' \
-    '.bashrc' \
-    '.bash_aliases'
+    "${HOME}/.bash_opt" \
+    "${HOME}/.bash_styles" \
+    "${HOME}/.bashrc" \
+    "${HOME}/.bash_aliases"
 
-  terminator::profile::autoload
+  terminator::config::hooks::after
 
   # ensure CDPATH has . as first element
   terminator::cdpath::prepend '.'
@@ -51,22 +51,6 @@ function terminator::profile::__initialize__() {
     "Profile PATH: ${PATH}" \
     "Profile MANPATH: ${MANPATH}" \
     "Profile CDPATH: ${CDPATH}"
-}
-
-function terminator::profile::tmux() {
-  # prevents duplicated path/cdpath/manpath/PROMPT_COMMAND
-  # created when using tmux
-  # by clearing out the old path and then rebuilding it
-  # like a brand new login shell
-  # will not do this if bash_login has already been run
-  if [[ -n "${TMUX}" ]] && [[ -z "${TMUX_PATH_INITIALIZED}" ]]; then
-    terminator::log::debug 'initializing tmux ...'
-    terminator::paths::clear
-    PROMPT_COMMAND=''
-    export TMUX_PATH_INITIALIZED=1
-  fi
-
-  terminator::source "${HOME}/.tmux/config/tmux.sh"
 }
 
 function terminator::profile::os::darwin() {
@@ -84,14 +68,4 @@ function terminator::profile::os::windows() {
 function terminator::profile::os::unsupported() {
   terminator::log::error "OS '${OSTYPE}' not supported"
   return 1
-}
-
-function terminator::profile::autoload() {
-  if compgen -G "${HOME}/.bash_autoload*" > /dev/null 2>&1; then
-    for autoload_file in "${HOME}"/.bash_autoload*; do
-      terminator::source "${autoload_file}"
-    done
-  else
-    terminator::log::debug 'skipping - no ~/.bash_autoload* files found'
-  fi
 }
