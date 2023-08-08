@@ -37,10 +37,10 @@ function terminator::profile::__initialize__() {
     --unsupported terminator::profile::os::unsupported
 
   terminator::config::load \
-    "${HOME}/.bash_opt" \
-    "${HOME}/.bash_styles" \
+    "modules.sh" \
+    "styles.sh" \
     "${HOME}/.bashrc" \
-    "${HOME}/.bash_aliases"
+    "aliases.sh"
 
   terminator::config::hooks::after
 

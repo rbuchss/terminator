@@ -1,2 +1,3 @@
 .config/terminator/hooks/before
 .config/terminator/os
+.config/terminator
