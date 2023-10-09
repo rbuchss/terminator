@@ -206,6 +206,7 @@ function terminator::vim::open::content_match::grep() {
 function terminator::vim::open::git_diff() {
   local found_ref=0 \
     ref \
+    root_dir \
     refs=("$@") \
     default_refs=(
       'HEAD'
@@ -216,6 +217,8 @@ function terminator::vim::open::git_diff() {
     terminator::log::error "Not in git repo!"
     return 1
   fi
+
+  root_dir="$(git rev-parse --show-toplevel)"
 
   if (( ${#refs[@]} > 0 )); then
     terminator::log::debug "Using refs specified: [${refs[*]}]"
@@ -234,9 +237,14 @@ function terminator::vim::open::git_diff() {
 
       # using subshell to invoke exported wrapper function - see shellcheck SC2033.
       # vim expects tty to be attached and will not work without.
-      # ${FUNCNAME[0]} is a placeholder for the $0 var and without we'd lose the first file passed to vim.
+      # ${root_dir} is a placeholder for the $0 var and without we'd lose the first file passed to vim.
+      # Note that the ${root_dir} placeholder is also used to change to the repo root directory prior
+      # to opening these files. This is to avoid the issue when the cwd is not the repo root directory.
+      # Without this, usage of this command outside of the root directory would fail to open those files
+      # since git diff provides names relative to the repo root.
+      # shellcheck disable=SC2016
       command git diff --name-only -z "${ref}" \
-        | xargs -0 bash -c 'terminator::vim::invoke -p "$@" < /dev/tty' "${FUNCNAME[0]}"
+        | xargs -0 bash -c 'cd "$0" && terminator::vim::invoke -p "$@" < /dev/tty' "${root_dir}"
 
       break
     fi
