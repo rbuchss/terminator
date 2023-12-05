@@ -1,10 +1,10 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*/*}/__module__.sh"
 source "${BASH_SOURCE[0]%/*/*}/file.sh"
 source "${BASH_SOURCE[0]%/*/*}/styles.sh"
 
-terminator::__pragma__::once || return 0
+terminator::__module__::load || return 0
 
 function terminator::prompt::git() {
   local repo_info
@@ -408,3 +408,21 @@ function terminator::prompt::git::stash() {
     *) echo "${count}" ;;
   esac
 }
+
+function terminator::prompt::git::__export__() {
+  export -f terminator::prompt::git
+  export -f terminator::prompt::git::status
+  export -f terminator::prompt::git::format
+  export -f terminator::prompt::git::branch
+  export -f terminator::prompt::git::stash
+}
+
+function terminator::prompt::git::__recall__() {
+  export -fn terminator::prompt::git
+  export -fn terminator::prompt::git::status
+  export -fn terminator::prompt::git::format
+  export -fn terminator::prompt::git::branch
+  export -fn terminator::prompt::git::stash
+}
+
+terminator::__module__::export

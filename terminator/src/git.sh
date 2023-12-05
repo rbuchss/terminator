@@ -1,10 +1,10 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*}/__module__.sh"
 
-terminator::__pragma__::once || return 0
+terminator::__module__::load || return 0
 
-function terminator::git::__initialize__() {
+function terminator::git::__enable__() {
   if ! command -v git > /dev/null 2>&1; then
     terminator::log::warning 'git is not installed'
     return
@@ -12,6 +12,7 @@ function terminator::git::__initialize__() {
 
   alias git='terminator::git::invoke'
   alias g='terminator::git::invoke'
+
   __git_complete g __git_main
 }
 
@@ -23,3 +24,13 @@ function terminator::git::invoke() {
 
   command git "$@"
 }
+
+function terminator::git::__export__() {
+  export -f terminator::git::invoke
+}
+
+function terminator::git::__recall__() {
+  export -fn terminator::git::invoke
+}
+
+terminator::__module__::export

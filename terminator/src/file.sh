@@ -1,8 +1,8 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*}/__module__.sh"
 
-terminator::__pragma__::once || return 0
+terminator::__module__::load || return 0
 
 function terminator::file::extract() {
   for file in "$@"; do
@@ -122,3 +122,33 @@ function terminator::file::mkcd() {
 function terminator::file::read_first_line() {
   [[ -r "$1" ]] && IFS=$'\r\n' read -r "$2" < "$1"
 }
+
+function terminator::file::__export__() {
+  export -f terminator::file::extract
+  export -f terminator::file::mktar
+  export -f terminator::file::mktgz
+  export -f terminator::file::mktbz
+  export -f terminator::file::swap
+  export -f terminator::file::nuke_spaces
+  export -f terminator::file::find_exec
+  export -f terminator::file::dirsize_big
+  export -f terminator::file::dirsize
+  export -f terminator::file::mkcd
+  export -f terminator::file::read_first_line
+}
+
+function terminator::file::__recall__() {
+  export -fn terminator::file::extract
+  export -fn terminator::file::mktar
+  export -fn terminator::file::mktgz
+  export -fn terminator::file::mktbz
+  export -fn terminator::file::swap
+  export -fn terminator::file::nuke_spaces
+  export -fn terminator::file::find_exec
+  export -fn terminator::file::dirsize_big
+  export -fn terminator::file::dirsize
+  export -fn terminator::file::mkcd
+  export -fn terminator::file::read_first_line
+}
+
+terminator::__module__::export

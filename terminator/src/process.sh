@@ -1,9 +1,9 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*}/__module__.sh"
 source "${BASH_SOURCE[0]%/*}/utility.sh"
 
-terminator::__pragma__::once || return 0
+terminator::__module__::load || return 0
 
 function terminator::process::kill() {
   if (( $# < 1 )) || (( $# > 2 )); then
@@ -42,3 +42,13 @@ function terminator::process::kill() {
     fi
   done
 }
+
+function terminator::process::__export__() {
+  export -f terminator::process::kill
+}
+
+function terminator::process::__recall__() {
+  export -fn terminator::process::kill
+}
+
+terminator::__module__::export

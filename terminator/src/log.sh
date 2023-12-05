@@ -1,8 +1,8 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*}/__module__.sh"
 
-terminator::__pragma__::once || return 0
+terminator::__module__::load || return 0
 
 function terminator::log::trace() {
   terminator::log::logger -l trace "$@"
@@ -206,7 +206,7 @@ function terminator::log::caller_formatter() {
   echo ''
 }
 
-function terminator::log::__initialize__() {
+function terminator::log::__export__() {
   # We need to export the log functions for them to be accessible via xargs
   #
   # Helper script:
@@ -214,11 +214,11 @@ function terminator::log::__initialize__() {
   #   | command rg -v 'terminator::log::__' \
   #   | sed -E 's/function (.+)\(\) [{(]/export -f \1/' >> terminator/src/log.sh
   #
-  # NOTE: calling any exported function within terminator::__pragma__::once does not
+  # NOTE: calling any exported function within terminator::__module__::load does not
   # play nice with tmux. Due to invalid function references across bash login shells.
   # To avoid this issue we need to either:
-  #   - Not call any of these functions within tmux/terminator::__pragma__::once
-  #   - Remove exports or unset these functions prior to calling tmux/terminator::__pragma__::once
+  #   - Not call any of these functions within tmux/terminator::__module__::load
+  #   - Remove exports or unset these functions prior to calling tmux/terminator::__module__::load
   export -f terminator::log::trace
   export -f terminator::log::debug
   export -f terminator::log::info
@@ -244,7 +244,7 @@ function terminator::log::__initialize__() {
   export -f terminator::log::caller_formatter
 }
 
-function terminator::log::__deinitialize__() {
+function terminator::log::__recall__() {
   # We need to remove these exported functions otherwise tmux will not
   # properly load the .bash_profile if any of them are called during
   # the bash --login process.
@@ -281,5 +281,4 @@ function terminator::log::__deinitialize__() {
   export -fn terminator::log::caller_formatter
 }
 
-# Auto-initializes this module so we can use these exported functions by just sourcing this file
-terminator::log::__initialize__
+terminator::__module__::export

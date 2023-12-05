@@ -1,8 +1,8 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*}/__module__.sh"
 
-terminator::__pragma__::once || return 0
+terminator::__module__::load || return 0
 
 function terminator::utility::ask() {
   echo -n "$*" '[y/n] '
@@ -88,3 +88,29 @@ function terminator::utility::reverse_endianness() {
 function terminator::utility::trace_environment() {
   PS4='+$BASH_SOURCE> ' BASH_XTRACEFD=7 bash -xl 7>&2
 }
+
+function terminator::utility::__export__() {
+  export -f terminator::utility::ask
+  export -f terminator::utility::history_stats
+  export -f terminator::utility::hack
+  export -f terminator::utility::hack::rg
+  export -f terminator::utility::hack::ag
+  export -f terminator::utility::hack::ack
+  export -f terminator::utility::hack::grep
+  export -f terminator::utility::reverse_endianness
+  export -f terminator::utility::trace_environment
+}
+
+function terminator::utility::__recall__() {
+  export -fn terminator::utility::ask
+  export -fn terminator::utility::history_stats
+  export -fn terminator::utility::hack
+  export -fn terminator::utility::hack::rg
+  export -fn terminator::utility::hack::ag
+  export -fn terminator::utility::hack::ack
+  export -fn terminator::utility::hack::grep
+  export -fn terminator::utility::reverse_endianness
+  export -fn terminator::utility::trace_environment
+}
+
+terminator::__module__::export

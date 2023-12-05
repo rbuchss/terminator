@@ -1,9 +1,9 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*}/__module__.sh"
 source "${BASH_SOURCE[0]%/*}/log.sh"
 
-terminator::__pragma__::once || return 0
+terminator::__module__::load || return 0
 
 function terminator::os::switch() {
   local darwin_block=terminator::os::switch::darwin_default \
@@ -90,3 +90,23 @@ function terminator::os::switch::unsupported_default() {
   terminator::log::error "OS '${OSTYPE}' not supported"
   return 1
 }
+
+function terminator::os::__export__() {
+  export -f terminator::os::switch
+  export -f terminator::os::switch::usage
+  export -f terminator::os::switch::darwin_default
+  export -f terminator::os::switch::linux_default
+  export -f terminator::os::switch::windows_default
+  export -f terminator::os::switch::unsupported_default
+}
+
+function terminator::os::__recall__() {
+  export -fn terminator::os::switch
+  export -fn terminator::os::switch::usage
+  export -fn terminator::os::switch::darwin_default
+  export -fn terminator::os::switch::linux_default
+  export -fn terminator::os::switch::windows_default
+  export -fn terminator::os::switch::unsupported_default
+}
+
+terminator::__module__::export

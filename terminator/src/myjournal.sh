@@ -1,14 +1,14 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*}/__module__.sh"
 source "${BASH_SOURCE[0]%/*}/array.sh"
 source "${BASH_SOURCE[0]%/*}/log.sh"
 source "${BASH_SOURCE[0]%/*}/utility.sh"
 source "${BASH_SOURCE[0]%/*}/vim.sh"
 
-terminator::__pragma__::once || return 0
+terminator::__module__::load || return 0
 
-function terminator::myjournal::__initialize__() {
+function terminator::myjournal::__enable__() {
   alias myjournal='terminator::myjournal::invoke'
   alias mj='terminator::myjournal::invoke'
 
@@ -152,3 +152,25 @@ function terminator::myjournal::completion::add_alias() {
     complete -F terminator::myjournal::completion myjournal "${name}"
   done
 }
+
+function terminator::myjournal::__export__() {
+  export -f terminator::myjournal::invoke
+  export -f terminator::myjournal::root_dir
+  export -f terminator::myjournal::valid_name
+  export -f terminator::myjournal::template
+  export -f terminator::myjournal::new_entry
+  export -f terminator::myjournal::completion
+  export -f terminator::myjournal::completion::add_alias
+}
+
+function terminator::myjournal::__recall__() {
+  export -fn terminator::myjournal::invoke
+  export -fn terminator::myjournal::root_dir
+  export -fn terminator::myjournal::valid_name
+  export -fn terminator::myjournal::template
+  export -fn terminator::myjournal::new_entry
+  export -fn terminator::myjournal::completion
+  export -fn terminator::myjournal::completion::add_alias
+}
+
+terminator::__module__::export

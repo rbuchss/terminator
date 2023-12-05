@@ -1,8 +1,8 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*}/__module__.sh"
 
-terminator::__pragma__::once || return 0
+terminator::__module__::load || return 0
 
 function terminator::help() {
   if ! command -v "$1" > /dev/null 2>&1; then
@@ -72,3 +72,25 @@ function terminator::help::command::help_subcommand() {
 function terminator::help::paged() {
   terminator::help "$@" | less -R
 }
+
+function terminator::help::__export__() {
+  export -f terminator::help
+  export -f terminator::help::command::info
+  export -f terminator::help::command::man
+  export -f terminator::help::command::bash_help
+  export -f terminator::help::command::help_flag
+  export -f terminator::help::command::help_subcommand
+  export -f terminator::help::paged
+}
+
+function terminator::help::__recall__() {
+  export -fn terminator::help
+  export -fn terminator::help::command::info
+  export -fn terminator::help::command::man
+  export -fn terminator::help::command::bash_help
+  export -fn terminator::help::command::help_flag
+  export -fn terminator::help::command::help_subcommand
+  export -fn terminator::help::paged
+}
+
+terminator::__module__::export

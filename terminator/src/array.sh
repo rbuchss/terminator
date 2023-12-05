@@ -1,8 +1,8 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*}/__module__.sh"
 
-terminator::__pragma__::once || return 0
+terminator::__module__::load || return 0
 
 function terminator::array::contains() {
   local element
@@ -13,3 +13,13 @@ function terminator::array::contains() {
   done
   return 1
 }
+
+function terminator::array::__export__() {
+  export -f terminator::array::contains
+}
+
+function terminator::array::__recall__() {
+  export -fn terminator::array::contains
+}
+
+terminator::__module__::export

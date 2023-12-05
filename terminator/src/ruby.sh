@@ -1,10 +1,10 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*}/__module__.sh"
 
-terminator::__pragma__::once || return 0
+terminator::__module__::load || return 0
 
-function terminator::ruby::__initialize__() {
+function terminator::ruby::__enable__() {
   if ! command -v rbenv > /dev/null 2>&1 \
       && ! command -v ruby > /dev/null 2>&1; then
     terminator::log::warning 'ruby is not installed'
@@ -48,3 +48,17 @@ function terminator::ruby::rails::create_clean_database() {
     && bundle exec rake db:migrate \
     && bundle exec rake db:seed
 }
+
+function terminator::ruby::__export__() {
+  export -f terminator::ruby::bundle_search
+  export -f terminator::ruby::rails::diff
+  export -f terminator::ruby::rails::create_clean_database
+}
+
+function terminator::ruby::__recall__() {
+  export -fn terminator::ruby::bundle_search
+  export -fn terminator::ruby::rails::diff
+  export -fn terminator::ruby::rails::create_clean_database
+}
+
+terminator::__module__::export

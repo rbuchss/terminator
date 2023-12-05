@@ -1,11 +1,11 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*}/__module__.sh"
 source "${BASH_SOURCE[0]%/*}/homebrew.sh"
 
-terminator::__pragma__::once || return 0
+terminator::__module__::load || return 0
 
-function terminator::pyenv::__initialize__() {
+function terminator::pyenv::__enable__() {
   if ! command -v pyenv > /dev/null 2>&1; then
     terminator::log::warning 'pyenv is not installed'
     return
@@ -23,3 +23,13 @@ function terminator::pyenv::__initialize__() {
     source "$(brew --prefix pyenv)/completions/pyenv.bash"
   fi
 }
+
+function terminator::pyenv::__export__() {
+  :
+}
+
+function terminator::pyenv::__recall__() {
+  :
+}
+
+terminator::__module__::export

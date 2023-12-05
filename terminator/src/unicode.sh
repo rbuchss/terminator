@@ -1,8 +1,8 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*}/__module__.sh"
 
-terminator::__pragma__::once || return 0
+terminator::__module__::load || return 0
 
 # unicode helper for lack of echo/printf code point
 # support in bash < 4.2
@@ -42,3 +42,15 @@ function terminator::unicode::octal() {
   printf -v octal '%03o' "$1"
   printf -v "$2" '%b' "\\${octal}"
 }
+
+function terminator::unicode::__export__() {
+  export -f terminator::unicode::code
+  export -f terminator::unicode::octal
+}
+
+function terminator::unicode::__recall__() {
+  export -fn terminator::unicode::code
+  export -fn terminator::unicode::octal
+}
+
+terminator::__module__::export

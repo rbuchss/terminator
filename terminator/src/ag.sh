@@ -1,10 +1,10 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*}/__module__.sh"
 
-terminator::__pragma__::once || return 0
+terminator::__module__::load || return 0
 
-function terminator::ag::__initialize__() {
+function terminator::ag::__enable__() {
   if ! command -v ag > /dev/null 2>&1; then
     terminator::log::warning 'ag is not installed'
     return
@@ -24,3 +24,13 @@ function terminator::ag::invoke() {
     --pager="less ${less_options[*]}" \
     "$@"
 }
+
+function terminator::ag::__export__() {
+  export -f terminator::ag::invoke
+}
+
+function terminator::ag::__recall__() {
+  export -fn terminator::ag::invoke
+}
+
+terminator::__module__::export

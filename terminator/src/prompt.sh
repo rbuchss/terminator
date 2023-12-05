@@ -1,6 +1,6 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*}/__module__.sh"
 source "${BASH_SOURCE[0]%/*}/number.sh"
 source "${BASH_SOURCE[0]%/*}/prompt/git.sh"
 source "${BASH_SOURCE[0]%/*}/prompt/svn.sh"
@@ -8,7 +8,7 @@ source "${BASH_SOURCE[0]%/*}/ssh.sh"
 source "${BASH_SOURCE[0]%/*}/string.sh"
 source "${BASH_SOURCE[0]%/*}/styles.sh"
 
-terminator::__pragma__::once || return 0
+terminator::__module__::load || return 0
 
 # Customize BASH PS1 prompt to show current
 # GIT or SVN repository and branch
@@ -621,3 +621,83 @@ Usage: ${FUNCNAME[1]} [OPTIONS] [ouput variable]
   -h, --help         Display this help message
 USAGE_TEXT
 }
+
+function terminator::prompt::__export__() {
+  export -f terminator::prompt
+  export -f terminator::prompt::left
+  export -f terminator::prompt::right
+  export -f terminator::prompt::error
+  export -f terminator::prompt::ssh
+  export -f terminator::prompt::user_prefix
+  export -f terminator::prompt::static::user_prefix
+  export -f terminator::prompt::user
+  export -f terminator::prompt::user_suffix
+  export -f terminator::prompt::static::user_suffix
+  export -f terminator::prompt::host_prefix
+  export -f terminator::prompt::static::host_prefix
+  export -f terminator::prompt::host
+  export -f terminator::prompt::host_suffix
+  export -f terminator::prompt::static::host_suffix
+  export -f terminator::prompt::directory_prefix
+  export -f terminator::prompt::static::directory_prefix
+  export -f terminator::prompt::directory
+  export -f terminator::prompt::directory_suffix
+  export -f terminator::prompt::static::directory_suffix
+  export -f terminator::prompt::version_control
+  export -f terminator::prompt::jobs_info
+  export -f terminator::prompt::timestamp
+  export -f terminator::prompt::command_symbol_prefix
+  export -f terminator::prompt::static::command_symbol_prefix
+  export -f terminator::prompt::command_symbol
+  export -f terminator::prompt::command_symbol_suffix
+  export -f terminator::prompt::static::command_symbol_suffix
+  export -f terminator::prompt::right_prompt_prefix
+  export -f terminator::prompt::static::right_prompt_prefix
+  export -f terminator::prompt::right_prompt_content
+  export -f terminator::prompt::static::right_prompt_content
+  export -f terminator::prompt::right_prompt_suffix
+  export -f terminator::prompt::static::right_prompt_suffix
+  export -f terminator::prompt::print_if_exists
+  export -f terminator::prompt::print_if_exists::usage
+}
+
+function terminator::prompt::__recall__() {
+  export -fn terminator::prompt
+  export -fn terminator::prompt::left
+  export -fn terminator::prompt::right
+  export -fn terminator::prompt::error
+  export -fn terminator::prompt::ssh
+  export -fn terminator::prompt::user_prefix
+  export -fn terminator::prompt::static::user_prefix
+  export -fn terminator::prompt::user
+  export -fn terminator::prompt::user_suffix
+  export -fn terminator::prompt::static::user_suffix
+  export -fn terminator::prompt::host_prefix
+  export -fn terminator::prompt::static::host_prefix
+  export -fn terminator::prompt::host
+  export -fn terminator::prompt::host_suffix
+  export -fn terminator::prompt::static::host_suffix
+  export -fn terminator::prompt::directory_prefix
+  export -fn terminator::prompt::static::directory_prefix
+  export -fn terminator::prompt::directory
+  export -fn terminator::prompt::directory_suffix
+  export -fn terminator::prompt::static::directory_suffix
+  export -fn terminator::prompt::version_control
+  export -fn terminator::prompt::jobs_info
+  export -fn terminator::prompt::timestamp
+  export -fn terminator::prompt::command_symbol_prefix
+  export -fn terminator::prompt::static::command_symbol_prefix
+  export -fn terminator::prompt::command_symbol
+  export -fn terminator::prompt::command_symbol_suffix
+  export -fn terminator::prompt::static::command_symbol_suffix
+  export -fn terminator::prompt::right_prompt_prefix
+  export -fn terminator::prompt::static::right_prompt_prefix
+  export -fn terminator::prompt::right_prompt_content
+  export -fn terminator::prompt::static::right_prompt_content
+  export -fn terminator::prompt::right_prompt_suffix
+  export -fn terminator::prompt::static::right_prompt_suffix
+  export -fn terminator::prompt::print_if_exists
+  export -fn terminator::prompt::print_if_exists::usage
+}
+
+terminator::__module__::export

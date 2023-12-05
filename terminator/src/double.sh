@@ -1,8 +1,8 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*}/__module__.sh"
 
-terminator::__pragma__::once || return 0
+terminator::__module__::load || return 0
 
 function terminator::double::compare() {
   if (( $# != 2 )); then
@@ -22,3 +22,13 @@ function terminator::double::compare() {
     exit 3
   }'
 }
+
+function terminator::double::__export__() {
+  export -f terminator::double::compare
+}
+
+function terminator::double::__recall__() {
+  export -fn terminator::double::compare
+}
+
+terminator::__module__::export

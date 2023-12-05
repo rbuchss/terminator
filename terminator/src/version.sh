@@ -1,8 +1,8 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*}/__module__.sh"
 
-terminator::__pragma__::once || return 0
+terminator::__module__::load || return 0
 
 function terminator::version::compare() {
   [[ "$1" == "$2" ]] && return 0
@@ -29,3 +29,13 @@ function terminator::version::compare() {
 
   return 0
 }
+
+function terminator::version::__export__() {
+  export -f terminator::version::compare
+}
+
+function terminator::version::__recall__() {
+  export -fn terminator::version::compare
+}
+
+terminator::__module__::export

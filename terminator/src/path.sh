@@ -1,8 +1,8 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*}/__module__.sh"
 
-terminator::__pragma__::once || return 0
+terminator::__module__::load || return 0
 
 function terminator::path::prepend() {
   for element in "$@"; do
@@ -115,3 +115,43 @@ function terminator::paths::clear() {
   terminator::cdpath::clear
   terminator::manpath::clear
 }
+
+function terminator::path::__export__() {
+  export -f terminator::path::prepend
+  export -f terminator::path::append
+  export -f terminator::path::includes
+  export -f terminator::path::excludes
+  export -f terminator::path::clear
+  export -f terminator::cdpath::prepend
+  export -f terminator::cdpath::append
+  export -f terminator::cdpath::includes
+  export -f terminator::cdpath::excludes
+  export -f terminator::cdpath::clear
+  export -f terminator::manpath::prepend
+  export -f terminator::manpath::append
+  export -f terminator::manpath::includes
+  export -f terminator::manpath::excludes
+  export -f terminator::manpath::clear
+  export -f terminator::paths::clear
+}
+
+function terminator::path::__recall__() {
+  export -fn terminator::path::prepend
+  export -fn terminator::path::append
+  export -fn terminator::path::includes
+  export -fn terminator::path::excludes
+  export -fn terminator::path::clear
+  export -fn terminator::cdpath::prepend
+  export -fn terminator::cdpath::append
+  export -fn terminator::cdpath::includes
+  export -fn terminator::cdpath::excludes
+  export -fn terminator::cdpath::clear
+  export -fn terminator::manpath::prepend
+  export -fn terminator::manpath::append
+  export -fn terminator::manpath::includes
+  export -fn terminator::manpath::excludes
+  export -fn terminator::manpath::clear
+  export -fn terminator::paths::clear
+}
+
+terminator::__module__::export

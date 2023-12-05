@@ -1,10 +1,10 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*}/__module__.sh"
 
-terminator::__pragma__::once || return 0
+terminator::__module__::load || return 0
 
-function terminator::mysql::__initialize__() {
+function terminator::mysql::__enable__() {
   if ! command -v mysql > /dev/null 2>&1; then
     terminator::log::warning 'mysql is not installed'
     return
@@ -57,3 +57,17 @@ function terminator::mysql::invoke() {
 
   command mysql "${arguments[@]}"
 }
+
+function terminator::mysql::__export__() {
+  export -f terminator::mysql::show_process_list
+  export -f terminator::mysql::find_column
+  export -f terminator::mysql::invoke
+}
+
+function terminator::mysql::__recall__() {
+  export -fn terminator::mysql::show_process_list
+  export -fn terminator::mysql::find_column
+  export -fn terminator::mysql::invoke
+}
+
+terminator::__module__::export

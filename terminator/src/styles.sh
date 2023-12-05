@@ -1,11 +1,11 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*}/__module__.sh"
 source "${BASH_SOURCE[0]%/*}/color.sh"
 source "${BASH_SOURCE[0]%/*}/unicode.sh"
 source "${BASH_SOURCE[0]%/*}/user.sh"
 
-terminator::__pragma__::once || return 0
+terminator::__module__::load || return 0
 
 function terminator::styles::newline() {
   local symbol
@@ -577,3 +577,137 @@ function terminator::styles::enclosure_color() {
     '0;90m' \
     "$@"
 }
+
+function terminator::styles::__export__() {
+  export -f terminator::styles::newline
+  export -f terminator::styles::coalesce
+  export -f terminator::styles::color_coalesce
+  export -f terminator::styles::unicode_coalesce
+  export -f terminator::styles::char_coalesce
+  export -f terminator::styles::command_coalesce
+  export -f terminator::styles::command_coalesce::usage
+  export -f terminator::styles::user_prefix
+  export -f terminator::styles::user_prefix_color
+  export -f terminator::styles::username
+  export -f terminator::styles::user_color
+  export -f terminator::styles::root::user_color
+  export -f terminator::styles::user_suffix_color
+  export -f terminator::styles::root::user_suffix_color
+  export -f terminator::styles::user_suffix
+  export -f terminator::styles::root::user_suffix
+  export -f terminator::styles::host_prefix
+  export -f terminator::styles::host_prefix_color
+  export -f terminator::styles::hostname
+  export -f terminator::styles::host_color
+  export -f terminator::styles::root::host_color
+  export -f terminator::styles::host_symbol
+  export -f terminator::styles::host_suffix
+  export -f terminator::styles::host_suffix_color
+  export -f terminator::styles::directory_prefix
+  export -f terminator::styles::directory_prefix_color
+  export -f terminator::styles::directory
+  export -f terminator::styles::directory_color
+  export -f terminator::styles::root::directory_color
+  export -f terminator::styles::directory_suffix
+  export -f terminator::styles::directory_suffix_color
+  export -f terminator::styles::jobs
+  export -f terminator::styles::timestamp
+  export -f terminator::styles::time
+  export -f terminator::styles::command_symbol_prefix
+  export -f terminator::styles::command_symbol_prefix_color
+  export -f terminator::styles::command_symbol
+  export -f terminator::styles::command_symbol_suffix
+  export -f terminator::styles::command_symbol_suffix_color
+  export -f terminator::styles::right_prompt_prefix
+  export -f terminator::styles::right_prompt_prefix_color
+  export -f terminator::styles::right_prompt_content
+  export -f terminator::styles::right_prompt_content_color
+  export -f terminator::styles::right_prompt_suffix
+  export -f terminator::styles::right_prompt_suffix_color
+  export -f terminator::styles::error_symbol
+  export -f terminator::styles::error_color
+  export -f terminator::styles::warning_symbol
+  export -f terminator::styles::warning_color
+  export -f terminator::styles::ok_symbol
+  export -f terminator::styles::ok_color
+  export -f terminator::styles::branch_symbol
+  export -f terminator::styles::branch_color
+  export -f terminator::styles::detached_head_symbol
+  export -f terminator::styles::upstream_same_color
+  export -f terminator::styles::upstream_ahead_color
+  export -f terminator::styles::upstream_behind_color
+  export -f terminator::styles::upstream_gone_color
+  export -f terminator::styles::index_color
+  export -f terminator::styles::files_color
+  export -f terminator::styles::divider_color
+  export -f terminator::styles::stash_color
+  export -f terminator::styles::enclosure_color
+}
+
+function terminator::styles::__recall__() {
+  export -fn terminator::styles::newline
+  export -fn terminator::styles::coalesce
+  export -fn terminator::styles::color_coalesce
+  export -fn terminator::styles::unicode_coalesce
+  export -fn terminator::styles::char_coalesce
+  export -fn terminator::styles::command_coalesce
+  export -fn terminator::styles::command_coalesce::usage
+  export -fn terminator::styles::user_prefix
+  export -fn terminator::styles::user_prefix_color
+  export -fn terminator::styles::username
+  export -fn terminator::styles::user_color
+  export -fn terminator::styles::root::user_color
+  export -fn terminator::styles::user_suffix_color
+  export -fn terminator::styles::root::user_suffix_color
+  export -fn terminator::styles::user_suffix
+  export -fn terminator::styles::root::user_suffix
+  export -fn terminator::styles::host_prefix
+  export -fn terminator::styles::host_prefix_color
+  export -fn terminator::styles::hostname
+  export -fn terminator::styles::host_color
+  export -fn terminator::styles::root::host_color
+  export -fn terminator::styles::host_symbol
+  export -fn terminator::styles::host_suffix
+  export -fn terminator::styles::host_suffix_color
+  export -fn terminator::styles::directory_prefix
+  export -fn terminator::styles::directory_prefix_color
+  export -fn terminator::styles::directory
+  export -fn terminator::styles::directory_color
+  export -fn terminator::styles::root::directory_color
+  export -fn terminator::styles::directory_suffix
+  export -fn terminator::styles::directory_suffix_color
+  export -fn terminator::styles::jobs
+  export -fn terminator::styles::timestamp
+  export -fn terminator::styles::time
+  export -fn terminator::styles::command_symbol_prefix
+  export -fn terminator::styles::command_symbol_prefix_color
+  export -fn terminator::styles::command_symbol
+  export -fn terminator::styles::command_symbol_suffix
+  export -fn terminator::styles::command_symbol_suffix_color
+  export -fn terminator::styles::right_prompt_prefix
+  export -fn terminator::styles::right_prompt_prefix_color
+  export -fn terminator::styles::right_prompt_content
+  export -fn terminator::styles::right_prompt_content_color
+  export -fn terminator::styles::right_prompt_suffix
+  export -fn terminator::styles::right_prompt_suffix_color
+  export -fn terminator::styles::error_symbol
+  export -fn terminator::styles::error_color
+  export -fn terminator::styles::warning_symbol
+  export -fn terminator::styles::warning_color
+  export -fn terminator::styles::ok_symbol
+  export -fn terminator::styles::ok_color
+  export -fn terminator::styles::branch_symbol
+  export -fn terminator::styles::branch_color
+  export -fn terminator::styles::detached_head_symbol
+  export -fn terminator::styles::upstream_same_color
+  export -fn terminator::styles::upstream_ahead_color
+  export -fn terminator::styles::upstream_behind_color
+  export -fn terminator::styles::upstream_gone_color
+  export -fn terminator::styles::index_color
+  export -fn terminator::styles::files_color
+  export -fn terminator::styles::divider_color
+  export -fn terminator::styles::stash_color
+  export -fn terminator::styles::enclosure_color
+}
+
+terminator::__module__::export

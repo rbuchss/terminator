@@ -1,10 +1,10 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*}/__module__.sh"
 
-terminator::__pragma__::once || return 0
+terminator::__module__::load || return 0
 
-function terminator::jenv::__initialize__() {
+function terminator::jenv::__enable__() {
   if ! command -v jenv > /dev/null 2>&1; then
     terminator::log::warning 'jenv is not installed'
     return
@@ -13,3 +13,13 @@ function terminator::jenv::__initialize__() {
   # export PATH="${HOME}/.jenv/bin:$PATH"
   eval "$(jenv init -)"
 }
+
+function terminator::jenv::__export__() {
+  :
+}
+
+function terminator::jenv::__recall__() {
+  :
+}
+
+terminator::__module__::export

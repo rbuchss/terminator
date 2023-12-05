@@ -1,10 +1,10 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*}/__module__.sh"
 
-terminator::__pragma__::once || return 0
+terminator::__module__::load || return 0
 
-function terminator::dotnet::__initialize__() {
+function terminator::dotnet::__enable__() {
   if ! command -v dotnet > /dev/null 2>&1; then
     terminator::log::warning 'dotnet is not installed'
     return
@@ -29,3 +29,13 @@ function terminator::dotnet::complete() {
     COMPREPLY+=("${completion}")
   done < <(compgen -W "${completions}" -- "${word}")
 }
+
+function terminator::dotnet::__export__() {
+  export -f terminator::dotnet::complete
+}
+
+function terminator::dotnet::__recall__() {
+  export -fn terminator::dotnet::complete
+}
+
+terminator::__module__::export

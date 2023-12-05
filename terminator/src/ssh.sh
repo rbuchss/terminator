@@ -1,8 +1,8 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*}/__module__.sh"
 
-terminator::__pragma__::once || return 0
+terminator::__module__::load || return 0
 
 function terminator::ssh::is_ssh_session() {
   if [[ -n "${TERMINATOR_SSH_IS_SSH_SESSION}" ]]; then
@@ -53,3 +53,17 @@ function terminator::ssh::is_ssh_sudo() {
 
   return 1
 }
+
+function terminator::ssh::__export__() {
+  export -f terminator::ssh::is_ssh_session
+  export -f terminator::ssh::ppinfo
+  export -f terminator::ssh::is_ssh_sudo
+}
+
+function terminator::ssh::__recall__() {
+  export -fn terminator::ssh::is_ssh_session
+  export -fn terminator::ssh::ppinfo
+  export -fn terminator::ssh::is_ssh_sudo
+}
+
+terminator::__module__::export

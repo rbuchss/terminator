@@ -1,12 +1,12 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*}/__module__.sh"
 source "${BASH_SOURCE[0]%/*}/homebrew.sh"
 source "${BASH_SOURCE[0]%/*}/utility.sh"
 
-terminator::__pragma__::once || return 0
+terminator::__module__::load || return 0
 
-function terminator::postgresql::__initialize__() {
+function terminator::postgresql::__enable__() {
   if ! command -v psql > /dev/null 2>&1; then
     terminator::log::warning 'postgresql is not installed'
     return
@@ -42,3 +42,17 @@ function terminator::postgresql::clear_pid() {
       'and/or postgres is not brew installed'
   fi
 }
+
+function terminator::postgresql::__export__() {
+  export -f terminator::postgresql::list_config
+  export -f terminator::postgresql::edit_config
+  export -f terminator::postgresql::clear_pid
+}
+
+function terminator::postgresql::__recall__() {
+  export -fn terminator::postgresql::list_config
+  export -fn terminator::postgresql::edit_config
+  export -fn terminator::postgresql::clear_pid
+}
+
+terminator::__module__::export

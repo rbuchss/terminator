@@ -1,10 +1,10 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*}/__module__.sh"
 
-terminator::__pragma__::once || return 0
+terminator::__module__::load || return 0
 
-function terminator::pipx::__initialize__() {
+function terminator::pipx::__enable__() {
   local local_bin_path="${HOME}/.local/bin"
 
   if [[ ! -d "${local_bin_path}" ]]; then
@@ -19,3 +19,13 @@ function terminator::pipx::__initialize__() {
 
   terminator::path::append "${local_bin_path}"
 }
+
+function terminator::pipx::__export__() {
+  :
+}
+
+function terminator::pipx::__recall__() {
+  :
+}
+
+terminator::__module__::export

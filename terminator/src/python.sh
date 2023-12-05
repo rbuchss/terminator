@@ -1,10 +1,10 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*}/__module__.sh"
 
-terminator::__pragma__::once || return 0
+terminator::__module__::load || return 0
 
-function terminator::python::__initialize__() {
+function terminator::python::__enable__() {
   if ! command -v pyenv > /dev/null 2>&1 \
       && ! command -v python3 > /dev/null 2>&1 \
       && ! command -v python > /dev/null 2>&1; then
@@ -56,3 +56,15 @@ function terminator::python::invoke::error() {
   terminator::log::error "Using python major version ${major_version} not supported"
   return 1
 }
+
+function terminator::python::__export__() {
+  export -f terminator::python::invoke
+  export -f terminator::python::invoke::error
+}
+
+function terminator::python::__recall__() {
+  export -fn terminator::python::invoke
+  export -fn terminator::python::invoke::error
+}
+
+terminator::__module__::export

@@ -1,15 +1,16 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*}/__module__.sh"
 source "${BASH_SOURCE[0]%/*}/array.sh"
 source "${BASH_SOURCE[0]%/*}/log.sh"
+source "${BASH_SOURCE[0]%/*}/log.sh"
 
-terminator::__pragma__::once || return 0
+terminator::__module__::load || return 0
 
 function terminator::source() {
   for element in "$@"; do
     if [[ -s "${element}" ]]; then
-      terminator::log::debug "'${element}'"
+      terminator::log::info "'${element}'"
       # shellcheck source=/dev/null
       source "${element}"
     else
@@ -18,7 +19,7 @@ function terminator::source() {
   done
 }
 
-function terminator::source::__initialize__() {
+function terminator::source::__enable__() {
   alias source_bash_profile='terminator::source::bash_profile'
   alias sbp='terminator::source::bash_profile'
 
@@ -53,10 +54,10 @@ function terminator::source::bash_profile() {
   done
 
   if (( refresh_all_modules == 1 )); then
-    terminator::__pragma__::clear
+    terminator::__module__::load::clear
   fi
 
-  terminator::__pragma__::remove "${refresh_modules[@]}"
+  terminator::__module__::unload "${refresh_modules[@]}"
 
   terminator::source "${HOME}/.bash_profile"
 }
@@ -73,7 +74,7 @@ USAGE_TEXT
 
 function terminator::source::bash_profile::completion() {
   local word="${COMP_WORDS[COMP_CWORD]}" \
-    suggestions=("${TERMINATOR_PRAGMA_LOADED_FILES[@]}")
+    suggestions=("${TERMINATOR_MODULES_LOADED[@]}")
 
   COMPREPLY=()
 
@@ -92,3 +93,21 @@ function terminator::source::bash_profile::completion::add_alias() {
       "${name}"
   done
 }
+
+function terminator::source::__export__() {
+  export -f terminator::source
+  export -f terminator::source::bash_profile
+  export -f terminator::source::bash_profile::usage
+  export -f terminator::source::bash_profile::completion
+  export -f terminator::source::bash_profile::completion::add_alias
+}
+
+function terminator::source::__recall__() {
+  export -fn terminator::source
+  export -fn terminator::source::bash_profile
+  export -fn terminator::source::bash_profile::usage
+  export -fn terminator::source::bash_profile::completion
+  export -fn terminator::source::bash_profile::completion::add_alias
+}
+
+terminator::__module__::export

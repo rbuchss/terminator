@@ -7,4 +7,4 @@ export TERMINATOR_LOG_SILENCE=0
 source "${HOME}/.terminator/src/source.sh"
 
 terminator::source "${HOME}/.terminator/src/profile.sh"
-terminator::profile::__initialize__
+terminator::profile::load

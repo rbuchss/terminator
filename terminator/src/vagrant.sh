@@ -1,10 +1,10 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*}/__module__.sh"
 
-terminator::__pragma__::once || return 0
+terminator::__module__::load || return 0
 
-function terminator::vagrant::__initialize__() {
+function terminator::vagrant::__enable__() {
   if ! command -v vagrant > /dev/null 2>&1; then
     terminator::log::warning 'vagrant is not installed'
     return
@@ -23,3 +23,13 @@ function terminator::vagrant::scp() {
     "$1" \
     vagrant@127.0.0.1:
 }
+
+function terminator::vagrant::__export__() {
+  export -f terminator::vagrant::scp
+}
+
+function terminator::vagrant::__recall__() {
+  export -fn terminator::vagrant::scp
+}
+
+terminator::__module__::export

@@ -1,9 +1,9 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*/*}/__module__.sh"
 source "${BASH_SOURCE[0]%/*/*}/styles.sh"
 
-terminator::__pragma__::once || return 0
+terminator::__module__::load || return 0
 
 function terminator::prompt::svn() {
   if ! stat .svn > /dev/null 2>&1 \
@@ -36,3 +36,13 @@ function terminator::prompt::svn() {
 
   echo "${color}[SVN: ${working_path}]"
 }
+
+function terminator::prompt::svn::__export__() {
+  export -f terminator::prompt::svn
+}
+
+function terminator::prompt::svn::__recall__() {
+  export -fn terminator::prompt::svn
+}
+
+terminator::__module__::export

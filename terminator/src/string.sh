@@ -1,9 +1,9 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*}/__module__.sh"
 source "${BASH_SOURCE[0]%/*}/number.sh"
 
-terminator::__pragma__::once || return 0
+terminator::__module__::load || return 0
 
 function terminator::string::bytes_to_length_offset() {
   local value \
@@ -204,3 +204,23 @@ Usage: ${FUNCNAME[1]} [OPTIONS] [ouput variable]
   -h, --help         Display this help message
 USAGE_TEXT
 }
+
+function terminator::string::__export__() {
+  export -f terminator::string::bytes_to_length_offset
+  export -f terminator::string::bytes_to_length_offset::usage
+  export -f terminator::string::repeat
+  export -f terminator::string::repeat::usage
+  export -f terminator::string::strip_colors
+  export -f terminator::string::strip_colors::usage
+}
+
+function terminator::string::__recall__() {
+  export -fn terminator::string::bytes_to_length_offset
+  export -fn terminator::string::bytes_to_length_offset::usage
+  export -fn terminator::string::repeat
+  export -fn terminator::string::repeat::usage
+  export -fn terminator::string::strip_colors
+  export -fn terminator::string::strip_colors::usage
+}
+
+terminator::__module__::export

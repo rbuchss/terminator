@@ -1,11 +1,11 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*}/__module__.sh"
 source "${BASH_SOURCE[0]%/*}/log.sh"
 
-terminator::__pragma__::once || return 0
+terminator::__module__::load || return 0
 
-function terminator::vim::__initialize__() {
+function terminator::vim::__enable__() {
   if ! command -v nvim > /dev/null 2>&1 \
       && ! command -v vim > /dev/null 2>&1; then
     terminator::log::warning 'vim and nvim are not installed'
@@ -255,3 +255,35 @@ function terminator::vim::open::git_diff() {
     return 1
   fi
 }
+
+function terminator::vim::__export__() {
+  export -f terminator::vim::invoke
+  export -f terminator::vim::open::filename_match
+  export -f terminator::vim::open::filename_match::rg
+  export -f terminator::vim::open::filename_match::ag
+  export -f terminator::vim::open::filename_match::ack
+  export -f terminator::vim::open::filename_match::find
+  export -f terminator::vim::open::content_match
+  export -f terminator::vim::open::content_match::rg
+  export -f terminator::vim::open::content_match::ag
+  export -f terminator::vim::open::content_match::ack
+  export -f terminator::vim::open::content_match::grep
+  export -f terminator::vim::open::git_diff
+}
+
+function terminator::vim::__recall__() {
+  export -fn terminator::vim::invoke
+  export -fn terminator::vim::open::filename_match
+  export -fn terminator::vim::open::filename_match::rg
+  export -fn terminator::vim::open::filename_match::ag
+  export -fn terminator::vim::open::filename_match::ack
+  export -fn terminator::vim::open::filename_match::find
+  export -fn terminator::vim::open::content_match
+  export -fn terminator::vim::open::content_match::rg
+  export -fn terminator::vim::open::content_match::ag
+  export -fn terminator::vim::open::content_match::ack
+  export -fn terminator::vim::open::content_match::grep
+  export -fn terminator::vim::open::git_diff
+}
+
+terminator::__module__::export

@@ -1,9 +1,9 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*}/__module__.sh"
 source "${BASH_SOURCE[0]%/*}/source.sh"
 
-terminator::__pragma__::once || return 0
+terminator::__module__::load || return 0
 
 TERMINATOR_CONFIG_DIR="${HOME}/.config/terminator"
 TERMINATOR_HOOKS_DIR="${TERMINATOR_CONFIG_DIR}/hooks"
@@ -23,6 +23,7 @@ function terminator::config::path() {
 
 function terminator::config::is_path_absolute() {
   local filepath="$1"
+  # shellcheck disable=SC2088
   [[ "${filepath:0:1}" == / || "${filepath:0:2}" == '~/' ]]
 }
 
@@ -78,3 +79,23 @@ function terminator::config::hooks::after() {
     'after' \
     "${TERMINATOR_HOOKS_DIR}"
 }
+
+function terminator::config::__export__() {
+  export -f terminator::config::path
+  export -f terminator::config::is_path_absolute
+  export -f terminator::config::load
+  export -f terminator::config::hooks::invoke
+  export -f terminator::config::hooks::before
+  export -f terminator::config::hooks::after
+}
+
+function terminator::config::__recall__() {
+  export -fn terminator::config::path
+  export -fn terminator::config::is_path_absolute
+  export -fn terminator::config::load
+  export -fn terminator::config::hooks::invoke
+  export -fn terminator::config::hooks::before
+  export -fn terminator::config::hooks::after
+}
+
+terminator::__module__::export

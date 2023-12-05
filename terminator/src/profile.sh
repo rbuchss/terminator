@@ -1,13 +1,13 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*}/__module__.sh"
 source "${BASH_SOURCE[0]%/*}/config.sh"
 source "${BASH_SOURCE[0]%/*}/os.sh"
 source "${BASH_SOURCE[0]%/*}/path.sh"
 
-terminator::__pragma__::once || return 0
+terminator::__module__::load || return 0
 
-function terminator::profile::__initialize__() {
+function terminator::profile::load() {
   terminator::config::hooks::before
 
   # MANPATH must be defined, even if empty
@@ -69,3 +69,19 @@ function terminator::profile::os::unsupported() {
   terminator::log::error "OS '${OSTYPE}' not supported"
   return 1
 }
+
+function terminator::profile::__export__() {
+  export -f terminator::profile::os::darwin
+  export -f terminator::profile::os::linux
+  export -f terminator::profile::os::windows
+  export -f terminator::profile::os::unsupported
+}
+
+function terminator::profile::__recall__() {
+  export -fn terminator::profile::os::darwin
+  export -fn terminator::profile::os::linux
+  export -fn terminator::profile::os::windows
+  export -fn terminator::profile::os::unsupported
+}
+
+terminator::__module__::export

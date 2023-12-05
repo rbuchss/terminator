@@ -1,8 +1,8 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*}/__module__.sh"
 
-terminator::__pragma__::once || return 0
+terminator::__module__::load || return 0
 
 function terminator::color::code() {
   case "$#" in
@@ -46,3 +46,23 @@ function terminator::color::demo() {
   # shellcheck disable=SC2119
   terminator::color::off_bare
 }
+
+function terminator::color::__export__() {
+  export -f terminator::color::code
+  export -f terminator::color::code_bare
+  export -f terminator::color::off
+  export -f terminator::color::off_bare
+  export -f terminator::color::highlight_demo
+  export -f terminator::color::demo
+}
+
+function terminator::color::__recall__() {
+  export -fn terminator::color::code
+  export -fn terminator::color::code_bare
+  export -fn terminator::color::off
+  export -fn terminator::color::off_bare
+  export -fn terminator::color::highlight_demo
+  export -fn terminator::color::demo
+}
+
+terminator::__module__::export

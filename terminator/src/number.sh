@@ -1,8 +1,8 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*}/__module__.sh"
 
-terminator::__pragma__::once || return 0
+terminator::__module__::load || return 0
 
 function terminator::number::is_integer() {
   if (( $# < 1 )); then
@@ -35,3 +35,15 @@ function terminator::number::is_unsigned_integer() {
     fi
   done
 }
+
+function terminator::number::__export__() {
+  export -f terminator::number::is_integer
+  export -f terminator::number::is_unsigned_integer
+}
+
+function terminator::number::__recall__() {
+  export -fn terminator::number::is_integer
+  export -fn terminator::number::is_unsigned_integer
+}
+
+terminator::__module__::export

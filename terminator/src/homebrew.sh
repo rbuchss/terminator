@@ -1,10 +1,10 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__pragma__.sh"
+source "${BASH_SOURCE[0]%/*}/__module__.sh"
 source "${BASH_SOURCE[0]%/*}/path.sh"
 source "${BASH_SOURCE[0]%/*}/source.sh"
 
-terminator::__pragma__::once || return 0
+terminator::__module__::load || return 0
 
 function terminator::homebrew::is_installed() {
   command -v brew > /dev/null 2>&1
@@ -21,7 +21,7 @@ function terminator::homebrew::package::is_installed() {
     ls "$(brew --prefix "$1")" > /dev/null 2>&1
 }
 
-function terminator::homebrew::__initialize__() {
+function terminator::homebrew::__enable__() {
   local brew_path_exists=0 \
     possible_brew_paths=(/usr/local/bin/brew /opt/homebrew/bin/brew)
 
@@ -51,7 +51,7 @@ function terminator::homebrew::__initialize__() {
 
   # If not running interactively, don't do anything
   if [[ -n "${PS1}" ]]; then
-    terminator::homebrew::__initialize__::bash_completion
+    terminator::homebrew::__enable__::bash_completion
 
     alias brew-cleaner='terminator::homebrew::clean'
     alias brew-cask-cleaner='terminator::homebrew::cask::clean'
@@ -81,10 +81,28 @@ function terminator::homebrew::cask::clean() {
   brew upgrade brew-cask && brew cask cleanup
 }
 
-function terminator::homebrew::__initialize__::bash_completion() {
+function terminator::homebrew::__enable__::bash_completion() {
   if terminator::homebrew::package::is_installed bash-completion; then
     terminator::source "$(brew --prefix)/etc/bash_completion"
   else
     terminator::log::warning 'homebrew package bash-completion is not installed'
   fi
 }
+
+function terminator::homebrew::__export__() {
+  export -f terminator::homebrew::is_installed
+  export -f terminator::homebrew::package::is_installed
+  export -f terminator::homebrew::add_paths
+  export -f terminator::homebrew::clean
+  export -f terminator::homebrew::cask::clean
+}
+
+function terminator::homebrew::__recall__() {
+  export -fn terminator::homebrew::is_installed
+  export -fn terminator::homebrew::package::is_installed
+  export -fn terminator::homebrew::add_paths
+  export -fn terminator::homebrew::clean
+  export -fn terminator::homebrew::cask::clean
+}
+
+terminator::__module__::export
