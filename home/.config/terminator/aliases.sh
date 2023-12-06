@@ -1,1 +1,0 @@
-../../../terminator/config/aliases.sh

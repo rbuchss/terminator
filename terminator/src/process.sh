@@ -1,9 +1,13 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${BASH_SOURCE[0]%/*}/__module__.sh"
-source "${BASH_SOURCE[0]%/*}/utility.sh"
+source "${BASH_SOURCE[0]%/*}/prompt.sh"
 
 terminator::__module__::load || return 0
+
+function terminator::process::__enable__() {
+  alias kill_match='terminator::process::kill'
+}
 
 function terminator::process::kill() {
   if (( $# < 1 )) || (( $# > 2 )); then
@@ -36,7 +40,7 @@ function terminator::process::kill() {
 
   for pid in "${pids[@]}"; do
     name="$(command ps -p "${pid}" -o args=)"
-    if terminator::utility::ask \
+    if terminator::prompt::ask \
       "Kill process ${pid} <${name}> with signal ${signal}?"; then
       command kill "${signal}" "${pid}"
     fi

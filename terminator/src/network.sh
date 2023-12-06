@@ -4,6 +4,10 @@ source "${BASH_SOURCE[0]%/*}/__module__.sh"
 
 terminator::__module__::load || return 0
 
+function terminator::network::__enable__() {
+  alias expand_url='terminator::network::expand_url'
+}
+
 function terminator::network::expand_url() {
   curl -sIL "$1" | grep ^Location:
 }

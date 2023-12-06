@@ -37,10 +37,8 @@ function terminator::profile::load() {
     --unsupported terminator::profile::os::unsupported
 
   terminator::config::load \
-    "modules.sh" \
-    "styles.sh" \
-    "${HOME}/.bashrc" \
-    "aliases.sh"
+    "__modules__.sh" \
+    "${HOME}/.bashrc"
 
   terminator::config::hooks::after
 

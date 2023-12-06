@@ -31,6 +31,19 @@ function terminator::prompt() {
   export PS1
 }
 
+function terminator::prompt::ask() {
+  echo -n "$*" '[y/n] '
+  read -r response
+  case "${response}" in
+    y*|Y*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+function terminator::prompt::enable_env_tracing() {
+  PS4='+$BASH_SOURCE> ' BASH_XTRACEFD=7 bash -xl 7>&2
+}
+
 function terminator::prompt::left() {
   local last_command_exit="${1:-$?}" \
     error_status \
@@ -624,6 +637,8 @@ USAGE_TEXT
 
 function terminator::prompt::__export__() {
   export -f terminator::prompt
+  export -f terminator::prompt::ask
+  export -f terminator::prompt::enable_env_tracing
   export -f terminator::prompt::left
   export -f terminator::prompt::right
   export -f terminator::prompt::error
@@ -663,6 +678,8 @@ function terminator::prompt::__export__() {
 
 function terminator::prompt::__recall__() {
   export -fn terminator::prompt
+  export -fn terminator::prompt::ask
+  export -fn terminator::prompt::enable_env_tracing
   export -fn terminator::prompt::left
   export -fn terminator::prompt::right
   export -fn terminator::prompt::error

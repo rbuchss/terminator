@@ -1,9 +1,10 @@
 #!/bin/bash
+# shellcheck source=/dev/null
+source "${BASH_SOURCE[0]%/*}/__module__.sh"
 
-# If not running interactively, don't do anything
-if [[ -n "${PS1}" ]]; then
-  export TERMINATOR_GIT_STATUS_STASH_ENABLED=1
+terminator::__module__::load || return 0
 
+function terminator::less::__enable__() {
   # make less and man pages more readable
   LESS_TERMCAP_mb="$(printf "\e[1;31m")"
   LESS_TERMCAP_md="$(printf "\e[1;31m")"
@@ -20,4 +21,14 @@ if [[ -n "${PS1}" ]]; then
   export LESS_TERMCAP_so
   export LESS_TERMCAP_ue
   export LESS_TERMCAP_us
-fi
+}
+
+function terminator::less::__export__() {
+  :
+}
+
+function terminator::less::__recall__() {
+  :
+}
+
+terminator::__module__::export

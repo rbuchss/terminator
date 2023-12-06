@@ -2,7 +2,7 @@
 # shellcheck source=/dev/null
 source "${BASH_SOURCE[0]%/*}/__module__.sh"
 source "${BASH_SOURCE[0]%/*}/homebrew.sh"
-source "${BASH_SOURCE[0]%/*}/utility.sh"
+source "${BASH_SOURCE[0]%/*}/prompt.sh"
 
 terminator::__module__::load || return 0
 
@@ -33,7 +33,7 @@ function terminator::postgresql::clear_pid() {
     file="${path}/postgres/postmaster.pid"
 
     less "${path}/log/postgres.log"
-    if terminator::utility::ask "move ${file}?"; then
+    if terminator::prompt::ask "move ${file}?"; then
       sudo mv "${file}" "${HOME}/"
     fi
   else

@@ -1,7 +1,15 @@
 #!/bin/bash
+# shellcheck source=/dev/null
+source "${BASH_SOURCE[0]%/*}/__module__.sh"
 
-if [[ "$TERM" != dumb ]] \
-  && command -v grc > /dev/null 2>&1; then
+terminator::__module__::load || return 0
+
+function terminator::grc::__enable__() {
+  if ! command -v grc > /dev/null 2>&1; then
+    terminator::log::warning 'grc is not installed'
+    return
+  fi
+
   alias colourify='command grc -es --colour=auto'
   alias blkid='colourify blkid'
   alias configure='colourify ./configure'
@@ -23,7 +31,7 @@ if [[ "$TERM" != dumb ]] \
   alias as='colourify as'
   alias gas='colourify gas'
   alias ld='colourify ld'
-  #alias ls='colourify ls'
+  # alias ls='colourify ls'
   alias lsof='colourify lsof'
   alias lsblk='colourify lsblk'
   alias lspci='colourify lspci'
@@ -41,4 +49,14 @@ if [[ "$TERM" != dumb ]] \
   alias getsebool='colourify getsebool'
   alias ifconfig='colourify ifconfig'
   alias mvn='colourify mvn'
-fi
+}
+
+function terminator::grc::__export__() {
+  :
+}
+
+function terminator::grc::__recall__() {
+  :
+}
+
+terminator::__module__::export

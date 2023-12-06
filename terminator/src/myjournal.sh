@@ -3,7 +3,7 @@
 source "${BASH_SOURCE[0]%/*}/__module__.sh"
 source "${BASH_SOURCE[0]%/*}/array.sh"
 source "${BASH_SOURCE[0]%/*}/log.sh"
-source "${BASH_SOURCE[0]%/*}/utility.sh"
+source "${BASH_SOURCE[0]%/*}/prompt.sh"
 source "${BASH_SOURCE[0]%/*}/vim.sh"
 
 terminator::__module__::load || return 0
@@ -44,7 +44,7 @@ function terminator::myjournal::invoke() {
 
     if [[ -f "${journal_filepath}" ]]; then
       journal_filepaths+=("${journal_filepath}")
-    elif terminator::utility::ask "Create new journal entry at: '${journal_filepath}' ?" \
+    elif terminator::prompt::ask "Create new journal entry at: '${journal_filepath}' ?" \
         && terminator::myjournal::new_entry "${journal_filepath}"; then
       journal_filepaths+=("${journal_filepath}")
     fi

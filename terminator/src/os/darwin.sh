@@ -6,6 +6,11 @@ source "${BASH_SOURCE[0]%/*/*}/source.sh"
 
 terminator::__module__::load || return 0
 
+function terminator::os::darwin::__enable__() {
+  alias show-files='terminator::os::darwin::finder::show_hidden_files'
+  alias hide-files='terminator::os::darwin::finder::hide_hidden_files'
+}
+
 function terminator::os::darwin::finder::show_hidden_files() {
   terminator::os::darwin::finder::set_show_all_files 'YES'
 }

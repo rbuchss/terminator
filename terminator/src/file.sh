@@ -4,6 +4,28 @@ source "${BASH_SOURCE[0]%/*}/__module__.sh"
 
 terminator::__module__::load || return 0
 
+function terminator::file::__enable__() {
+  # safety first!
+  alias rm='rm -i'
+  alias mv='mv -i'
+  alias cp='cp -i'
+
+  alias t1='tail -n1'
+  alias h1='head -n1'
+  alias extract='terminator::file::extract'
+  alias mktar='terminator::file::mktar'
+  alias mktgz='terminator::file::mktgz'
+  alias mktbz='terminator::file::mktbz'
+  alias swap='terminator::file::swap'
+  alias nuke_spaces='terminator::file::nuke_spaces'
+  alias find_exec='terminator::file::find_exec'
+  alias df='df -kTh'
+  alias du='du -kh'
+  alias dirsize_big='terminator::file::dirsize_big'
+  alias dirsize='terminator::file::dirsize'
+  alias mkcd='terminator::file::mkcd'
+}
+
 function terminator::file::extract() {
   for file in "$@"; do
     if [[ ! -f "${file}" ]]; then
