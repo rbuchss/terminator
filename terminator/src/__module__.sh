@@ -3,6 +3,8 @@
 # Bash source guard - prevents sourcing this file multiple times
 [[ -n "${TERMINATOR__MODULE__LOADED}" ]] && return; readonly TERMINATOR__MODULE__LOADED=1
 
+TERMINATOR_MODULE_ROOT_DIR="${BASH_SOURCE[0]%/*/*/*}"
+
 TERMINATOR_MODULES_LOADED=()
 TERMINATOR_MODULES_EXPORTED=()
 TERMINATOR_MODULES_ENABLED=()
@@ -34,7 +36,7 @@ function terminator::__module__::load() {
   # Generates module based on filename if none specified
   if [[ -z "${module}" ]]; then
     # Fail-safe to source file if BASH_SOURCE stack only points to this file
-    if ! terminator::__module__::__get_module_name__ module; then
+    if ! terminator::__module__::__get_module_name__ module "$(caller)"; then
       return 1
     fi
   fi
@@ -76,7 +78,7 @@ function terminator::__module__::unload() {
   # Generates module based on filename if none specified
   if (( ${#modules[@]} == 0 )); then
     # Fail-safe to source file if BASH_SOURCE stack only points to this file
-    if ! terminator::__module__::__get_module_name__ module; then
+    if ! terminator::__module__::__get_module_name__ module "$(caller)"; then
       return 1
     fi
 
@@ -112,7 +114,7 @@ function terminator::__module__::export() {
 
   # Generates module based on filename if none specified
   if (( ${#modules[@]} == 0 )); then
-    if ! terminator::__module__::__get_module_name__ module; then
+    if ! terminator::__module__::__get_module_name__ module "$(caller)"; then
       return 1
     fi
 
@@ -154,7 +156,7 @@ function terminator::__module__::recall() {
 
   # Generates module based on filename if none specified
   if (( ${#modules[@]} == 0 )); then
-    if ! terminator::__module__::__get_module_name__ module; then
+    if ! terminator::__module__::__get_module_name__ module "$(caller)"; then
       return 1
     fi
 
@@ -191,7 +193,7 @@ function terminator::__module__::enable() {
 
   # Generates module based on filename if none specified
   if (( ${#modules[@]} == 0 )); then
-    if ! terminator::__module__::__get_module_name__ module; then
+    if ! terminator::__module__::__get_module_name__ module "$(caller)"; then
       return 1
     fi
 
@@ -233,7 +235,7 @@ function terminator::__module__::disable() {
 
   # Generates module based on filename if none specified
   if (( ${#modules[@]} == 0 )); then
-    if ! terminator::__module__::__get_module_name__ module; then
+    if ! terminator::__module__::__get_module_name__ module "$(caller)"; then
       return 1
     fi
 
@@ -381,67 +383,29 @@ function terminator::__module__::__invoke_function_if_exists__() {
   fi
 }
 
-function terminator::__module__::__get_guard_name__() {
-  local _output_var="$1" \
-    _root_index="${2:-1}" \
-    _source_index="${3:-2}" \
-    _source_filepath \
-    _guard_name
-
-  if ! terminator::__module__::__get_source_filepath__ \
-    _source_filepath \
-    $(( _root_index + 1 )) \
-    $(( _source_index + 1 )); then
-      return 1
-  fi
-
-  _guard_name="${_source_filepath//[\/.\- ]/_}"
-
-  terminator::__module__::__invoke_function_if_exists__ \
-    'terminator::log::trace' -c 3 "Using guard name: '${_guard_name}' for file: '${BASH_SOURCE[_source_index]}'"
-
-  printf -v "${_output_var}" '%s' "${_guard_name}"
-}
-
 function terminator::__module__::__get_module_name__() {
   local _output_var="$1" \
-    _root_index="${2:-1}" \
-    _source_index="${3:-2}" \
+    _caller_info="$2" \
     _source_filepath \
+    _relative_filepath \
     _module
 
-  if ! terminator::__module__::__get_source_filepath__ \
-    _source_filepath \
-    $(( _root_index + 1 )) \
-    $(( _source_index + 1 )); then
-      return 1
+  _source_filepath="${_caller_info#* *}"
+
+  if [[ -z "${_source_filepath}" || "${_source_filepath}" == 'NULL' ]]; then
+    return 1
   fi
 
-  _module="${_source_filepath//[\/.\- ]/_}"
-  _module="${_module//__/}"
+  _relative_filepath="${_source_filepath/${TERMINATOR_MODULE_ROOT_DIR}/}"
+  _module="${_relative_filepath//[\/.\- ]/_}"
+  _module="${_module#__}"
+  _module="${_module#_}"
   _module="${_module//_src/}"
-  _module="${_module//_sh/}"
+  _module="${_module%_sh}"
   _module="${_module//_/::}"
 
   terminator::__module__::__invoke_function_if_exists__ \
-    'terminator::log::trace' -c 3 "Using module name: '${_module}' for file: '${BASH_SOURCE[_source_index]}'"
+    'terminator::log::trace' -c 3 "Using module name: '${_module}' for file: '${_source_filepath}'"
 
   printf -v "${_output_var}" '%s' "${_module}"
-}
-
-function terminator::__module__::__get_source_filepath__() {
-  local __output_var="$1" \
-    __root_index="${2:-1}" \
-    __source_index="${3:-2}" \
-    __root_dir \
-    __source_filepath
-
-  # Fail-safe if BASH_SOURCE stack only points to this file
-  # Generates error since this function will not work.
-  (( ${#BASH_SOURCE[@]} < __source_index )) && return 1
-
-  __root_dir="${BASH_SOURCE[__root_index]%/*/*/*}"
-  __source_filepath="${BASH_SOURCE[__source_index]/${__root_dir}/}"
-
-  printf -v "${__output_var}" '%s' "${__source_filepath}"
 }
