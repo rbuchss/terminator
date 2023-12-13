@@ -1,9 +1,25 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # shellcheck source=/dev/null
+#
+# Note we need to use a bash version > 3.2 to enable this to work
+# due to a bash source bug in bash 3.2 which ships with macOS.
+#
+# Basically for bash 3.2 the caller/BASH_SOURCE[@] call stack gets corrupted.
+#
+# For example, with the stock bash version for macOS this does not work:
+#   #!/bin/bash
+# But this does assuming a bash version > 3.2 is also installed in the enviroment:
+#   #!/usr/bin/env bash
+#
 source "${HOME}/.terminator/src/prompt.sh"
 
-# export the ask function to make it availble in find exec
-export -f terminator::prompt::ask
+exported_prompt_ask=0
+
+if ! declare -x -F terminator::prompt::ask; then
+  # export the ask function if it is not already exported to make it availble in find exec
+  export -f terminator::prompt::ask
+  exported_prompt_ask=1
+fi
 
 find . -maxdepth 1 -exec bash -c '
   for file do
@@ -17,3 +33,11 @@ find . -maxdepth 1 -exec bash -c '
     fi
   done
 ' bash {} +
+
+status=$?
+
+if (( exported_prompt_ask == 1 )); then
+  export -fn terminator::prompt::ask
+fi
+
+exit "${status}"
