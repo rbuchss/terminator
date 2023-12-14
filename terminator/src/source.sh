@@ -54,10 +54,10 @@ function terminator::source::bash_profile() {
   done
 
   if (( refresh_all_modules == 1 )); then
-    terminator::__module__::load::clear
+    terminator::__module__::unload_all
+  else
+    terminator::__module__::unload "${refresh_modules[@]}"
   fi
-
-  terminator::__module__::unload "${refresh_modules[@]}"
 
   terminator::source "${HOME}/.bash_profile"
 }

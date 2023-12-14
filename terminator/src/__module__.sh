@@ -58,10 +58,6 @@ function terminator::__module__::load() {
   fi
 }
 
-function terminator::__module__::load::clear() {
-  TERMINATOR_MODULES_LOADED=()
-}
-
 function terminator::__module__::is_loaded() {
   local module="$1"
 
@@ -97,6 +93,10 @@ function terminator::__module__::unload() {
           done
     fi
   done
+}
+
+function terminator::__module__::unload_all() {
+  terminator::__module__::unload "${TERMINATOR_MODULES_LOADED[@]}"
 }
 
 function terminator::__module__::is_unloaded() {
@@ -137,10 +137,6 @@ function terminator::__module__::export() {
   done
 }
 
-function terminator::__module__::export::clear() {
-  TERMINATOR_MODULES_EXPORTED=()
-}
-
 function terminator::__module__::is_exported() {
   local module="$1"
 
@@ -176,6 +172,10 @@ function terminator::__module__::recall() {
           done
     fi
   done
+}
+
+function terminator::__module__::recall_all() {
+  terminator::__module__::recall "${TERMINATOR_MODULES_EXPORTED[@]}"
 }
 
 function terminator::__module__::is_recalled() {
@@ -216,10 +216,6 @@ function terminator::__module__::enable() {
   done
 }
 
-function terminator::__module__::enable::clear() {
-  TERMINATOR_MODULES_ENABLED=()
-}
-
 function terminator::__module__::is_enabled() {
   local module="$1"
 
@@ -255,6 +251,10 @@ function terminator::__module__::disable() {
           done
     fi
   done
+}
+
+function terminator::__module__::disable_all() {
+  terminator::__module__::disable "${TERMINATOR_MODULES_ENABLED[@]}"
 }
 
 function terminator::__module__::is_disabled() {
