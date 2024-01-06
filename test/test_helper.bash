@@ -173,7 +173,7 @@ assert() {
 }
 
 assert_exit_status() {
-  assert_equal "$1" "$status"
+  assert_equal "$1" "${2:-${status}}"
 }
 
 assert_files_equal() {
