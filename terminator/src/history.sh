@@ -6,8 +6,8 @@ terminator::__module__::load || return 0
 
 function terminator::history::__enable__() {
   alias hideme='history -d $((HISTCMD-1)) &&'
-  alias hack='terminator::utility::hack'
-  alias history_stats='terminator::utility::history_stats'
+  alias hack='terminator::history::search'
+  alias history_stats='terminator::history::stats'
 }
 
 function terminator::history::stats() {
