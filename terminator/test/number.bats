@@ -2,7 +2,7 @@
 
 load test_helper
 
-source "$(repo_root)/terminator/src/number.sh"
+setup_with_coverage 'terminator/src/number.sh'
 
 @test "terminator::number::compare" {
   run terminator::number::compare

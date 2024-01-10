@@ -1,0 +1,4 @@
+[submodule "test/bats/bats-core"]
+	path = test/bats/bats-core
+	url = git@github.com:rbuchss/bats-core.git
+	branch = enable-coverage-tracing

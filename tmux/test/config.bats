@@ -3,7 +3,7 @@
 load test_helper
 
 TMUX_CONFIG_PATH="${HOME}/.tmux/config"
-source "$(repo_root)/tmux/src/config.sh"
+setup_with_coverage 'tmux/src/config.sh'
 
 @test "tmux::config::path" {
   run tmux::config::path

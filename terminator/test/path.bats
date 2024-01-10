@@ -2,7 +2,7 @@
 
 load test_helper
 
-source "$(repo_root)/terminator/src/path.sh"
+setup_with_coverage 'terminator/src/path.sh'
 
 ################################################################################
 # terminator::path::__prepend__ general error cases

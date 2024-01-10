@@ -2,7 +2,7 @@
 
 load test_helper
 
-source "$(repo_root)/terminator/src/unicode.sh"
+setup_with_coverage 'terminator/src/unicode.sh'
 
 @test "terminator::unicode::code 0xE0A0" {
   run terminator::unicode::code 0xE0A0

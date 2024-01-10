@@ -2,7 +2,7 @@
 
 load test_helper
 
-source "$(repo_root)/tmux/src/version.sh"
+setup_with_coverage 'tmux/src/version.sh'
 
 function stub::tmux::version() {
   function tmux::version() {
