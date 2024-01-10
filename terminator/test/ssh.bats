@@ -2,7 +2,7 @@
 
 load test_helper
 
-source "$(repo_root)/terminator/src/ssh.sh"
+setup_with_coverage 'terminator/src/ssh.sh'
 
 @test "terminator::ssh::is_ssh_session" {
   unset TERMINATOR_SSH_IS_SSH_SESSION

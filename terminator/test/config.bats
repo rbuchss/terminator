@@ -2,7 +2,7 @@
 
 load test_helper
 
-source "$(repo_root)/terminator/src/config.sh"
+setup_with_coverage 'terminator/src/config.sh'
 
 @test "terminator::config::path" {
   run terminator::config::path

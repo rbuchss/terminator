@@ -2,7 +2,7 @@
 
 load test_helper
 
-source "$(repo_root)/terminator/src/version.sh"
+setup_with_coverage 'terminator/src/version.sh'
 
 @test "terminator::version::compare 1 1" {
   run terminator::version::compare 1 1
