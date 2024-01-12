@@ -2,3 +2,9 @@
 	path = vendor/test/bats/bats-core
 	url = ../../rbuchss/bats-core.git
 	branch = enable-coverage-tracing
+[submodule "vendor/test/bats/bats-support"]
+	path = vendor/test/bats/bats-support
+	url = ../../bats-core/bats-support.git
+[submodule "vendor/test/bats/bats-assert"]
+	path = vendor/test/bats/bats-assert
+	url = ../../bats-core/bats-assert.git

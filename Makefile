@@ -9,7 +9,11 @@ LINTED_TEST_FILES := \
 
 LINTED_FILES := $(LINTED_SOURCE_FILES) $(LINTED_TEST_FILES)
 
-TEST_COMMAND := ./test/bats/bats-core/bin/bats --pretty --recursive $(TEST_DIRS)
+TEST_COMMAND := ./vendor/test/bats/bats-core/bin/bats \
+  --setup-suite-file ./test/test_suite.bash \
+  --pretty \
+  --recursive \
+  $(TEST_DIRS)
 
 .PHONY: guards
 guards: test lint
@@ -21,6 +25,7 @@ test:
 		--include-path=./terminator/src/,./tmux/src/ \
 		--include-pattern=.sh \
 		--exclude-pattern=/test/,/coverage/,/report/ \
+		--path-strip-level=1 \
 		--bash-method=DEBUG \
 		--bash-parser=/bin/bash \
 		--bash-parse-files-in-dir=. \
