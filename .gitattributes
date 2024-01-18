@@ -1,0 +1,16 @@
+home/**                          category=home
+terminator/**                    category=source
+terminator/test/**               category=test
+test/**                          category=test
+tmux/**                          category=source
+tmux/test/**                     category=test
+vendor/**                        category=vendor
+terminator/bin/symlink-cleaner   language=bash
+terminator/config/.bash_profile  language=bash
+terminator/config/.bashrc        language=bash
+tmux/bin/help                    language=bash
+tmux/bin/session-create          language=bash
+tmux/bin/version                 language=bash
+*.sh                             language=bash
+*.bash                           language=bash
+*.bats                           language=bats
