@@ -1,19 +1,13 @@
 TEST_DIRS := terminator/test/ tmux/test/
 
-LINT_IGNORE := \
-  *.bats \
-  *.conf \
-  *.md \
-  Makefile \
-  terminator/bin/dotfile-info \
-  terminator/bin/uppercut \
-  terminator/tools/grc/* \
-  terminator/tools/ruby/* \
-  home/* \
-  test/fixtures/* \
-  vendor/*
+LINTED_SOURCE_FILES := \
+  ':(top,attr:category=source language=bash)'
 
-GIT_IGNORE := $(addsuffix ',$(addprefix ':!:,$(LINT_IGNORE)))
+LINTED_TEST_FILES := \
+  ':(top,attr:category=test language=bash)' \
+  ':(top,attr:category=test language=bats)'
+
+LINTED_FILES := $(LINTED_SOURCE_FILES) $(LINTED_TEST_FILES)
 
 TEST_COMMAND := ./test/bats/bats-core/bin/bats --pretty --recursive $(TEST_DIRS)
 
@@ -36,4 +30,16 @@ test:
 
 .PHONY: lint
 lint:
-	shellcheck $$(git ls-files -- . $(GIT_IGNORE))
+	shellcheck $$(git ls-files -- $(LINTED_FILES))
+
+.PHONY: linted-files
+linted-files:
+	git ls-files -- $(LINTED_FILES)
+
+.PHONY: linted-source-files
+linted-source-files:
+	git ls-files -- $(LINTED_SOURCE_FILES)
+
+.PHONY: linted-test-files
+linted-test-files:
+	git ls-files -- $(LINTED_TEST_FILES)
