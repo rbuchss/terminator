@@ -20,7 +20,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_exit_status 255
+  assert_failure 255
 }
 
 @test "terminator::path::__prepend__ invalid with-many-outputs" {
@@ -36,7 +36,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_exit_status 255
+  assert_failure 255
 }
 
 @test "terminator::path::__prepend__ invalid with-many-paths" {
@@ -52,7 +52,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path_2}" \
     "${elements[@]}"
 
-  assert_exit_status 255
+  assert_failure 255
 }
 
 @test "terminator::path::__prepend__ invalid with-help-flag" {
@@ -67,7 +67,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_exit_status 255
+  assert_failure 255
 }
 
 ################################################################################
@@ -85,7 +85,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__prepend__ with-output empty-path empty-new-elements" {
@@ -99,7 +99,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__prepend__ with-output one-element-path empty-new-elements" {
@@ -113,7 +113,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__prepend__ with-output many-element-path empty-new-elements" {
@@ -127,7 +127,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__prepend__ with-output unset-path one-new-element" {
@@ -141,7 +141,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__prepend__ with-output empty-path one-new-element" {
@@ -155,7 +155,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__prepend__ with-output one-element-path one-new-element" {
@@ -169,7 +169,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__prepend__ with-output many-element-path one-new-element" {
@@ -183,7 +183,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__prepend__ with-output unset-path many-new-elements" {
@@ -201,7 +201,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__prepend__ with-output empty-path many-new-elements" {
@@ -219,7 +219,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__prepend__ with-output one-element-path many-new-elements" {
@@ -237,7 +237,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__prepend__ with-output many-element-path many-new-elements" {
@@ -255,7 +255,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__prepend__ with-output path-already-contains-new-elements" {
@@ -276,8 +276,8 @@ setup_with_coverage 'terminator/src/path.sh'
     "${elements[@]}" \
     || _status="$?"
 
-  assert_exit_status 4 "${_status}"
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${_status}" 4
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__prepend__ with-output new-elements-contain-duplicates" {
@@ -300,8 +300,8 @@ setup_with_coverage 'terminator/src/path.sh'
     "${elements[@]}" \
     || _status="$?"
 
-  assert_exit_status 3 "${_status}"
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${_status}" 3
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__prepend__ with-output path-already-contains-new-elements force-add" {
@@ -321,7 +321,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --force \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__prepend__ with-output new-elements-contain-duplicates force-add" {
@@ -343,7 +343,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --force \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 ################################################################################
@@ -536,7 +536,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_exit_status 4
+  assert_failure 4
   assert_output "${expected}"
 }
 
@@ -556,7 +556,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_exit_status 3
+  assert_failure 3
   assert_output "${expected}"
 }
 
@@ -616,7 +616,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_exit_status 255
+  assert_failure 255
 }
 
 @test "terminator::path::__append__ invalid with-many-outputs" {
@@ -632,7 +632,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_exit_status 255
+  assert_failure 255
 }
 
 @test "terminator::path::__append__ invalid with-many-paths" {
@@ -648,7 +648,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path_2}" \
     "${elements[@]}"
 
-  assert_exit_status 255
+  assert_failure 255
 }
 
 @test "terminator::path::__append__ invalid with-help-flag" {
@@ -663,7 +663,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_exit_status 255
+  assert_failure 255
 }
 
 ################################################################################
@@ -681,7 +681,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__append__ with-output empty-path empty-new-elements" {
@@ -695,7 +695,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__append__ with-output one-element-path empty-new-elements" {
@@ -709,7 +709,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__append__ with-output many-element-path empty-new-elements" {
@@ -723,7 +723,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__append__ with-output unset-path one-new-element" {
@@ -737,7 +737,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__append__ with-output empty-path one-new-element" {
@@ -751,7 +751,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__append__ with-output one-element-path one-new-element" {
@@ -765,7 +765,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__append__ with-output many-element-path one-new-element" {
@@ -779,7 +779,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__append__ with-output unset-path many-new-elements" {
@@ -797,7 +797,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__append__ with-output empty-path many-new-elements" {
@@ -815,7 +815,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__append__ with-output one-element-path many-new-elements" {
@@ -833,7 +833,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__append__ with-output many-element-path many-new-elements" {
@@ -851,7 +851,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__append__ with-output path-already-contains-new-elements" {
@@ -872,8 +872,8 @@ setup_with_coverage 'terminator/src/path.sh'
     "${elements[@]}" \
     || _status="$?"
 
-  assert_exit_status 4 "${_status}"
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${_status}" 4
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__append__ with-output new-elements-contain-duplicates" {
@@ -896,8 +896,8 @@ setup_with_coverage 'terminator/src/path.sh'
     "${elements[@]}" \
     || _status="$?"
 
-  assert_exit_status 3 "${_status}"
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${_status}" 3
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__append__ with-output path-already-contains-new-elements force-add" {
@@ -917,7 +917,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --force \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__append__ with-output new-elements-contain-duplicates force-add" {
@@ -939,7 +939,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --force \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 ################################################################################
@@ -1132,7 +1132,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_exit_status 4
+  assert_failure 4
   assert_output "${expected}"
 }
 
@@ -1152,7 +1152,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_exit_status 3
+  assert_failure 3
   assert_output "${expected}"
 }
 
@@ -1212,7 +1212,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_exit_status 255
+  assert_failure 255
 }
 
 @test "terminator::path::__remove__ invalid with-many-outputs" {
@@ -1228,7 +1228,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_exit_status 255
+  assert_failure 255
 }
 
 @test "terminator::path::__remove__ invalid with-many-paths" {
@@ -1244,7 +1244,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path_2}" \
     "${elements[@]}"
 
-  assert_exit_status 255
+  assert_failure 255
 }
 
 @test "terminator::path::__remove__ invalid with-help-flag" {
@@ -1259,7 +1259,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_exit_status 255
+  assert_failure 255
 }
 
 ################################################################################
@@ -1277,7 +1277,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__remove__ with-output empty-path empty-elements-to-remove" {
@@ -1291,7 +1291,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__remove__ with-output one-element-path empty-elements-to-remove" {
@@ -1305,7 +1305,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__remove__ with-output many-element-path empty-elements-to-remove" {
@@ -1319,7 +1319,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__remove__ with-output unset-path one-element-to-remove" {
@@ -1333,7 +1333,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__remove__ with-output empty-path one-element-to-remove" {
@@ -1347,7 +1347,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__remove__ with-output one-element-path one-element-to-remove" {
@@ -1361,7 +1361,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__remove__ with-output many-element-path one-element-to-remove" {
@@ -1375,7 +1375,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__remove__ with-output unset-path many-elements-to-remove" {
@@ -1393,7 +1393,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__remove__ with-output empty-path many-elements-to-remove" {
@@ -1411,7 +1411,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__remove__ with-output one-element-path many-elements-to-remove" {
@@ -1429,7 +1429,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__remove__ with-output many-element-path many-elements-to-remove" {
@@ -1447,7 +1447,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__remove__ with-output path-does-not-contains-remove-elements" {
@@ -1465,7 +1465,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 @test "terminator::path::__remove__ with-output elements-to-remove-contain-duplicates" {
@@ -1485,7 +1485,7 @@ setup_with_coverage 'terminator/src/path.sh'
     --path "${dummy_path}" \
     "${elements[@]}"
 
-  assert_equal "${expected}" "${actual}"
+  assert_equal "${actual}" "${expected}"
 }
 
 ################################################################################
@@ -1710,7 +1710,7 @@ setup_with_coverage 'terminator/src/path.sh'
 
   run terminator::path::__includes__ "${dummy_path}" "${element}"
   assert_failure
-  assert_no_output_exists
+  refute_output
 }
 
 @test "terminator::path::__includes__ empty-path empty-element-to-search" {
@@ -1719,7 +1719,7 @@ setup_with_coverage 'terminator/src/path.sh'
 
   run terminator::path::__includes__ "${dummy_path}" "${element}"
   assert_failure
-  assert_no_output_exists
+  refute_output
 }
 
 @test "terminator::path::__includes__ one-element-path empty-element-to-search" {
@@ -1728,7 +1728,7 @@ setup_with_coverage 'terminator/src/path.sh'
 
   run terminator::path::__includes__ "${dummy_path}" "${element}"
   assert_failure
-  assert_no_output_exists
+  refute_output
 }
 
 @test "terminator::path::__includes__ many-element-path empty-element-to-search" {
@@ -1737,7 +1737,7 @@ setup_with_coverage 'terminator/src/path.sh'
 
   run terminator::path::__includes__ "${dummy_path}" "${element}"
   assert_failure
-  assert_no_output_exists
+  refute_output
 }
 
 @test "terminator::path::__includes__ unset-path" {
@@ -1746,7 +1746,7 @@ setup_with_coverage 'terminator/src/path.sh'
 
   run terminator::path::__includes__ "${dummy_path}" "${element}"
   assert_failure
-  assert_no_output_exists
+  refute_output
 }
 
 @test "terminator::path::__includes__ empty-path" {
@@ -1755,7 +1755,7 @@ setup_with_coverage 'terminator/src/path.sh'
 
   run terminator::path::__includes__ "${dummy_path}" "${element}"
   assert_failure
-  assert_no_output_exists
+  refute_output
 }
 
 @test "terminator::path::__includes__ one-element-path" {
@@ -1764,7 +1764,7 @@ setup_with_coverage 'terminator/src/path.sh'
 
   run terminator::path::__includes__ "${dummy_path}" "${element}"
   assert_success
-  assert_no_output_exists
+  refute_output
 }
 
 @test "terminator::path::__includes__ one-element-path missing-element-to-search" {
@@ -1773,7 +1773,7 @@ setup_with_coverage 'terminator/src/path.sh'
 
   run terminator::path::__includes__ "${dummy_path}" "${element}"
   assert_failure
-  assert_no_output_exists
+  refute_output
 }
 
 @test "terminator::path::__includes__ many-element-path" {
@@ -1782,7 +1782,7 @@ setup_with_coverage 'terminator/src/path.sh'
 
   run terminator::path::__includes__ "${dummy_path}" "${element}"
   assert_success
-  assert_no_output_exists
+  refute_output
 }
 
 @test "terminator::path::__includes__ many-element-path missing-element-to-search" {
@@ -1791,7 +1791,7 @@ setup_with_coverage 'terminator/src/path.sh'
 
   run terminator::path::__includes__ "${dummy_path}" "${element}"
   assert_failure
-  assert_no_output_exists
+  refute_output
 }
 
 @test "terminator::path::__includes__ many-element-path element-to-search-on-far-left" {
@@ -1800,7 +1800,7 @@ setup_with_coverage 'terminator/src/path.sh'
 
   run terminator::path::__includes__ "${dummy_path}" "${element}"
   assert_success
-  assert_no_output_exists
+  refute_output
 }
 
 @test "terminator::path::__includes__ many-element-path element-to-search-on-far-right" {
@@ -1809,7 +1809,7 @@ setup_with_coverage 'terminator/src/path.sh'
 
   run terminator::path::__includes__ "${dummy_path}" "${element}"
   assert_success
-  assert_no_output_exists
+  refute_output
 }
 
 ################################################################################
@@ -1822,7 +1822,7 @@ setup_with_coverage 'terminator/src/path.sh'
 
   run terminator::path::__excludes__ "${dummy_path}" "${element}"
   assert_success
-  assert_no_output_exists
+  refute_output
 }
 
 @test "terminator::path::__excludes__ empty-path empty-element-to-search" {
@@ -1831,7 +1831,7 @@ setup_with_coverage 'terminator/src/path.sh'
 
   run terminator::path::__excludes__ "${dummy_path}" "${element}"
   assert_success
-  assert_no_output_exists
+  refute_output
 }
 
 @test "terminator::path::__excludes__ one-element-path empty-element-to-search" {
@@ -1840,7 +1840,7 @@ setup_with_coverage 'terminator/src/path.sh'
 
   run terminator::path::__excludes__ "${dummy_path}" "${element}"
   assert_success
-  assert_no_output_exists
+  refute_output
 }
 
 @test "terminator::path::__excludes__ many-element-path empty-element-to-search" {
@@ -1849,7 +1849,7 @@ setup_with_coverage 'terminator/src/path.sh'
 
   run terminator::path::__excludes__ "${dummy_path}" "${element}"
   assert_success
-  assert_no_output_exists
+  refute_output
 }
 
 @test "terminator::path::__excludes__ unset-path" {
@@ -1858,7 +1858,7 @@ setup_with_coverage 'terminator/src/path.sh'
 
   run terminator::path::__excludes__ "${dummy_path}" "${element}"
   assert_success
-  assert_no_output_exists
+  refute_output
 }
 
 @test "terminator::path::__excludes__ empty-path" {
@@ -1867,7 +1867,7 @@ setup_with_coverage 'terminator/src/path.sh'
 
   run terminator::path::__excludes__ "${dummy_path}" "${element}"
   assert_success
-  assert_no_output_exists
+  refute_output
 }
 
 @test "terminator::path::__excludes__ one-element-path" {
@@ -1876,7 +1876,7 @@ setup_with_coverage 'terminator/src/path.sh'
 
   run terminator::path::__excludes__ "${dummy_path}" "${element}"
   assert_failure
-  assert_no_output_exists
+  refute_output
 }
 
 @test "terminator::path::__excludes__ one-element-path missing-element-to-search" {
@@ -1885,7 +1885,7 @@ setup_with_coverage 'terminator/src/path.sh'
 
   run terminator::path::__excludes__ "${dummy_path}" "${element}"
   assert_success
-  assert_no_output_exists
+  refute_output
 }
 
 @test "terminator::path::__excludes__ many-element-path" {
@@ -1894,7 +1894,7 @@ setup_with_coverage 'terminator/src/path.sh'
 
   run terminator::path::__excludes__ "${dummy_path}" "${element}"
   assert_failure
-  assert_no_output_exists
+  refute_output
 }
 
 @test "terminator::path::__excludes__ many-element-path missing-element-to-search" {
@@ -1903,7 +1903,7 @@ setup_with_coverage 'terminator/src/path.sh'
 
   run terminator::path::__excludes__ "${dummy_path}" "${element}"
   assert_success
-  assert_no_output_exists
+  refute_output
 }
 
 @test "terminator::path::__excludes__ many-element-path element-to-search-on-far-left" {
@@ -1912,7 +1912,7 @@ setup_with_coverage 'terminator/src/path.sh'
 
   run terminator::path::__excludes__ "${dummy_path}" "${element}"
   assert_failure
-  assert_no_output_exists
+  refute_output
 }
 
 @test "terminator::path::__excludes__ many-element-path element-to-search-on-far-right" {
@@ -1921,5 +1921,5 @@ setup_with_coverage 'terminator/src/path.sh'
 
   run terminator::path::__excludes__ "${dummy_path}" "${element}"
   assert_failure
-  assert_no_output_exists
+  refute_output
 }

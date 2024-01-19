@@ -13,7 +13,7 @@ function stub::tmux::version() {
 @test "tmux::version" {
   run tmux::version
   assert_success
-  assert_output_regexp '^[0-9]+\.[0-9]+$'
+  assert_output --regexp '^[0-9]+\.[0-9]+$'
 }
 
 @test "tmux::version::compare" {
