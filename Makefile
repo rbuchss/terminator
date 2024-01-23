@@ -1,3 +1,8 @@
+################################################################################
+# Shared targets and config
+################################################################################
+
+BASH_PATH ?= /bin/bash
 TEST_DIRS := terminator/test/ tmux/test/
 
 LINTED_SOURCE_FILES := \
@@ -15,6 +20,7 @@ TEST_COMMAND := ./vendor/test/bats/bats-core/bin/bats \
   --recursive \
   $(TEST_DIRS)
 
+.DEFAULT_GOAL := guards
 .PHONY: guards
 guards: test lint
 
@@ -27,7 +33,7 @@ test:
 		--exclude-pattern=/test/,/coverage/,/report/ \
 		--path-strip-level=1 \
 		--bash-method=DEBUG \
-		--bash-parser=/bin/bash \
+		--bash-parser="$(BASH_PATH)" \
 		--bash-parse-files-in-dir=. \
 		--configure=command-name="$(TEST_COMMAND)" \
 		coverage \
@@ -48,3 +54,88 @@ linted-source-files:
 .PHONY: linted-test-files
 linted-test-files:
 	git ls-files -- $(LINTED_TEST_FILES)
+
+################################################################################
+# Docker targets and config
+################################################################################
+
+FORCE ?= false
+
+DOCKER_USER := kyle-reese
+DOCKER_GROUP := skynet-resistance
+DOCKER_WORKDIR := /opt
+
+DOCKER_HUB_USER := rbuchss
+DOCKER_BUILD_TARGET := terminator-tester
+DOCKER_IMAGE_NAME := $(DOCKER_HUB_USER)/$(DOCKER_BUILD_TARGET)
+DOCKER_BUILDER_TARGET := terminator-tester-builder
+DOCKER_BUILDER_IMAGE_NAME := $(DOCKER_HUB_USER)/$(DOCKER_BUILDER_TARGET)
+
+DOCKER_IMAGE_BASH_PATH := /usr/local/bin/bash
+
+DOCKER_BUILD_FLAGS := \
+  --target "$(DOCKER_BUILD_TARGET)" \
+  --tag "$(DOCKER_IMAGE_NAME)" \
+  --build-arg BUILDER_IMAGE_NAME=$(DOCKER_BUILDER_IMAGE_NAME) \
+  --build-arg USER=$(DOCKER_USER) \
+  --build-arg GROUP=$(DOCKER_GROUP) \
+  --build-arg WORKDIR=$(DOCKER_WORKDIR)
+
+DOCKER_BUILDER_FLAGS := \
+  --target "$(DOCKER_BUILDER_TARGET)" \
+  --tag "$(DOCKER_BUILDER_IMAGE_NAME)" \
+  --build-arg WORKDIR=$(DOCKER_WORKDIR)
+
+ifeq ($(FORCE),true)
+DOCKER_BUILD_FLAGS += --no-cache
+DOCKER_BUILDER_FLAGS += --no-cache
+endif
+
+DOCKER_RUN_FLAGS := \
+  -it \
+  --rm \
+  --cap-drop all \
+  --security-opt=no-new-privileges \
+  "$(DOCKER_IMAGE_NAME)"
+
+DOCKER_RUN_BUILDER_FLAGS := \
+  -it \
+  --rm \
+  "$(DOCKER_BUILDER_IMAGE_NAME)"
+
+.PHONY: docker
+docker: docker-builder docker-build
+	@$(MAKE) --no-print-directory docker-run
+
+.PHONY: docker-build
+docker-build:
+	docker build . $(DOCKER_BUILD_FLAGS)
+
+.PHONY: docker-builder
+docker-builder:
+	docker build ./docker $(DOCKER_BUILDER_FLAGS)
+
+.PHONY: docker-run
+docker-run:
+	docker run $(DOCKER_RUN_FLAGS)
+
+.PHONY: docker-debug
+docker-debug:
+	docker run $(DOCKER_RUN_FLAGS) $(DOCKER_IMAGE_BASH_PATH)
+
+.PHONY: docker-builder-debug
+docker-builder-debug:
+	docker run $(DOCKER_RUN_BUILDER_FLAGS) $(DOCKER_IMAGE_BASH_PATH)
+
+.PHONY: docker-clean
+docker-clean:
+	@if docker image inspect "$(DOCKER_IMAGE_NAME)" >/dev/null 2>&1; then \
+		docker image remove "$(DOCKER_IMAGE_NAME)"; \
+	else \
+		echo "Skipping: No such image: $(DOCKER_IMAGE_NAME)"; \
+	fi
+	@if docker image inspect "$(DOCKER_BUILDER_IMAGE_NAME)" >/dev/null 2>&1; then \
+		docker image remove "$(DOCKER_BUILDER_IMAGE_NAME)"; \
+	else \
+		echo "Skipping: No such image: $(DOCKER_BUILDER_IMAGE_NAME)"; \
+	fi
