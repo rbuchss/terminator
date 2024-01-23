@@ -1,6 +1,11 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${HOME}/.terminator/src/version.sh"
+# TODO move this module into terminator/src - until then this workaround needed for tests and real use
+if [[ -f "${HOME}/.terminator/src/version.sh" ]]; then
+  source "${HOME}/.terminator/src/version.sh"
+else
+  source "${BASH_SOURCE[0]%/*/*/*}/terminator/src/version.sh"
+fi
 
 function tmux::version() {
   command tmux -V | grep -E -o '([0-9.]+)'

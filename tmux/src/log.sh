@@ -1,6 +1,11 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${HOME}/.terminator/src/log.sh"
+# TODO move this module into terminator/src - until then this workaround needed for tests and real use
+if [[ -f "${HOME}/.terminator/src/log.sh" ]]; then
+  source "${HOME}/.terminator/src/log.sh"
+else
+  source "${BASH_SOURCE[0]%/*/*/*}/terminator/src/log.sh"
+fi
 
 function tmux::log::path() {
   # TODO make pid match session
