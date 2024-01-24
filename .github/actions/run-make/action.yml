@@ -1,0 +1,18 @@
+name: run-make
+description: Runs make quality targets
+inputs:
+  target:
+    description: Make target to run
+    required: true
+    default: test
+    type: choice
+    options:
+    - test
+    - lint
+    - guards
+
+runs:
+  using: docker
+  image: ../../../Dockerfile
+  args:
+    - ${{ inputs.target }}
