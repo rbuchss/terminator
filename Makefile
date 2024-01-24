@@ -103,37 +103,54 @@ DOCKER_RUN_BUILDER_FLAGS := \
   --rm \
   "$(DOCKER_BUILDER_IMAGE_NAME)"
 
-.PHONY: docker
-docker: docker-builder docker-build
-	@$(MAKE) --no-print-directory docker-run
+.PHONY: docker-guards
+docker-guards: docker-tester-build
+	@$(MAKE) --no-print-directory docker-tester-run
 
-.PHONY: docker-build
-docker-build:
+.PHONY: docker-all-build
+docker-all-build: docker-builder-build docker-tester-build
+
+.PHONY: docker-all-run
+docker-all-run: docker-all-build
+	@$(MAKE) --no-print-directory docker-tester-run
+
+.PHONY: docker-all-clean
+docker-all-clean: docker-tester-clean docker-builder-clean
+
+.PHONY: docker-tester-build
+docker-tester-build:
 	docker build . $(DOCKER_BUILD_FLAGS)
 
-.PHONY: docker-builder
-docker-builder:
-	docker build ./docker $(DOCKER_BUILDER_FLAGS)
-
-.PHONY: docker-run
-docker-run:
+.PHONY: docker-tester-run
+docker-tester-run:
 	docker run $(DOCKER_RUN_FLAGS)
 
-.PHONY: docker-debug
-docker-debug:
+.PHONY: docker-tester-debug
+docker-tester-debug:
 	docker run $(DOCKER_RUN_FLAGS) $(DOCKER_IMAGE_BASH_PATH)
 
-.PHONY: docker-builder-debug
-docker-builder-debug:
-	docker run $(DOCKER_RUN_BUILDER_FLAGS) $(DOCKER_IMAGE_BASH_PATH)
-
-.PHONY: docker-clean
-docker-clean:
+.PHONY: docker-tester-clean
+docker-tester-clean:
 	@if docker image inspect "$(DOCKER_IMAGE_NAME)" >/dev/null 2>&1; then \
 		docker image remove "$(DOCKER_IMAGE_NAME)"; \
 	else \
 		echo "Skipping: No such image: $(DOCKER_IMAGE_NAME)"; \
 	fi
+
+.PHONY: docker-builder-build
+docker-builder-build:
+	docker build ./docker $(DOCKER_BUILDER_FLAGS)
+
+.PHONY: docker-builder-push
+docker-builder-push:
+	docker push $(DOCKER_BUILDER_IMAGE_NAME)
+
+.PHONY: docker-builder-debug
+docker-builder-debug:
+	docker run $(DOCKER_RUN_BUILDER_FLAGS) $(DOCKER_IMAGE_BASH_PATH)
+
+.PHONY: docker-builder-clean
+docker-builder-clean:
 	@if docker image inspect "$(DOCKER_BUILDER_IMAGE_NAME)" >/dev/null 2>&1; then \
 		docker image remove "$(DOCKER_BUILDER_IMAGE_NAME)"; \
 	else \
