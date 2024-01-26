@@ -4,8 +4,8 @@
 
 # defaults to macOS buggy bash version to ensure backwards compatibility
 ARG IMAGE_BASH_VERSION=3.2.57
+ARG IMAGE_BASH_PATH=/usr/local/bin/bash
 ARG IMAGE_KCOV_VERSION=v42
-ARG WORKDIR=/opt
 
 ################################################################################
 # Kcov stage - Compiles kcov to use downstream.
@@ -14,13 +14,10 @@ ARG WORKDIR=/opt
 
 FROM bash:${IMAGE_BASH_VERSION} as terminator-kcov-builder
 
-# We need to export ARG in each stage to make them available
+# We need to export any ARG's we want in each stage to make them available
 ARG IMAGE_KCOV_VERSION
-ARG WORKDIR
 
 ENV KCOV=https://github.com/SimonKagstrom/kcov/archive/${IMAGE_KCOV_VERSION}.tar.gz
-
-WORKDIR ${WORKDIR}
 
 RUN apk update
 
@@ -40,11 +37,14 @@ RUN mkdir build \
 
 FROM bash:${IMAGE_BASH_VERSION} as terminator-tester-builder
 
-# We need to export ARG in each stage to make them available
-ARG IMAGE_KCOV_VERSION
-ARG WORKDIR
+# We need to export any ARG's we want in each stage to make them available
+ARG IMAGE_BASH_PATH
 
-WORKDIR ${WORKDIR}
+# Map bash path to macOS standard path
+# Note it's better practice to use to more portable:
+#   #!/usr/bin/env bash
+# header in scripts to not rely on this long term - for now adding until migrating to this pattern is possible
+RUN ln -s "${IMAGE_BASH_PATH}" /bin/bash
 
 RUN apk update
 RUN apk add git

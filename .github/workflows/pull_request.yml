@@ -1,0 +1,19 @@
+name: Run make test for pull request
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  pull_request_job:
+    runs-on: ubuntu-latest
+    name: A job to run make quality targets
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Run make
+        uses: ./.github/actions/run-make
+        id: run-make
+        with:
+          target: test-without-coverage
