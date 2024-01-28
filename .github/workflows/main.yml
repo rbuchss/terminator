@@ -1,13 +1,14 @@
-name: Run make
+name: Run Make
 on:
   workflow_dispatch:
     inputs:
       target:
         description: Make target to run
         required: true
-        default: test-without-coverage
+        default: test
         type: choice
         options:
+        - test
         - test-without-coverage
         - lint
         - guards
@@ -15,13 +16,13 @@ on:
 jobs:
   run_make_job:
     runs-on: ubuntu-latest
-    name: A job to run make quality targets
+    name: Manually Run Quality Check Task
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: true
-      - name: Run make
+      - name: Run Make Target
         uses: ./.github/actions/run-make
         id: run-make
         with:
