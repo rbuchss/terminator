@@ -1,4 +1,4 @@
-name: Run make test for pull request
+name: Run Quality Checks and Publish PR
 on:
   pull_request:
     branches: [main]
@@ -6,14 +6,14 @@ on:
 jobs:
   pull_request_job:
     runs-on: ubuntu-latest
-    name: A job to run make quality targets
+    name: Run Quality Checks
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: true
-      - name: Run make
+      - name: Run Tests
         uses: ./.github/actions/run-make
         id: run-make
         with:
-          target: test-without-coverage
+          target: test

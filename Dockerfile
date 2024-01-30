@@ -6,7 +6,7 @@ ARG BUILDER_IMAGE_NAME=rbuchss/terminator-tester-builder
 ARG IMAGE_BASH_PATH=/usr/local/bin/bash
 ARG USER=kyle-reese
 ARG GROUP=skynet-resistance
-ARG WORKDIR=/opt
+ARG WORKDIR=/cyberdyne
 
 ################################################################################
 # Tester Image - Uses builder image to speed up test image setup
