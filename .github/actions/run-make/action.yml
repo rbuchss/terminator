@@ -10,9 +10,21 @@ inputs:
     - test
     - lint
     - guards
+  base_sha:
+    description: Base sha ref
+  head_sha:
+    description: Head sha ref
+  with_coverage:
+    type: boolean
+    default: true
 
 runs:
   using: docker
   image: ../../../Dockerfile
+  env:
+    COVERAGE_REPORT_BASE_SHA: ${{ inputs.base_sha }}
+    COVERAGE_REPORT_HEAD_SHA: ${{ inputs.head_sha }}
+    COVERAGE_REPORT_OUTPUT: GITHUB_OUTPUT
   args:
     - ${{ inputs.target }}
+    - ${{ inputs.with_coverage }}

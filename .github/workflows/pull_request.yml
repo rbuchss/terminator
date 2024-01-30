@@ -7,13 +7,29 @@ jobs:
   pull_request_job:
     runs-on: ubuntu-latest
     name: Run Quality Checks
+    permissions:
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: true
+          fetch-depth: 2
       - name: Run Tests
         uses: ./.github/actions/run-make
         id: run-make
         with:
           target: test
+          base_sha: ${{ github.event.pull_request.base.sha }}
+          head_sha: ${{ github.event.pull_request.head.sha }}
+          with_coverage: true
+      - name: Post Coverage Report
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '${{ steps.run-make.outputs.coverage_report }}'
+            })

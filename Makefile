@@ -4,6 +4,11 @@
 
 BASH_PATH ?= /bin/bash
 PWD ?= .
+
+COVERAGE_REPORT_BASE_SHA ?= origin/main
+COVERAGE_REPORT_HEAD_SHA ?= HEAD
+COVERAGE_REPORT_OUTPUT ?= /dev/stdout
+
 TEST_DIRS := terminator/test/ tmux/test/
 
 LINTED_SOURCE_FILES := \
@@ -29,18 +34,24 @@ ifneq ($(TERM),)
 TEST_COMMAND_FLAGS += --pretty
 endif
 
+# TODO convert PWD to THIS_DIR
 TEST_COMMAND := $(PWD)/vendor/test/bats/bats-core/bin/bats \
   $(TEST_COMMAND_FLAGS) \
   $(TEST_DIRS)
 
 .DEFAULT_GOAL := guards
 .PHONY: guards
-guards: test lint
+guards: test-with-coverage lint
 
 # NOTE: github-action runners use linux/amd64.
 # So the builder image needs to also be build using this platform using buildx.
 .PHONY: test
 test:
+	$(TEST_COMMAND)
+
+# TODO convert PWD to THIS_DIR
+.PHONY: test-with-coverage
+test-with-coverage:
 	kcov \
 		--clean \
 		--include-path=./terminator/src/,./tmux/src/ \
@@ -54,10 +65,11 @@ test:
 		coverage \
 		-- \
 		$(TEST_COMMAND)
-
-.PHONY: test-without-coverage
-test-without-coverage:
-	$(TEST_COMMAND)
+	[[ -n "$(COVERAGE_REPORT_BASE_SHA)" && -n "$(COVERAGE_REPORT_HEAD_SHA)" ]] \
+		&& $(PWD)/test/test_coverage/generate_report.sh \
+			"$(COVERAGE_REPORT_BASE_SHA)" \
+			"$(COVERAGE_REPORT_HEAD_SHA)" \
+			"$(COVERAGE_REPORT_OUTPUT)"
 
 .PHONY: lint
 lint:

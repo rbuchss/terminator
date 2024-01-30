@@ -53,6 +53,7 @@ RUN apk add make
 RUN apk add ncurses
 RUN apk add shellcheck
 RUN apk add tmux
+RUN apk add jq
 
 # Adds kcov from kcov-builder stage since apk does not include kcov
 # Needs to also include kcov runtime dependencies
