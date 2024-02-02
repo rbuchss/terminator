@@ -9,9 +9,11 @@ on:
         type: choice
         options:
         - test
-        - test-without-coverage
         - lint
         - guards
+      with_coverage:
+        type: boolean
+        default: false
 
 jobs:
   run_make_job:
@@ -27,3 +29,4 @@ jobs:
         id: run-make
         with:
           target: ${{ inputs.target }}
+          with_coverage: ${{ inputs.with_coverage }}
