@@ -8,6 +8,10 @@ function terminator::java::__enable__() {
   export JAVA_TOOL_OPTIONS='-Dlog4j2.formatMsgNoLookups=true'
 }
 
+function terminator::java::__disable__() {
+  unset JAVA_TOOL_OPTIONS
+}
+
 function terminator::java::__export__() {
   :
 }

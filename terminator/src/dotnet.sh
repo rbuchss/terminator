@@ -1,16 +1,18 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${BASH_SOURCE[0]%/*}/__module__.sh"
+source "${BASH_SOURCE[0]%/*}/command.sh"
 
 terminator::__module__::load || return 0
 
 function terminator::dotnet::__enable__() {
-  if ! command -v dotnet > /dev/null 2>&1; then
-    terminator::log::warning 'dotnet is not installed'
-    return
-  fi
+  terminator::command::exists -v dotnet || return
 
   complete -f -F terminator::dotnet::complete dotnet
+}
+
+function terminator::dotnet::__disable__() {
+  complete -r dotnet
 }
 
 # bash parameter completion for the dotnet CLI

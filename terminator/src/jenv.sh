@@ -1,18 +1,21 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${BASH_SOURCE[0]%/*}/__module__.sh"
+source "${BASH_SOURCE[0]%/*}/command.sh"
 
 terminator::__module__::load || return 0
 
 function terminator::jenv::__enable__() {
-  if ! command -v jenv > /dev/null 2>&1; then
-    terminator::log::warning 'jenv is not installed'
-    return
-  fi
+  terminator::command::exists -v jenv || return
 
   # export PATH="${HOME}/.jenv/bin:$PATH"
   eval "$(jenv init -)"
 }
+
+# TODO add support for this
+# function terminator::jenv::__disable__() {
+#   :
+# }
 
 function terminator::jenv::__export__() {
   :

@@ -1,16 +1,18 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${BASH_SOURCE[0]%/*}/__module__.sh"
+source "${BASH_SOURCE[0]%/*}/command.sh"
 
 terminator::__module__::load || return 0
 
 function terminator::dircolors::__enable__() {
-  if ! command -v dircolors > /dev/null 2>&1; then
-    terminator::log::warning 'dircolors is not installed'
-    return
-  fi
+  terminator::command::exists -v dircolors || return
 
   eval "$(dircolors "${HOME}/.dir_colors")"
+}
+
+function terminator::dircolors::__disable__() {
+  unset LS_COLORS
 }
 
 function terminator::dircolors::__export__() {

@@ -26,6 +26,27 @@ function terminator::file::__enable__() {
   alias mkcd='terminator::file::mkcd'
 }
 
+function terminator::file::__disable__() {
+  unalias rm
+  unalias mv
+  unalias cp
+
+  unalias t1
+  unalias h1
+  unalias extract
+  unalias mktar
+  unalias mktgz
+  unalias mktbz
+  unalias swap
+  unalias nuke_spaces
+  unalias find_exec
+  unalias df
+  unalias du
+  unalias dirsize_big
+  unalias dirsize
+  unalias mkcd
+}
+
 function terminator::file::extract() {
   for file in "$@"; do
     if [[ ! -f "${file}" ]]; then

@@ -1,18 +1,18 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${BASH_SOURCE[0]%/*}/__module__.sh"
+source "${BASH_SOURCE[0]%/*}/command.sh"
 
 terminator::__module__::load || return 0
 
 function terminator::python::__enable__() {
-  if ! command -v pyenv > /dev/null 2>&1 \
-      && ! command -v python3 > /dev/null 2>&1 \
-      && ! command -v python > /dev/null 2>&1; then
-    terminator::log::warning 'python is not installed'
-    return
-  fi
+  terminator::command::any_exist -v pyenv python3 python || return
 
   alias py='terminator::python::invoke'
+}
+
+function terminator::python::__disable__() {
+  unalias py
 }
 
 function terminator::python::invoke() {

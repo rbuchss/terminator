@@ -287,7 +287,7 @@ function terminator::__module__::__action__() {
       ;;
   esac
 
-  # Guard to do module only if not already in desired state
+  # Guard to do module action only if not already in desired state
   if terminator::__module__::__is_in_state__ "${module}" "${action}"; then
     terminator::__module__::__invoke_function_if_exists__ \
       'terminator::log::trace' -c 3 \

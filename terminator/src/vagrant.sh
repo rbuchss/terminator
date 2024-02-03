@@ -1,16 +1,18 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${BASH_SOURCE[0]%/*}/__module__.sh"
+source "${BASH_SOURCE[0]%/*}/command.sh"
 
 terminator::__module__::load || return 0
 
 function terminator::vagrant::__enable__() {
-  if ! command -v vagrant > /dev/null 2>&1; then
-    terminator::log::warning 'vagrant is not installed'
-    return
-  fi
+  terminator::command::exists -v vagrant || return
 
   alias vagrant_scp='terminator::vagrant::scp'
+}
+
+function terminator::vagrant::__disable__() {
+  unalias vagrant_scp
 }
 
 function terminator::vagrant::scp() {

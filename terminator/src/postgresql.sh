@@ -1,20 +1,24 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${BASH_SOURCE[0]%/*}/__module__.sh"
+source "${BASH_SOURCE[0]%/*}/command.sh"
 source "${BASH_SOURCE[0]%/*}/homebrew.sh"
 source "${BASH_SOURCE[0]%/*}/prompt.sh"
 
 terminator::__module__::load || return 0
 
 function terminator::postgresql::__enable__() {
-  if ! command -v psql > /dev/null 2>&1; then
-    terminator::log::warning 'postgresql is not installed'
-    return
-  fi
+  terminator::command::exists -v psql || return
 
   alias psql_list_config='terminator::postgresql::list_config'
   alias psql_edit_config='terminator::postgresql::edit_config'
   alias psql_clear_pid='terminator::postgresql::clear_pid'
+}
+
+function terminator::postgresql::__disable__() {
+  unalias psql_list_config
+  unalias psql_edit_config
+  unalias psql_clear_pid
 }
 
 function terminator::postgresql::list_config() {
