@@ -10,6 +10,12 @@ function terminator::history::__enable__() {
   alias history_stats='terminator::history::stats'
 }
 
+function terminator::history::__disable__() {
+  unalias hideme
+  unalias hack
+  unalias history_stats
+}
+
 function terminator::history::stats() {
   local number="${1:-15}"
   cut -f1 -d" " "${HOME}/.bash_history" \

@@ -1,14 +1,12 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${BASH_SOURCE[0]%/*}/__module__.sh"
+source "${BASH_SOURCE[0]%/*}/command.sh"
 
 terminator::__module__::load || return 0
 
 function terminator::git::__enable__() {
-  if ! command -v git > /dev/null 2>&1; then
-    terminator::log::warning 'git is not installed'
-    return
-  fi
+  terminator::command::exists -v git || return
 
   alias git='terminator::git::invoke'
   alias g='terminator::git::invoke'
@@ -16,8 +14,19 @@ function terminator::git::__enable__() {
   __git_complete g __git_main
 }
 
+function terminator::git::__disable__() {
+  unalias git
+  unalias g
+
+  # __git_complete uses complete under the hood so using
+  #   complete -r to remove
+  # ref:
+  #   https://github.com/git/git/blob/e79552d19784ee7f4bbce278fe25f93fbda196fa/contrib/completion/git-completion.bash#L3741-L3747
+  complete -r g
+}
+
 function terminator::git::invoke() {
-  if command -v hub > /dev/null 2>&1; then
+  if terminator::command::exists hub; then
     command hub "$@"
     return
   fi

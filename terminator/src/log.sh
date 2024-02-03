@@ -48,6 +48,8 @@ function terminator::log::logger() {
   done
   shift $((OPTIND-1))
 
+  [[ "${output}" == '/dev/null' ]] && return
+
   severity="$(terminator::log::severity "${level}")"
 
   (( severity < $(terminator::log::level) )) && return

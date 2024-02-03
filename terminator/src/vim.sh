@@ -1,16 +1,13 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${BASH_SOURCE[0]%/*}/__module__.sh"
+source "${BASH_SOURCE[0]%/*}/command.sh"
 source "${BASH_SOURCE[0]%/*}/log.sh"
 
 terminator::__module__::load || return 0
 
 function terminator::vim::__enable__() {
-  if ! command -v nvim > /dev/null 2>&1 \
-      && ! command -v vim > /dev/null 2>&1; then
-    terminator::log::warning 'vim and nvim are not installed'
-    return
-  fi
+  terminator::command::any_exist -v nvim vim || return
 
   alias vi='terminator::vim::invoke'
   alias vim='terminator::vim::invoke'
@@ -18,11 +15,22 @@ function terminator::vim::__enable__() {
   alias vg='terminator::vim::open::content_match'
   alias vd='terminator::vim::open::git_diff'
 
-  # We need to export the vim wrapper function for it to be accessible via xargs
-  export -f terminator::vim::invoke
-
   # Sets up completion for git branches
   __git_complete vd _git_checkout
+}
+
+function terminator::vim::__disable__() {
+  unalias vi
+  unalias vim
+  unalias vf
+  unalias vg
+  unalias vd
+
+  # __git_complete uses complete under the hood so using
+  #   complete -r to remove
+  # ref:
+  #   https://github.com/git/git/blob/e79552d19784ee7f4bbce278fe25f93fbda196fa/contrib/completion/git-completion.bash#L3741-L3747
+  complete -r vd
 }
 
 function terminator::vim::invoke() {

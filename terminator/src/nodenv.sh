@@ -1,15 +1,13 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${BASH_SOURCE[0]%/*}/__module__.sh"
+source "${BASH_SOURCE[0]%/*}/command.sh"
 source "${BASH_SOURCE[0]%/*}/homebrew.sh"
 
 terminator::__module__::load || return 0
 
 function terminator::nodenv::__enable__() {
-  if ! command -v nodenv > /dev/null 2>&1; then
-    terminator::log::warning 'nodenv is not installed'
-    return
-  fi
+  terminator::command::exists -v nodenv || return
 
   eval "$(nodenv init -)"
 
@@ -18,6 +16,11 @@ function terminator::nodenv::__enable__() {
     source "$(brew --prefix nodenv)/completions/nodenv.bash"
   fi
 }
+
+# TODO add support for this
+# function terminator::nodenv::__disable__() {
+#   :
+# }
 
 function terminator::nodenv::__export__() {
   :

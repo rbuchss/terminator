@@ -1,16 +1,18 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${BASH_SOURCE[0]%/*}/__module__.sh"
+source "${BASH_SOURCE[0]%/*}/command.sh"
 
 terminator::__module__::load || return 0
 
 function terminator::ag::__enable__() {
-  if ! command -v ag > /dev/null 2>&1; then
-    terminator::log::warning 'ag is not installed'
-    return
-  fi
+  terminator::command::exists -v ag || return
 
   alias ag='terminator::ag::invoke'
+}
+
+function terminator::ag::__disable__() {
+  unalias ag
 }
 
 function terminator::ag::invoke() {

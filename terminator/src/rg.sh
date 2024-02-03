@@ -1,16 +1,18 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${BASH_SOURCE[0]%/*}/__module__.sh"
+source "${BASH_SOURCE[0]%/*}/command.sh"
 
 terminator::__module__::load || return 0
 
 function terminator::rg::__enable__() {
-  if ! command -v rg > /dev/null 2>&1; then
-    terminator::log::warning 'rg is not installed'
-    return
-  fi
+  terminator::command::exists -v rg || return
 
   alias rg='terminator::rg::invoke'
+}
+
+function terminator::rg::__disable__() {
+  unalias rg
 }
 
 function terminator::rg::invoke() {

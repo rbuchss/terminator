@@ -1,20 +1,24 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${BASH_SOURCE[0]%/*}/__module__.sh"
+source "${BASH_SOURCE[0]%/*}/command.sh"
 
 terminator::__module__::load || return 0
 
 function terminator::ruby::__enable__() {
-  if ! command -v rbenv > /dev/null 2>&1 \
-      && ! command -v ruby > /dev/null 2>&1; then
-    terminator::log::warning 'ruby is not installed'
-    return
-  fi
+  terminator::command::any_exist -v rbenv ruby || return
 
   alias be='bundle exec'
   alias ruby_bundle_search='terminator::ruby::bundle_search'
   alias rails_diff='terminator::ruby::rails::diff'
   alias rails_db_clean='terminator::ruby::rails::create_clean_database'
+}
+
+function terminator::ruby::__disable__() {
+  unalias be
+  unalias ruby_bundle_search
+  unalias rails_diff
+  unalias rails_db_clean
 }
 
 function terminator::ruby::bundle_search() {

@@ -8,6 +8,10 @@ function terminator::diff::__enable__() {
   alias diffs='diff -y --suppress-common-lines'
 }
 
+function terminator::diff::__disable__() {
+  unalias diffs
+}
+
 function terminator::diff::__export__() {
   :
 }

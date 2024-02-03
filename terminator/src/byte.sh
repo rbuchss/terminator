@@ -8,6 +8,10 @@ function terminator::byte::__enable__() {
   alias reverse_endianness='terminator::byte::reverse_endianness'
 }
 
+function terminator::byte::__disable__() {
+  unalias reverse_endianness
+}
+
 function terminator::byte::reverse_endianness() {
   if (( $# != 1 )); then
     >&2 echo 'ERROR: invalid # of args: expected 1 argument'

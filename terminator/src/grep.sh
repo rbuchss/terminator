@@ -1,18 +1,22 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${BASH_SOURCE[0]%/*}/__module__.sh"
+source "${BASH_SOURCE[0]%/*}/command.sh"
 
 terminator::__module__::load || return 0
 
 function terminator::grep::__enable__() {
-  if ! command -v grep > /dev/null 2>&1; then
-    terminator::log::warning 'grep is not installed'
-    return
-  fi
+  terminator::command::exists -v grep || return
 
   alias grep='terminator::grep::invoke'
   alias egrep='grep -E'
   alias fgrep='grep -F'
+}
+
+function terminator::grep::__disable__() {
+  unalias grep
+  unalias egrep
+  unalias fgrep
 }
 
 function terminator::grep::invoke() {

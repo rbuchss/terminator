@@ -1,14 +1,12 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${BASH_SOURCE[0]%/*}/__module__.sh"
+source "${BASH_SOURCE[0]%/*}/command.sh"
 
 terminator::__module__::load || return 0
 
 function terminator::grc::__enable__() {
-  if ! command -v grc > /dev/null 2>&1; then
-    terminator::log::warning 'grc is not installed'
-    return
-  fi
+  terminator::command::exists -v grc || return
 
   alias colourify='command grc -es --colour=auto'
   alias blkid='colourify blkid'
@@ -49,6 +47,48 @@ function terminator::grc::__enable__() {
   alias getsebool='colourify getsebool'
   alias ifconfig='colourify ifconfig'
   alias mvn='colourify mvn'
+}
+
+function terminator::grc::__disable__() {
+  unalias colourify
+  unalias blkid
+  unalias configure
+  unalias df
+  unalias diff
+  unalias docker
+  unalias docker-machine
+  unalias du
+  unalias env
+  unalias free
+  unalias fdisk
+  unalias findmnt
+  # unalias make
+  unalias gcc
+  unalias g++
+  unalias id
+  unalias ip
+  unalias iptables
+  unalias as
+  unalias gas
+  unalias ld
+  # unalias ls
+  unalias lsof
+  unalias lsblk
+  unalias lspci
+  unalias netstat
+  unalias ping
+  unalias traceroute
+  unalias traceroute6
+  unalias head
+  unalias tail
+  unalias dig
+  unalias mount
+  unalias ps
+  unalias mtr
+  unalias semanage
+  unalias getsebool
+  unalias ifconfig
+  unalias mvn
 }
 
 function terminator::grc::__export__() {

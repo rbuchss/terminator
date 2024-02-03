@@ -9,6 +9,10 @@ function terminator::process::__enable__() {
   alias kill_match='terminator::process::kill'
 }
 
+function terminator::process::__disable__() {
+  unalias kill_match
+}
+
 function terminator::process::kill() {
   if (( $# < 1 )) || (( $# > 2 )); then
     >&2 echo "ERROR: ${FUNCNAME[0]} invalid number of arguments"

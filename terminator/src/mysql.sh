@@ -1,18 +1,22 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${BASH_SOURCE[0]%/*}/__module__.sh"
+source "${BASH_SOURCE[0]%/*}/command.sh"
 
 terminator::__module__::load || return 0
 
 function terminator::mysql::__enable__() {
-  if ! command -v mysql > /dev/null 2>&1; then
-    terminator::log::warning 'mysql is not installed'
-    return
-  fi
+  terminator::command::exists -v mysql || return
 
   alias mysql='terminator::mysql::invoke'
   alias mysql_spl='terminator::mysql::show_process_list'
   alias mysql_find_column='terminator::mysql::find_column'
+}
+
+function terminator::mysql::__disable__() {
+  unalias mysql
+  unalias mysql_spl
+  unalias mysql_find_column
 }
 
 function terminator::mysql::show_process_list() {

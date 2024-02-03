@@ -28,6 +28,15 @@ function terminator::source::__enable__() {
     'sbp'
 }
 
+function terminator::source::__disable__() {
+  unalias source_bash_profile
+  unalias sbp
+
+  terminator::source::bash_profile::completion::remove_alias \
+    'source_bash_profile' \
+    'sbp'
+}
+
 function terminator::source::bash_profile() {
   local refresh_all_modules=0 \
     refresh_modules=()
@@ -87,10 +96,16 @@ function terminator::source::bash_profile::completion() {
 }
 
 function terminator::source::bash_profile::completion::add_alias() {
+  local name
   for name in "$@"; do
-    complete -F terminator::source::bash_profile::completion \
-      'source_bash_profile' \
-      "${name}"
+    complete -F terminator::source::bash_profile::completion "${name}"
+  done
+}
+
+function terminator::source::bash_profile::completion::remove_alias() {
+  local name
+  for name in "$@"; do
+    complete -r "${name}"
   done
 }
 

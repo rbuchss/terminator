@@ -1,6 +1,7 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${BASH_SOURCE[0]%/*}/__module__.sh"
+source "${BASH_SOURCE[0]%/*}/path.sh"
 
 terminator::__module__::load || return 0
 
@@ -9,15 +10,21 @@ function terminator::pipx::__enable__() {
 
   if [[ ! -d "${local_bin_path}" ]]; then
     terminator::log::warning "${local_bin_path} does not exist"
-    return
+    return 1
   fi
 
   if [[ ! -x "${local_bin_path}/pipx" ]]; then
     terminator::log::warning "${local_bin_path}/pipx does not exist"
-    return
+    return 1
   fi
 
   terminator::path::append "${local_bin_path}"
+}
+
+function terminator::pipx::__disable__() {
+  local local_bin_path="${HOME}/.local/bin"
+
+  terminator::path::remove "${local_bin_path}"
 }
 
 function terminator::pipx::__export__() {

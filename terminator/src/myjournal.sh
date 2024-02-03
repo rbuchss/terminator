@@ -17,6 +17,15 @@ function terminator::myjournal::__enable__() {
     'mj'
 }
 
+function terminator::myjournal::__disable__() {
+  unalias myjournal
+  unalias mj
+
+  terminator::myjournal::completion::remove_alias \
+    'myjournal' \
+    'mj'
+}
+
 function terminator::myjournal::invoke() {
   local journal_dir \
     journal_file \
@@ -148,8 +157,16 @@ function terminator::myjournal::completion() {
 }
 
 function terminator::myjournal::completion::add_alias() {
+  local name
   for name in "$@"; do
-    complete -F terminator::myjournal::completion myjournal "${name}"
+    complete -F terminator::myjournal::completion "${name}"
+  done
+}
+
+function terminator::myjournal::completion::remove_alias() {
+  local name
+  for name in "$@"; do
+    complete -r "${name}"
   done
 }
 

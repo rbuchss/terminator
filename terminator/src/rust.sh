@@ -1,14 +1,12 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${BASH_SOURCE[0]%/*}/__module__.sh"
+source "${BASH_SOURCE[0]%/*}/command.sh"
 
 terminator::__module__::load || return 0
 
 function terminator::rust::__enable__() {
-  if ! command -v rustc > /dev/null 2>&1; then
-    terminator::log::warning 'rustc is not installed'
-    return
-  fi
+  terminator::command::exists -v rustc || return
 
   terminator::path::prepend "${HOME}/.cargo/bin"
   # NOTE: to enable rustup completion use the following command:
@@ -19,6 +17,12 @@ function terminator::rust::__enable__() {
   # shellcheck source=/dev/null
   source "$(rustc --print sysroot)"/etc/bash_completion.d/cargo
 }
+
+# TODO add support for this
+# function terminator::rust::__disable__() {
+#   terminator::path::remove "${HOME}/.cargo/bin"
+#   # remove completions here...
+# }
 
 function terminator::rust::__export__() {
   :
