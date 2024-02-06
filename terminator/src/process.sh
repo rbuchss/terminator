@@ -5,15 +5,15 @@ source "${BASH_SOURCE[0]%/*}/prompt.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::process::__enable__() {
+function terminator::process::__enable__ {
   alias kill_match='terminator::process::kill'
 }
 
-function terminator::process::__disable__() {
+function terminator::process::__disable__ {
   unalias kill_match
 }
 
-function terminator::process::kill() {
+function terminator::process::kill {
   if (( $# < 1 )) || (( $# > 2 )); then
     >&2 echo "ERROR: ${FUNCNAME[0]} invalid number of arguments"
     >&2 echo "Usage: ${FUNCNAME[0]} [-SIGNAL] pattern"
@@ -51,11 +51,11 @@ function terminator::process::kill() {
   done
 }
 
-function terminator::process::__export__() {
+function terminator::process::__export__ {
   export -f terminator::process::kill
 }
 
-function terminator::process::__recall__() {
+function terminator::process::__recall__ {
   export -fn terminator::process::kill
 }
 
