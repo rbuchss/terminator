@@ -10,7 +10,7 @@ terminator::__module__::load || return 0
 function terminator::source() {
   for element in "$@"; do
     if [[ -s "${element}" ]]; then
-      terminator::log::info "'${element}'"
+      terminator::log::debug "'${element}'"
       # shellcheck source=/dev/null
       source "${element}"
     else
