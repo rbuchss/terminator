@@ -4,7 +4,7 @@ source "${BASH_SOURCE[0]%/*}/__module__.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::help() {
+function terminator::help {
   if ! command -v "$1" > /dev/null 2>&1; then
     >&2 echo "ERROR: ${FUNCNAME[0]}: command '$1' not found"
     return 1
@@ -20,7 +20,7 @@ function terminator::help() {
     }
 }
 
-function terminator::help::command::info() {
+function terminator::help::command::info {
   if info --where "$@" > /dev/null 2>&1; then
     info "$@"
     return
@@ -29,7 +29,7 @@ function terminator::help::command::info() {
   return 1
 }
 
-function terminator::help::command::man() {
+function terminator::help::command::man {
   local location
   if location="$(man -w "$@" 2>&1)"; then
     [[ "${location}" =~ \/builtin ]] && return 1
@@ -40,11 +40,11 @@ function terminator::help::command::man() {
   return 1
 }
 
-function terminator::help::command::bash_help() {
+function terminator::help::command::bash_help {
   help "$@" 2>/dev/null
 }
 
-function terminator::help::command::help_flag() {
+function terminator::help::command::help_flag {
   local cmd="$1"
 
   if (( $# > 1 )); then
@@ -56,7 +56,7 @@ function terminator::help::command::help_flag() {
   command "${cmd}" --help
 }
 
-function terminator::help::command::help_subcommand() {
+function terminator::help::command::help_subcommand {
   local cmd="$1"
 
   if (( $# > 1 )); then
@@ -69,11 +69,11 @@ function terminator::help::command::help_subcommand() {
   command "${cmd}" help
 }
 
-function terminator::help::paged() {
+function terminator::help::paged {
   terminator::help "$@" | less -R
 }
 
-function terminator::help::__export__() {
+function terminator::help::__export__ {
   export -f terminator::help
   export -f terminator::help::command::info
   export -f terminator::help::command::man
@@ -83,7 +83,7 @@ function terminator::help::__export__() {
   export -f terminator::help::paged
 }
 
-function terminator::help::__recall__() {
+function terminator::help::__recall__ {
   export -fn terminator::help
   export -fn terminator::help::command::info
   export -fn terminator::help::command::man

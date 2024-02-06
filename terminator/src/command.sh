@@ -10,7 +10,7 @@ TERMINATOR_COMMAND_LOG_OUTPUT_STREAM="/dev/stderr"
 TERMINATOR_COMMAND_LOG_OUTPUT_NONE='/dev/null'
 TERMINATOR_COMMAND_INVALID_STATUS=255
 
-function terminator::command::exists() {
+function terminator::command::exists {
   local argument \
     log_level="${TERMINATOR_COMMAND_LOG_LEVEL_DEFAULT}" \
     log_output="${TERMINATOR_COMMAND_LOG_OUTPUT_NONE}" \
@@ -57,7 +57,7 @@ function terminator::command::exists() {
   return 0
 }
 
-function terminator::command::any_exist() {
+function terminator::command::any_exist {
   local argument \
     log_level="${TERMINATOR_COMMAND_LOG_LEVEL_DEFAULT}" \
     log_output="${TERMINATOR_COMMAND_LOG_OUTPUT_NONE}" \
@@ -102,7 +102,7 @@ function terminator::command::any_exist() {
   return 1
 }
 
-function terminator::command::none_exist() {
+function terminator::command::none_exist {
   local argument \
     log_level="${TERMINATOR_COMMAND_LOG_LEVEL_DEFAULT}" \
     log_output="${TERMINATOR_COMMAND_LOG_OUTPUT_NONE}" \
@@ -149,7 +149,7 @@ function terminator::command::none_exist() {
   return 0
 }
 
-function terminator::command::all_exist() {
+function terminator::command::all_exist {
   local argument \
     log_level="${TERMINATOR_COMMAND_LOG_LEVEL_DEFAULT}" \
     log_output="${TERMINATOR_COMMAND_LOG_OUTPUT_NONE}" \
@@ -196,7 +196,7 @@ function terminator::command::all_exist() {
   return 0
 }
 
-function terminator::command::exists::usage() {
+function terminator::command::exists::usage {
   cat <<USAGE_TEXT
 Usage: ${FUNCNAME[1]} [OPTIONS] <args>
 
@@ -209,11 +209,11 @@ Usage: ${FUNCNAME[1]} [OPTIONS] <args>
 USAGE_TEXT
 }
 
-function terminator::command::__exists__() {
+function terminator::command::__exists__ {
   command -v "$1" > /dev/null 2>&1
 }
 
-function terminator::command::__export__() {
+function terminator::command::__export__ {
   export -f terminator::command::__exists__
   export -f terminator::command::exists
   export -f terminator::command::any_exist
@@ -222,7 +222,7 @@ function terminator::command::__export__() {
   export -f terminator::command::exists::usage
 }
 
-function terminator::command::__recall__() {
+function terminator::command::__recall__ {
   export -fn terminator::command::__exists__
   export -fn terminator::command::exists
   export -fn terminator::command::any_exist

@@ -5,17 +5,17 @@ source "${BASH_SOURCE[0]%/*}/command.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::python::__enable__() {
+function terminator::python::__enable__ {
   terminator::command::any_exist -v pyenv python3 python || return
 
   alias py='terminator::python::invoke'
 }
 
-function terminator::python::__disable__() {
+function terminator::python::__disable__ {
   unalias py
 }
 
-function terminator::python::invoke() {
+function terminator::python::invoke {
   local major_version="${TERMINATOR_PYTHON_MAJOR_VERSION:-3}"
 
   if command -v pyenv > /dev/null 2>&1; then
@@ -51,18 +51,18 @@ function terminator::python::invoke() {
   esac
 }
 
-function terminator::python::invoke::error() {
+function terminator::python::invoke::error {
   local major_version="$1"
   terminator::log::error "Using python major version ${major_version} not supported"
   return 1
 }
 
-function terminator::python::__export__() {
+function terminator::python::__export__ {
   export -f terminator::python::invoke
   export -f terminator::python::invoke::error
 }
 
-function terminator::python::__recall__() {
+function terminator::python::__recall__ {
   export -fn terminator::python::invoke
   export -fn terminator::python::invoke::error
 }

@@ -8,7 +8,7 @@ terminator::__module__::load || return 0
 TERMINATOR_CONFIG_DIR="${HOME}/.config/terminator"
 TERMINATOR_HOOKS_DIR="${TERMINATOR_CONFIG_DIR}/hooks"
 
-function terminator::config::path() {
+function terminator::config::path {
   local filepath="$1" \
     config_dir="${2:-${TERMINATOR_CONFIG_DIR}}"
 
@@ -21,20 +21,20 @@ function terminator::config::path() {
   fi
 }
 
-function terminator::config::is_path_absolute() {
+function terminator::config::is_path_absolute {
   local filepath="$1"
   # shellcheck disable=SC2088
   [[ "${filepath:0:1}" == / || "${filepath:0:2}" == '~/' ]]
 }
 
-function terminator::config::load() {
+function terminator::config::load {
   local filepath
   for filepath in "$@"; do
     terminator::source "$(terminator::config::path "${filepath}")"
   done
 }
 
-function terminator::config::hooks::invoke() {
+function terminator::config::hooks::invoke {
   local hook_type="$1" \
     hooks_dir="$2" \
     hook_files=()
@@ -68,19 +68,19 @@ function terminator::config::hooks::invoke() {
   terminator::config::load "${hook_files[@]}"
 }
 
-function terminator::config::hooks::before() {
+function terminator::config::hooks::before {
   terminator::config::hooks::invoke \
     'before' \
     "${TERMINATOR_HOOKS_DIR}"
 }
 
-function terminator::config::hooks::after() {
+function terminator::config::hooks::after {
   terminator::config::hooks::invoke \
     'after' \
     "${TERMINATOR_HOOKS_DIR}"
 }
 
-function terminator::config::__export__() {
+function terminator::config::__export__ {
   export -f terminator::config::path
   export -f terminator::config::is_path_absolute
   export -f terminator::config::load
@@ -89,7 +89,7 @@ function terminator::config::__export__() {
   export -f terminator::config::hooks::after
 }
 
-function terminator::config::__recall__() {
+function terminator::config::__recall__ {
   export -fn terminator::config::path
   export -fn terminator::config::is_path_absolute
   export -fn terminator::config::load

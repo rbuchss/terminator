@@ -4,7 +4,7 @@ source "${BASH_SOURCE[0]%/*}/__module__.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::ssh::is_ssh_session() {
+function terminator::ssh::is_ssh_session {
   if [[ -n "${TERMINATOR_SSH_IS_SSH_SESSION}" ]]; then
     (( TERMINATOR_SSH_IS_SSH_SESSION == 0 )) && return 1
     (( TERMINATOR_SSH_IS_SSH_SESSION == 1 )) && return 0
@@ -26,11 +26,11 @@ function terminator::ssh::is_ssh_session() {
   return "${result}"
 }
 
-function terminator::ssh::ppinfo() {
+function terminator::ssh::ppinfo {
   command ps -p "${1:-$$}" -o ppid= -o comm=
 }
 
-function terminator::ssh::is_ssh_sudo() {
+function terminator::ssh::is_ssh_sudo {
   local regexp='^([[:digit:]]+)[[:space:]]+(sshd: (.*))?'
   local ppinfo ppid ssh_user
   ppinfo="$(terminator::ssh::ppinfo "${1:-$$}")"
@@ -54,13 +54,13 @@ function terminator::ssh::is_ssh_sudo() {
   return 1
 }
 
-function terminator::ssh::__export__() {
+function terminator::ssh::__export__ {
   export -f terminator::ssh::is_ssh_session
   export -f terminator::ssh::ppinfo
   export -f terminator::ssh::is_ssh_sudo
 }
 
-function terminator::ssh::__recall__() {
+function terminator::ssh::__recall__ {
   export -fn terminator::ssh::is_ssh_session
   export -fn terminator::ssh::ppinfo
   export -fn terminator::ssh::is_ssh_sudo

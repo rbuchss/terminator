@@ -6,7 +6,7 @@ source "${BASH_SOURCE[0]%/*}/path.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::go::__enable__() {
+function terminator::go::__enable__ {
   terminator::command::exists -v go || return
 
   GOPATH="$(go env GOPATH)"
@@ -16,18 +16,18 @@ function terminator::go::__enable__() {
   terminator::path::prepend "${GOBIN}"
 }
 
-function terminator::go::__disable__() {
+function terminator::go::__disable__ {
   unset GOPATH
   unset GOBIN
 
   terminator::path::remove "${GOBIN}"
 }
 
-function terminator::go::__export__() {
+function terminator::go::__export__ {
   :
 }
 
-function terminator::go::__recall__() {
+function terminator::go::__recall__ {
   :
 }
 

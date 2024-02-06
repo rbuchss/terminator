@@ -4,7 +4,7 @@ source "${BASH_SOURCE[0]%/*}/__module__.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::version::compare() {
+function terminator::version::compare {
   [[ "$1" == "$2" ]] && return 0
 
   local index lhs rhs IFS=.
@@ -30,11 +30,11 @@ function terminator::version::compare() {
   return 0
 }
 
-function terminator::version::__export__() {
+function terminator::version::__export__ {
   export -f terminator::version::compare
 }
 
-function terminator::version::__recall__() {
+function terminator::version::__recall__ {
   export -fn terminator::version::compare
 }
 

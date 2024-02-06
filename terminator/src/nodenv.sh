@@ -6,7 +6,7 @@ source "${BASH_SOURCE[0]%/*}/homebrew.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::nodenv::__enable__() {
+function terminator::nodenv::__enable__ {
   terminator::command::exists -v nodenv || return
 
   eval "$(nodenv init -)"
@@ -18,15 +18,15 @@ function terminator::nodenv::__enable__() {
 }
 
 # TODO add support for this
-# function terminator::nodenv::__disable__() {
+# function terminator::nodenv::__disable__ {
 #   :
 # }
 
-function terminator::nodenv::__export__() {
+function terminator::nodenv::__export__ {
   :
 }
 
-function terminator::nodenv::__recall__() {
+function terminator::nodenv::__recall__ {
   :
 }
 

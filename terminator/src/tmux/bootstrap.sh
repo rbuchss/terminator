@@ -6,7 +6,7 @@ source "${BASH_SOURCE[0]%/*}/log.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::tmux::bootstrap::session_create() {
+function terminator::tmux::bootstrap::session_create {
   local path version
 
   if ! path="$(terminator::tmux::config::current_version::path)"; then
@@ -28,11 +28,11 @@ function terminator::tmux::bootstrap::session_create() {
   export TMUX_BOOTSTRAP_MESSAGES_PATH
 }
 
-function terminator::tmux::bootstrap::styles() {
+function terminator::tmux::bootstrap::styles {
   terminator::tmux::config::load 'styles.sh'
 }
 
-function terminator::tmux::bootstrap::build_messages() {
+function terminator::tmux::bootstrap::build_messages {
   local input output
   input="$(terminator::tmux::log::path)"
   output="$(terminator::tmux::bootstrap::messages::path)"
@@ -56,20 +56,20 @@ set-hook -g session-created \${TMUX_BOOTSTRAP_MESSAGES}
 EOM
 }
 
-function terminator::tmux::bootstrap::messages::path() {
+function terminator::tmux::bootstrap::messages::path {
   local log_path
   log_path="$(terminator::tmux::log::path)"
   echo "${log_path/log/conf}"
 }
 
-function terminator::tmux::bootstrap::__export__() {
+function terminator::tmux::bootstrap::__export__ {
   export -f terminator::tmux::bootstrap::session_create
   export -f terminator::tmux::bootstrap::styles
   export -f terminator::tmux::bootstrap::build_messages
   export -f terminator::tmux::bootstrap::messages::path
 }
 
-function terminator::tmux::bootstrap::__recall__() {
+function terminator::tmux::bootstrap::__recall__ {
   export -fn terminator::tmux::bootstrap::session_create
   export -fn terminator::tmux::bootstrap::styles
   export -fn terminator::tmux::bootstrap::build_messages

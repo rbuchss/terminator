@@ -6,7 +6,7 @@ source "${BASH_SOURCE[0]%/*}/homebrew.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::pyenv::__enable__() {
+function terminator::pyenv::__enable__ {
   terminator::command::exists -v pyenv || return
 
   eval "$(pyenv init --path)"
@@ -23,15 +23,15 @@ function terminator::pyenv::__enable__() {
 }
 
 # TODO add support for this
-# function terminator::pyenv::__disable__() {
+# function terminator::pyenv::__disable__ {
 #   :
 # }
 
-function terminator::pyenv::__export__() {
+function terminator::pyenv::__export__ {
   :
 }
 
-function terminator::pyenv::__recall__() {
+function terminator::pyenv::__recall__ {
   :
 }
 

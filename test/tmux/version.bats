@@ -4,8 +4,8 @@ load ../test_helper
 
 setup_with_coverage 'terminator/src/tmux/version.sh'
 
-function stub::terminator::tmux::version() {
-  function terminator::tmux::version() {
+function stub::terminator::tmux::version {
+  function terminator::tmux::version {
     echo '2.1'
   }
 }

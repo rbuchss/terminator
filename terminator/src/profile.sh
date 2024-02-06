@@ -7,7 +7,7 @@ source "${BASH_SOURCE[0]%/*}/path.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::profile::load() {
+function terminator::profile::load {
   terminator::config::hooks::before
 
   # MANPATH must be defined, even if empty
@@ -51,31 +51,31 @@ function terminator::profile::load() {
     "Profile CDPATH: ${CDPATH}"
 }
 
-function terminator::profile::os::darwin() {
+function terminator::profile::os::darwin {
   terminator::config::load 'os/darwin.sh'
 }
 
-function terminator::profile::os::linux() {
+function terminator::profile::os::linux {
   terminator::config::load 'os/linux.sh'
 }
 
-function terminator::profile::os::windows() {
+function terminator::profile::os::windows {
   terminator::config::load 'os/windows.sh'
 }
 
-function terminator::profile::os::unsupported() {
+function terminator::profile::os::unsupported {
   terminator::log::error "OS '${OSTYPE}' not supported"
   return 1
 }
 
-function terminator::profile::__export__() {
+function terminator::profile::__export__ {
   export -f terminator::profile::os::darwin
   export -f terminator::profile::os::linux
   export -f terminator::profile::os::windows
   export -f terminator::profile::os::unsupported
 }
 
-function terminator::profile::__recall__() {
+function terminator::profile::__recall__ {
   export -fn terminator::profile::os::darwin
   export -fn terminator::profile::os::linux
   export -fn terminator::profile::os::windows

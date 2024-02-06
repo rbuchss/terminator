@@ -6,11 +6,11 @@ source "${BASH_SOURCE[0]%/*}/source.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::homebrew::is_installed() {
+function terminator::homebrew::is_installed {
   command -v brew > /dev/null 2>&1
 }
 
-function terminator::homebrew::package::is_installed() {
+function terminator::homebrew::package::is_installed {
   # NOTE: both of the recommended ways to tell if
   #   a package is installed are really slow... ~+0.5s
   #
@@ -21,7 +21,7 @@ function terminator::homebrew::package::is_installed() {
     ls "$(brew --prefix "$1")" > /dev/null 2>&1
 }
 
-function terminator::homebrew::__enable__() {
+function terminator::homebrew::__enable__ {
   local brew_path_exists=0 \
     possible_brew_paths=(/usr/local/bin/brew /opt/homebrew/bin/brew)
 
@@ -58,7 +58,7 @@ function terminator::homebrew::__enable__() {
   fi
 }
 
-function terminator::homebrew::add_paths() {
+function terminator::homebrew::add_paths {
   local prefix
 
   for element in "$@"; do
@@ -73,15 +73,15 @@ function terminator::homebrew::add_paths() {
   done
 }
 
-function terminator::homebrew::clean() {
+function terminator::homebrew::clean {
   brew update && brew cleanup
 }
 
-function terminator::homebrew::cask::clean() {
+function terminator::homebrew::cask::clean {
   brew upgrade brew-cask && brew cask cleanup
 }
 
-function terminator::homebrew::__enable__::bash_completion() {
+function terminator::homebrew::__enable__::bash_completion {
   if terminator::homebrew::package::is_installed bash-completion; then
     terminator::source "$(brew --prefix)/etc/bash_completion"
   else
@@ -89,7 +89,7 @@ function terminator::homebrew::__enable__::bash_completion() {
   fi
 }
 
-function terminator::homebrew::__export__() {
+function terminator::homebrew::__export__ {
   export -f terminator::homebrew::is_installed
   export -f terminator::homebrew::package::is_installed
   export -f terminator::homebrew::add_paths
@@ -97,7 +97,7 @@ function terminator::homebrew::__export__() {
   export -f terminator::homebrew::cask::clean
 }
 
-function terminator::homebrew::__recall__() {
+function terminator::homebrew::__recall__ {
   export -fn terminator::homebrew::is_installed
   export -fn terminator::homebrew::package::is_installed
   export -fn terminator::homebrew::add_paths

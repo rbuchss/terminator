@@ -7,7 +7,7 @@ source "${BASH_SOURCE[0]%/*}/log.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::source() {
+function terminator::source {
   for element in "$@"; do
     if [[ -s "${element}" ]]; then
       terminator::log::debug "'${element}'"
@@ -19,7 +19,7 @@ function terminator::source() {
   done
 }
 
-function terminator::source::__enable__() {
+function terminator::source::__enable__ {
   alias source_bash_profile='terminator::source::bash_profile'
   alias sbp='terminator::source::bash_profile'
 
@@ -28,7 +28,7 @@ function terminator::source::__enable__() {
     'sbp'
 }
 
-function terminator::source::__disable__() {
+function terminator::source::__disable__ {
   unalias source_bash_profile
   unalias sbp
 
@@ -37,7 +37,7 @@ function terminator::source::__disable__() {
     'sbp'
 }
 
-function terminator::source::bash_profile() {
+function terminator::source::bash_profile {
   local refresh_all_modules=0 \
     refresh_modules=()
 
@@ -71,7 +71,7 @@ function terminator::source::bash_profile() {
   terminator::source "${HOME}/.bash_profile"
 }
 
-function terminator::source::bash_profile::usage() {
+function terminator::source::bash_profile::usage {
   cat <<USAGE_TEXT
 Usage: ${FUNCNAME[1]} [OPTIONS] <cached modules to refresh>
 
@@ -81,7 +81,7 @@ Usage: ${FUNCNAME[1]} [OPTIONS] <cached modules to refresh>
 USAGE_TEXT
 }
 
-function terminator::source::bash_profile::completion() {
+function terminator::source::bash_profile::completion {
   local word="${COMP_WORDS[COMP_CWORD]}" \
     suggestions=("${TERMINATOR_MODULES_LOADED[@]}")
 
@@ -95,21 +95,21 @@ function terminator::source::bash_profile::completion() {
   done < <(compgen -W "${suggestions[*]}" -- "${word}")
 }
 
-function terminator::source::bash_profile::completion::add_alias() {
+function terminator::source::bash_profile::completion::add_alias {
   local name
   for name in "$@"; do
     complete -F terminator::source::bash_profile::completion "${name}"
   done
 }
 
-function terminator::source::bash_profile::completion::remove_alias() {
+function terminator::source::bash_profile::completion::remove_alias {
   local name
   for name in "$@"; do
     complete -r "${name}"
   done
 }
 
-function terminator::source::__export__() {
+function terminator::source::__export__ {
   export -f terminator::source
   export -f terminator::source::bash_profile
   export -f terminator::source::bash_profile::usage
@@ -117,7 +117,7 @@ function terminator::source::__export__() {
   export -f terminator::source::bash_profile::completion::add_alias
 }
 
-function terminator::source::__recall__() {
+function terminator::source::__recall__ {
   export -fn terminator::source
   export -fn terminator::source::bash_profile
   export -fn terminator::source::bash_profile::usage

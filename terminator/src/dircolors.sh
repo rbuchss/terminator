@@ -5,21 +5,21 @@ source "${BASH_SOURCE[0]%/*}/command.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::dircolors::__enable__() {
+function terminator::dircolors::__enable__ {
   terminator::command::exists -v dircolors || return
 
   eval "$(dircolors "${HOME}/.dir_colors")"
 }
 
-function terminator::dircolors::__disable__() {
+function terminator::dircolors::__disable__ {
   unset LS_COLORS
 }
 
-function terminator::dircolors::__export__() {
+function terminator::dircolors::__export__ {
   export -f terminator::dircolors::__enable__
 }
 
-function terminator::dircolors::__recall__() {
+function terminator::dircolors::__recall__ {
   export -fn terminator::dircolors::__enable__
 }
 

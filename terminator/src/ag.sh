@@ -5,17 +5,17 @@ source "${BASH_SOURCE[0]%/*}/command.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::ag::__enable__() {
+function terminator::ag::__enable__ {
   terminator::command::exists -v ag || return
 
   alias ag='terminator::ag::invoke'
 }
 
-function terminator::ag::__disable__() {
+function terminator::ag::__disable__ {
   unalias ag
 }
 
-function terminator::ag::invoke() {
+function terminator::ag::invoke {
   local less_options=(
     --quit-if-one-screen
     --RAW-CONTROL-CHARS
@@ -27,11 +27,11 @@ function terminator::ag::invoke() {
     "$@"
 }
 
-function terminator::ag::__export__() {
+function terminator::ag::__export__ {
   export -f terminator::ag::invoke
 }
 
-function terminator::ag::__recall__() {
+function terminator::ag::__recall__ {
   export -fn terminator::ag::invoke
 }
 

@@ -5,7 +5,7 @@ source "${BASH_SOURCE[0]%/*}/command.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::less::__enable__() {
+function terminator::less::__enable__ {
   terminator::command::exists -v less || return
 
   # make less and man pages more readable
@@ -26,7 +26,7 @@ function terminator::less::__enable__() {
   export LESS_TERMCAP_us
 }
 
-function terminator::less::__disable__() {
+function terminator::less::__disable__ {
   unset LESS_TERMCAP_mb
   unset LESS_TERMCAP_md
   unset LESS_TERMCAP_me
@@ -36,11 +36,11 @@ function terminator::less::__disable__() {
   unset LESS_TERMCAP_us
 }
 
-function terminator::less::__export__() {
+function terminator::less::__export__ {
   :
 }
 
-function terminator::less::__recall__() {
+function terminator::less::__recall__ {
   :
 }
 

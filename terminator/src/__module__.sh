@@ -28,7 +28,7 @@ TERMINATOR_MODULE_DISABLE_ACTION='__disable__'
 #
 # Note this requires the `|| return 0` logical compound since bash source must exit early.
 #
-function terminator::__module__::load() {
+function terminator::__module__::load {
   local module="$1" \
     should_source_status=0 \
     should_not_source_status=1
@@ -58,7 +58,7 @@ function terminator::__module__::load() {
   fi
 }
 
-function terminator::__module__::is_loaded() {
+function terminator::__module__::is_loaded {
   local module="$1"
 
   terminator::__module__::__is_in_state__ \
@@ -67,7 +67,7 @@ function terminator::__module__::is_loaded() {
     3
 }
 
-function terminator::__module__::unload() {
+function terminator::__module__::unload {
   local module \
     modules=("$@")
 
@@ -95,11 +95,11 @@ function terminator::__module__::unload() {
   done
 }
 
-function terminator::__module__::unload_all() {
+function terminator::__module__::unload_all {
   terminator::__module__::unload "${TERMINATOR_MODULES_LOADED[@]}"
 }
 
-function terminator::__module__::is_unloaded() {
+function terminator::__module__::is_unloaded {
   local module="$1"
 
   terminator::__module__::__is_in_state__ \
@@ -108,7 +108,7 @@ function terminator::__module__::is_unloaded() {
     3
 }
 
-function terminator::__module__::export() {
+function terminator::__module__::export {
   local module \
     modules=("$@")
 
@@ -137,7 +137,7 @@ function terminator::__module__::export() {
   done
 }
 
-function terminator::__module__::is_exported() {
+function terminator::__module__::is_exported {
   local module="$1"
 
   terminator::__module__::__is_in_state__ \
@@ -146,7 +146,7 @@ function terminator::__module__::is_exported() {
     3
 }
 
-function terminator::__module__::recall() {
+function terminator::__module__::recall {
   local module \
     modules=("$@")
 
@@ -174,11 +174,11 @@ function terminator::__module__::recall() {
   done
 }
 
-function terminator::__module__::recall_all() {
+function terminator::__module__::recall_all {
   terminator::__module__::recall "${TERMINATOR_MODULES_EXPORTED[@]}"
 }
 
-function terminator::__module__::is_recalled() {
+function terminator::__module__::is_recalled {
   local module="$1"
 
   terminator::__module__::__is_in_state__ \
@@ -187,7 +187,7 @@ function terminator::__module__::is_recalled() {
     3
 }
 
-function terminator::__module__::enable() {
+function terminator::__module__::enable {
   local module \
     modules=("$@")
 
@@ -216,7 +216,7 @@ function terminator::__module__::enable() {
   done
 }
 
-function terminator::__module__::is_enabled() {
+function terminator::__module__::is_enabled {
   local module="$1"
 
   terminator::__module__::__is_in_state__ \
@@ -225,7 +225,7 @@ function terminator::__module__::is_enabled() {
     3
 }
 
-function terminator::__module__::disable() {
+function terminator::__module__::disable {
   local module \
     modules=("$@")
 
@@ -253,11 +253,11 @@ function terminator::__module__::disable() {
   done
 }
 
-function terminator::__module__::disable_all() {
+function terminator::__module__::disable_all {
   terminator::__module__::disable "${TERMINATOR_MODULES_ENABLED[@]}"
 }
 
-function terminator::__module__::is_disabled() {
+function terminator::__module__::is_disabled {
   local module="$1"
 
   terminator::__module__::__is_in_state__ \
@@ -266,7 +266,7 @@ function terminator::__module__::is_disabled() {
     3
 }
 
-function terminator::__module__::__action__() {
+function terminator::__module__::__action__ {
   local module="$1" \
     action="$2" \
     handler="$3" \
@@ -301,7 +301,7 @@ function terminator::__module__::__action__() {
   fi
 }
 
-function terminator::__module__::__action__::__module_action_handler__() {
+function terminator::__module__::__action__::__module_action_handler__ {
   local module="$1" \
     action="$2" \
     module_action_function
@@ -322,7 +322,7 @@ function terminator::__module__::__action__::__module_action_handler__() {
   "${module_action_function}"
 }
 
-function terminator::__module__::__is_in_state__() {
+function terminator::__module__::__is_in_state__ {
   local module="$1" \
     action="$2" \
     log_caller_level="${3:-4}" \
@@ -373,17 +373,17 @@ function terminator::__module__::__is_in_state__() {
   return "${not_in_cache_response}"
 }
 
-function terminator::__module__::__function_exists__() {
+function terminator::__module__::__function_exists__ {
   declare -F "$1" > /dev/null 2>&1
 }
 
-function terminator::__module__::__invoke_function_if_exists__() {
+function terminator::__module__::__invoke_function_if_exists__ {
   if terminator::__module__::__function_exists__ "$1"; then
     "$1" "${@:2}"
   fi
 }
 
-function terminator::__module__::__get_module_name__() {
+function terminator::__module__::__get_module_name__ {
   local _output_var="$1" \
     _caller_info="$2" \
     _source_filepath \

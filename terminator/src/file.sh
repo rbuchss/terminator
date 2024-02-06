@@ -4,7 +4,7 @@ source "${BASH_SOURCE[0]%/*}/__module__.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::file::__enable__() {
+function terminator::file::__enable__ {
   # safety first!
   alias rm='rm -i'
   alias mv='mv -i'
@@ -26,7 +26,7 @@ function terminator::file::__enable__() {
   alias mkcd='terminator::file::mkcd'
 }
 
-function terminator::file::__disable__() {
+function terminator::file::__disable__ {
   unalias rm
   unalias mv
   unalias cp
@@ -47,7 +47,7 @@ function terminator::file::__disable__() {
   unalias mkcd
 }
 
-function terminator::file::extract() {
+function terminator::file::extract {
   for file in "$@"; do
     if [[ ! -f "${file}" ]]; then
       >&2 echo "ERROR: ${FUNCNAME[0]}: '${file}' is not a valid file"
@@ -76,19 +76,19 @@ function terminator::file::extract() {
 }
 
 # Creates an archive from given directory
-function terminator::file::mktar() {
+function terminator::file::mktar {
   tar cvf "${1%%/}.tar" "${1%%/}/"
 }
 
-function terminator::file::mktgz() {
+function terminator::file::mktgz {
   tar cvzf "${1%%/}.tar.gz" "${1%%/}/"
 }
 
-function terminator::file::mktbz() {
+function terminator::file::mktbz {
   tar cvjf "${1%%/}.tar.bz2" "${1%%/}/"
 }
 
-function terminator::file::swap() {
+function terminator::file::swap {
   if (( $# != 2 )); then
     >&2 echo "ERROR: ${FUNCNAME[0]}: 2 arguments required"
     return 1
@@ -110,7 +110,7 @@ function terminator::file::swap() {
 
 # finds all files and dirs in the pwd that have spaces in their name
 # and renames them with all spaces converted to _
-function terminator::file::nuke_spaces() {
+function terminator::file::nuke_spaces {
   ruby -e 'files = Dir["./*"].select { |file| file.match(/ /) }
     files.each do |file|
       newname = file.gsub(/ /, "_")
@@ -120,7 +120,7 @@ function terminator::file::nuke_spaces() {
 }
 
 # Find a file from pwd with pattern $1 in name and Execute $2 on it
-function terminator::file::find_exec() {
+function terminator::file::find_exec {
   if (( $# != 2 )); then
     >&2 echo "ERROR: ${FUNCNAME[0]}: invaild # of args"
     >&2 echo "Usage: ${FUNCNAME[0]} pattern command"
@@ -130,7 +130,7 @@ function terminator::file::find_exec() {
   find . -type f -iname '*'"$1"'*' -exec "${2:-file}" {} \; ;
 }
 
-function terminator::file::dirsize_big() {
+function terminator::file::dirsize_big {
   dir="${1:-.}"
   dir="${dir%%+(/)}"
 
@@ -138,7 +138,7 @@ function terminator::file::dirsize_big() {
     | grep -E '^ *[0-9.]*[MGTPEZY].'
 }
 
-function terminator::file::dirsize() {
+function terminator::file::dirsize {
   dir="${1:-.}"
   dir="${dir%%+(/)}"
   cache="/tmp/dirsize-list.$$"
@@ -158,15 +158,15 @@ function terminator::file::dirsize() {
   rm -f "${cache}"
 }
 
-function terminator::file::mkcd() {
+function terminator::file::mkcd {
   mkdir -p "$1" && cd "$1" || return 1
 }
 
-function terminator::file::read_first_line() {
+function terminator::file::read_first_line {
   [[ -r "$1" ]] && IFS=$'\r\n' read -r "$2" < "$1"
 }
 
-function terminator::file::__export__() {
+function terminator::file::__export__ {
   export -f terminator::file::extract
   export -f terminator::file::mktar
   export -f terminator::file::mktgz
@@ -180,7 +180,7 @@ function terminator::file::__export__() {
   export -f terminator::file::read_first_line
 }
 
-function terminator::file::__recall__() {
+function terminator::file::__recall__ {
   export -fn terminator::file::extract
   export -fn terminator::file::mktar
   export -fn terminator::file::mktgz

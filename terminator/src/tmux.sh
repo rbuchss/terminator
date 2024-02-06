@@ -5,19 +5,19 @@ source "${BASH_SOURCE[0]%/*}/command.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::tmux::__enable__() {
+function terminator::tmux::__enable__ {
   terminator::command::exists -v tmux || return
 
   alias tmux='terminator::tmux::invoke'
 }
 
-function terminator::tmux::__disable__() {
+function terminator::tmux::__disable__ {
   unset TMUX_CONFIG_PATH
 
   unalias tmux
 }
 
-function terminator::tmux::invoke() {
+function terminator::tmux::invoke {
   local recalled=0
 
   if (( $# == 0 )) && [[ -z "${TMUX_PATH_INITIALIZED}" ]]; then
@@ -40,11 +40,11 @@ function terminator::tmux::invoke() {
   return "${exit_status}"
 }
 
-function terminator::tmux::__export__() {
+function terminator::tmux::__export__ {
   export -f terminator::tmux::invoke
 }
 
-function terminator::tmux::__recall__() {
+function terminator::tmux::__recall__ {
   export -fn terminator::tmux::invoke
 }
 

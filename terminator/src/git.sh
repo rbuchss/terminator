@@ -5,7 +5,7 @@ source "${BASH_SOURCE[0]%/*}/command.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::git::__enable__() {
+function terminator::git::__enable__ {
   terminator::command::exists -v git || return
 
   alias git='terminator::git::invoke'
@@ -14,7 +14,7 @@ function terminator::git::__enable__() {
   __git_complete g __git_main
 }
 
-function terminator::git::__disable__() {
+function terminator::git::__disable__ {
   unalias git
   unalias g
 
@@ -25,7 +25,7 @@ function terminator::git::__disable__() {
   complete -r g
 }
 
-function terminator::git::invoke() {
+function terminator::git::invoke {
   if terminator::command::exists hub; then
     command hub "$@"
     return
@@ -34,11 +34,11 @@ function terminator::git::invoke() {
   command git "$@"
 }
 
-function terminator::git::__export__() {
+function terminator::git::__export__ {
   export -f terminator::git::invoke
 }
 
-function terminator::git::__recall__() {
+function terminator::git::__recall__ {
   export -fn terminator::git::invoke
 }
 

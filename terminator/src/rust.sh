@@ -5,7 +5,7 @@ source "${BASH_SOURCE[0]%/*}/command.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::rust::__enable__() {
+function terminator::rust::__enable__ {
   terminator::command::exists -v rustc || return
 
   terminator::path::prepend "${HOME}/.cargo/bin"
@@ -19,16 +19,16 @@ function terminator::rust::__enable__() {
 }
 
 # TODO add support for this
-# function terminator::rust::__disable__() {
+# function terminator::rust::__disable__ {
 #   terminator::path::remove "${HOME}/.cargo/bin"
 #   # remove completions here...
 # }
 
-function terminator::rust::__export__() {
+function terminator::rust::__export__ {
   :
 }
 
-function terminator::rust::__recall__() {
+function terminator::rust::__recall__ {
   :
 }
 

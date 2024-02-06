@@ -6,7 +6,7 @@ source "${BASH_SOURCE[0]%/*}/log.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::vim::__enable__() {
+function terminator::vim::__enable__ {
   terminator::command::any_exist -v nvim vim || return
 
   alias vi='terminator::vim::invoke'
@@ -19,7 +19,7 @@ function terminator::vim::__enable__() {
   __git_complete vd _git_checkout
 }
 
-function terminator::vim::__disable__() {
+function terminator::vim::__disable__ {
   unalias vi
   unalias vim
   unalias vf
@@ -33,7 +33,7 @@ function terminator::vim::__disable__() {
   complete -r vd
 }
 
-function terminator::vim::invoke() {
+function terminator::vim::invoke {
   local found_command=0 \
     vim_command \
     vim_commands=(
@@ -65,7 +65,7 @@ function terminator::vim::invoke() {
   fi
 }
 
-function terminator::vim::open::filename_match() {
+function terminator::vim::open::filename_match {
   local found_command=0 \
     search_command \
     search_commands=(
@@ -99,7 +99,7 @@ function terminator::vim::open::filename_match() {
   fi
 }
 
-function terminator::vim::open::filename_match::rg() {
+function terminator::vim::open::filename_match::rg {
   command rg \
     --files \
     --hidden \
@@ -111,7 +111,7 @@ function terminator::vim::open::filename_match::rg() {
       "$1"
 }
 
-function terminator::vim::open::filename_match::ag() {
+function terminator::vim::open::filename_match::ag {
   command ag \
     --hidden \
     --smart-case \
@@ -120,7 +120,7 @@ function terminator::vim::open::filename_match::ag() {
     "${2:-./}"
 }
 
-function terminator::vim::open::filename_match::ack() {
+function terminator::vim::open::filename_match::ack {
   command ack \
     --ignore-dir=.git \
     --smart-case \
@@ -129,7 +129,7 @@ function terminator::vim::open::filename_match::ack() {
     "${2:-./}"
 }
 
-function terminator::vim::open::filename_match::find() {
+function terminator::vim::open::filename_match::find {
   command find "${2:-.}" \
     -not \( -path "${2:-.}/.git" -prune \) \
     -type f \
@@ -137,7 +137,7 @@ function terminator::vim::open::filename_match::find() {
     -print0
 }
 
-function terminator::vim::open::content_match() {
+function terminator::vim::open::content_match {
   local found_command=0 \
     search_command \
     search_commands=(
@@ -171,7 +171,7 @@ function terminator::vim::open::content_match() {
   fi
 }
 
-function terminator::vim::open::content_match::rg() {
+function terminator::vim::open::content_match::rg {
   command rg \
     --hidden \
     --smart-case \
@@ -181,7 +181,7 @@ function terminator::vim::open::content_match::rg() {
     "${2:-./}"
 }
 
-function terminator::vim::open::content_match::ag() {
+function terminator::vim::open::content_match::ag {
   command ag \
     --hidden \
     --smart-case \
@@ -191,7 +191,7 @@ function terminator::vim::open::content_match::ag() {
     "${2:-./}"
 }
 
-function terminator::vim::open::content_match::ack() {
+function terminator::vim::open::content_match::ack {
   command ack \
     --ignore-dir=.git \
     --smart-case \
@@ -201,7 +201,7 @@ function terminator::vim::open::content_match::ack() {
     "${2:-./}"
 }
 
-function terminator::vim::open::content_match::grep() {
+function terminator::vim::open::content_match::grep {
   command grep \
     -R \
     --exclude-dir=.git \
@@ -211,7 +211,7 @@ function terminator::vim::open::content_match::grep() {
     "${2:-./}"
 }
 
-function terminator::vim::open::git_diff() {
+function terminator::vim::open::git_diff {
   local found_ref=0 \
     ref \
     root_dir \
@@ -264,7 +264,7 @@ function terminator::vim::open::git_diff() {
   fi
 }
 
-function terminator::vim::__export__() {
+function terminator::vim::__export__ {
   export -f terminator::vim::invoke
   export -f terminator::vim::open::filename_match
   export -f terminator::vim::open::filename_match::rg
@@ -279,7 +279,7 @@ function terminator::vim::__export__() {
   export -f terminator::vim::open::git_diff
 }
 
-function terminator::vim::__recall__() {
+function terminator::vim::__recall__ {
   export -fn terminator::vim::invoke
   export -fn terminator::vim::open::filename_match
   export -fn terminator::vim::open::filename_match::rg
