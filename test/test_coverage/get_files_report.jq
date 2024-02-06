@@ -10,7 +10,7 @@ def get_file_status(base_path; threshold; pass_symbol; fail_symbol):
 ;
 
 def filter_files(files):
-  select(any(.file; IN ($files[])))
+  .[] | select(any(.file; IN ($files[])))
 ;
 
 def file_report_to_text:
@@ -18,6 +18,8 @@ def file_report_to_text:
 ;
 
 .files
-  | get_file_status($base_path; $threshold; $pass_symbol; $fail_symbol)[]
+  | get_file_status($base_path; $threshold; $pass_symbol; $fail_symbol)
+  | sort_by(.percent_covered)
+  | reverse
   | filter_files($files)
   | file_report_to_text
