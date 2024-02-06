@@ -140,7 +140,25 @@ function terminator::test::coverage::format_pull_request_comment() {
     current_status="${3:?}" \
     overall_report="${4:?}" \
     new_files_report="${5:?}" \
-    modified_files_report="${6:?}"
+    modified_files_report="${6:?}" \
+    report_base \
+    report_head
+
+  report_base="$(git rev-parse --verify "${base_sha}")"
+
+  if [[ "${report_base}" == "${base_sha}" ]]; then
+    report_base="${report_base:0:7}"
+  else
+    report_base="${base_sha}"
+  fi
+
+  report_head="$(git rev-parse --verify "${head_sha}")"
+
+  if [[ "${report_head}" == "${head_sha}" ]]; then
+    report_head="${report_head:0:7}"
+  else
+    report_head="${head_sha}"
+  fi
 
   cat <<EOF
 # ☂️ Shell Cov
@@ -152,7 +170,7 @@ ${new_files_report}
 ## Modified Files
 ${modified_files_report}
 
-> updated for commit range: \`${base_sha:0:7}..${head_sha:0:7}\` by 🐢🤖
+> updated for commit range: \`${report_base}..${report_head}\` by 🐢
 EOF
 
 }
