@@ -9,7 +9,7 @@ COVERAGE_REPORT_BASE_SHA ?= origin/main
 COVERAGE_REPORT_HEAD_SHA ?= HEAD
 COVERAGE_REPORT_OUTPUT ?= /dev/stdout
 
-TEST_DIRS := terminator/test/
+TEST_DIRS := test/
 
 LINTED_SOURCE_FILES := \
   ':(top,attr:category=source language=bash)'
@@ -25,7 +25,7 @@ TEST_COMMAND_FLAGS := \
   --recursive
 
 # NOTE: We cannot use --pretty in github-action runners since they cause the following error:
-#   /github/workspace/vendor/test/bats/bats-core/bin/bats --setup-suite-file ./test/test_suite.bash --pretty --recursive terminator/test/
+#   /github/workspace/vendor/test/bats/bats-core/bin/bats --setup-suite-file ./test/test_suite.bash --pretty --recursive test/
 #   tput: No value for $TERM and no -T specified
 #   /github/workspace/vendor/test/bats/bats-core/lib/bats-core/validator.bash: line 8: printf: write error: Broken pipe
 # This is due to the runner terminal settings or lack thereof - re the $TERM -T part.

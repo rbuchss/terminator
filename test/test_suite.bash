@@ -5,8 +5,8 @@ setup_suite() {
 
   root_dir="$(repo_root)"
 
-  load "${root_dir}/test/bats/bats-support/load.bash" # this is required by bats-assert!
-  load "${root_dir}/test/bats/bats-assert/load.bash"
+  load "${root_dir}/vendor/test/bats/bats-support/load.bash" # this is required by bats-assert!
+  load "${root_dir}/vendor/test/bats/bats-assert/load.bash"
 
   __export_test_suite_functions__
 }

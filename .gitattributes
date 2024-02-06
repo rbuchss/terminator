@@ -1,6 +1,5 @@
 home/**                             category=home
 terminator/**                       category=source
-terminator/test/**                  category=test
 test/**                             category=test
 vendor/**                           category=vendor
 terminator/bin/symlink-cleaner      language=bash
