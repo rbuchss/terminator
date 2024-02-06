@@ -2,7 +2,7 @@
 # shellcheck source=/dev/null
 source "${HOME}/.terminator/src/unicode.sh"
 
-# NOTE: to add scripts use this format #(~/.tmux/bin/foobar.sh)
+# NOTE: to add scripts use this format #(~/.terminator/bin/foobar.sh)
 TMUX_STYLES_HOST_COLOR="colour${TMUX_STYLES_HOST_COLOR_NUM:-10}"
 TMUX_STYLES_BG_COLOR="colour234"
 TMUX_STYLES_SESSION_COLOR="colour10"
