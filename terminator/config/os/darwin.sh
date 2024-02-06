@@ -4,7 +4,7 @@ source "${HOME}/.terminator/src/__module__.sh"
 source "${HOME}/.terminator/src/dircolors.sh"
 source "${HOME}/.terminator/src/homebrew.sh"
 source "${HOME}/.terminator/src/os/darwin.sh"
-source "${HOME}/.tmux/src/tmuxinator.sh"
+source "${HOME}/.terminator/src/tmuxinator.sh"
 
 terminator::__module__::enable terminator::homebrew
 
@@ -12,13 +12,12 @@ terminator::__module__::enable terminator::homebrew
 if [[ -n "${PS1}" ]]; then
   export BASH_SILENCE_DEPRECATION_WARNING=1
 
-  # We need to reload tmuxinator -> mux alias again since homebrew
-  # /usr/local/etc/bash_completion.d/tmuxinator overwrites it
-  tmux::tmuxinator::bootstrap
-
   terminator::cdpath::prepend "${HOME}/Library/Services/"
 
+  # We need to reload tmuxinator -> mux alias again since homebrew
+  # /usr/local/etc/bash_completion.d/tmuxinator overwrites it
   terminator::__module__::enable \
+    terminator::tmuxinator \
     terminator::dircolors \
     terminator::os::darwin
 fi

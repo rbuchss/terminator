@@ -9,7 +9,7 @@ COVERAGE_REPORT_BASE_SHA ?= origin/main
 COVERAGE_REPORT_HEAD_SHA ?= HEAD
 COVERAGE_REPORT_OUTPUT ?= /dev/stdout
 
-TEST_DIRS := terminator/test/ tmux/test/
+TEST_DIRS := terminator/test/
 
 LINTED_SOURCE_FILES := \
   ':(top,attr:category=source language=bash)'
@@ -25,7 +25,7 @@ TEST_COMMAND_FLAGS := \
   --recursive
 
 # NOTE: We cannot use --pretty in github-action runners since they cause the following error:
-#   /github/workspace/vendor/test/bats/bats-core/bin/bats --setup-suite-file ./test/test_suite.bash --pretty --recursive terminator/test/ tmux/test/
+#   /github/workspace/vendor/test/bats/bats-core/bin/bats --setup-suite-file ./test/test_suite.bash --pretty --recursive terminator/test/
 #   tput: No value for $TERM and no -T specified
 #   /github/workspace/vendor/test/bats/bats-core/lib/bats-core/validator.bash: line 8: printf: write error: Broken pipe
 # This is due to the runner terminal settings or lack thereof - re the $TERM -T part.
@@ -54,10 +54,9 @@ test:
 test-with-coverage:
 	kcov \
 		--clean \
-		--include-path=./terminator/src/,./tmux/src/ \
+		--include-path=./terminator/src/ \
 		--include-pattern=.sh \
 		--exclude-pattern=/test/,/coverage/,/report/ \
-		--path-strip-level=1 \
 		--bash-method=DEBUG \
 		--bash-parser="$(BASH_PATH)" \
 		--bash-parse-files-in-dir=. \

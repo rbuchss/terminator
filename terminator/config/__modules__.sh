@@ -33,6 +33,8 @@ terminator::source \
   "${HOME}/.terminator/src/ruby.sh" \
   "${HOME}/.terminator/src/rust.sh" \
   "${HOME}/.terminator/src/terraform.sh" \
+  "${HOME}/.terminator/src/tmux.sh" \
+  "${HOME}/.terminator/src/tmuxinator.sh" \
   "${HOME}/.terminator/src/tree.sh" \
   "${HOME}/.terminator/src/vagrant.sh" \
   "${HOME}/.terminator/src/vim.sh"
@@ -68,6 +70,8 @@ __modules__=(
   terminator::rust
   terminator::source
   terminator::terraform
+  terminator::tmux
+  terminator::tmuxinator
   terminator::tree
   terminator::vagrant
   terminator::vim
