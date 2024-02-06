@@ -3,12 +3,12 @@
 ################################################################################
 
 BASH_PATH ?= /bin/bash
-PWD ?= .
 
 COVERAGE_REPORT_BASE_SHA ?= origin/main
 COVERAGE_REPORT_HEAD_SHA ?= HEAD
 COVERAGE_REPORT_OUTPUT ?= /dev/stdout
 
+THIS_DIR := $(patsubst %/,%,$(dir $(realpath $(firstword $(MAKEFILE_LIST)))))
 TEST_DIRS := test/
 
 LINTED_SOURCE_FILES := \
@@ -34,8 +34,7 @@ ifneq ($(TERM),)
 TEST_COMMAND_FLAGS += --pretty
 endif
 
-# TODO convert PWD to THIS_DIR
-TEST_COMMAND := $(PWD)/vendor/test/bats/bats-core/bin/bats \
+TEST_COMMAND := $(THIS_DIR)/vendor/test/bats/bats-core/bin/bats \
   $(TEST_COMMAND_FLAGS) \
   $(TEST_DIRS)
 
@@ -49,7 +48,6 @@ guards: test-with-coverage lint
 test:
 	$(TEST_COMMAND)
 
-# TODO convert PWD to THIS_DIR
 .PHONY: test-with-coverage
 test-with-coverage:
 	kcov \
@@ -65,7 +63,7 @@ test-with-coverage:
 		-- \
 		$(TEST_COMMAND)
 	[[ -n "$(COVERAGE_REPORT_BASE_SHA)" && -n "$(COVERAGE_REPORT_HEAD_SHA)" ]] \
-		&& $(PWD)/test/test_coverage/generate_report.sh \
+		&& $(THIS_DIR)/test/test_coverage/generate_report.sh \
 			"$(COVERAGE_REPORT_BASE_SHA)" \
 			"$(COVERAGE_REPORT_HEAD_SHA)" \
 			"$(COVERAGE_REPORT_OUTPUT)"
