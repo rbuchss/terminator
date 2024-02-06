@@ -14,7 +14,7 @@ terminator::__module__::load || return 0
 # GIT or SVN repository and branch
 # along with colorization to show status
 # (red dirty/green clean)
-function terminator::prompt() {
+function terminator::prompt {
   local last_command_exit=$? \
     left_prompt \
     right_prompt
@@ -31,7 +31,7 @@ function terminator::prompt() {
   export PS1
 }
 
-function terminator::prompt::ask() {
+function terminator::prompt::ask {
   echo -n "$*" '[y/n] '
   read -r response
   case "${response}" in
@@ -40,11 +40,11 @@ function terminator::prompt::ask() {
   esac
 }
 
-function terminator::prompt::enable_env_tracing() {
+function terminator::prompt::enable_env_tracing {
   PS4='+$BASH_SOURCE> ' BASH_XTRACEFD=7 bash -xl 7>&2
 }
 
-function terminator::prompt::left() {
+function terminator::prompt::left {
   local last_command_exit="${1:-$?}" \
     error_status \
     ssh_status \
@@ -113,7 +113,7 @@ function terminator::prompt::left() {
     "${@:2}"
 }
 
-function terminator::prompt::right() {
+function terminator::prompt::right {
   local last_command_exit="${1:-$?}" \
     right_prompt_prefix \
     right_prompt_content \
@@ -156,7 +156,7 @@ function terminator::prompt::right() {
     "${@:2}"
 }
 
-function terminator::prompt::error() {
+function terminator::prompt::error {
   local last_command_exit="${1:-$?}"
 
   if (( last_command_exit != 0 )); then
@@ -173,7 +173,7 @@ function terminator::prompt::error() {
   fi
 }
 
-function terminator::prompt::ssh() {
+function terminator::prompt::ssh {
   if terminator::ssh::is_ssh_session; then
     local host_color host_symbol
 
@@ -188,14 +188,14 @@ function terminator::prompt::ssh() {
   fi
 }
 
-function terminator::prompt::user_prefix() {
+function terminator::prompt::user_prefix {
   terminator::styles::command_coalesce \
     --command "${TERMINATOR_STYLES_USER_PREFIX_COMMAND}" \
     --command terminator::prompt::static::user_prefix \
     "$@"
 }
 
-function terminator::prompt::static::user_prefix() {
+function terminator::prompt::static::user_prefix {
   local user_prefix_color user_prefix_content
 
   terminator::styles::user_prefix user_prefix_content
@@ -207,7 +207,7 @@ function terminator::prompt::static::user_prefix() {
     "$@"
 }
 
-function terminator::prompt::user() {
+function terminator::prompt::user {
   local user_color username
 
   terminator::styles::user_color user_color
@@ -219,14 +219,14 @@ function terminator::prompt::user() {
     "$@"
 }
 
-function terminator::prompt::user_suffix() {
+function terminator::prompt::user_suffix {
   terminator::styles::command_coalesce \
     --command "${TERMINATOR_STYLES_USER_SUFFIX_COMMAND}" \
     --command terminator::prompt::static::user_suffix \
     "$@"
 }
 
-function terminator::prompt::static::user_suffix() {
+function terminator::prompt::static::user_suffix {
   local user_suffix_color user_suffix_content
 
   terminator::styles::user_suffix user_suffix_content
@@ -238,14 +238,14 @@ function terminator::prompt::static::user_suffix() {
     "$@"
 }
 
-function terminator::prompt::host_prefix() {
+function terminator::prompt::host_prefix {
   terminator::styles::command_coalesce \
     --command "${TERMINATOR_STYLES_HOST_PREFIX_COMMAND}" \
     --command terminator::prompt::static::host_prefix \
     "$@"
 }
 
-function terminator::prompt::static::host_prefix() {
+function terminator::prompt::static::host_prefix {
   local host_prefix_color host_prefix_content
 
   terminator::styles::host_prefix host_prefix_content
@@ -257,7 +257,7 @@ function terminator::prompt::static::host_prefix() {
     "$@"
 }
 
-function terminator::prompt::host() {
+function terminator::prompt::host {
   local host_color hostname
 
   terminator::styles::host_color host_color
@@ -269,14 +269,14 @@ function terminator::prompt::host() {
     "$@"
 }
 
-function terminator::prompt::host_suffix() {
+function terminator::prompt::host_suffix {
   terminator::styles::command_coalesce \
     --command "${TERMINATOR_STYLES_HOST_SUFFIX_COMMAND}" \
     --command terminator::prompt::static::host_suffix \
     "$@"
 }
 
-function terminator::prompt::static::host_suffix() {
+function terminator::prompt::static::host_suffix {
   local host_suffix_color host_suffix_content
 
   terminator::styles::host_suffix host_suffix_content
@@ -288,14 +288,14 @@ function terminator::prompt::static::host_suffix() {
     "$@"
 }
 
-function terminator::prompt::directory_prefix() {
+function terminator::prompt::directory_prefix {
   terminator::styles::command_coalesce \
     --command "${TERMINATOR_STYLES_DIRECTORY_PREFIX_COMMAND}" \
     --command terminator::prompt::static::directory_prefix \
     "$@"
 }
 
-function terminator::prompt::static::directory_prefix() {
+function terminator::prompt::static::directory_prefix {
   local directory_prefix_color directory_prefix_content
 
   terminator::styles::directory_prefix directory_prefix_content
@@ -307,7 +307,7 @@ function terminator::prompt::static::directory_prefix() {
     "$@"
 }
 
-function terminator::prompt::directory() {
+function terminator::prompt::directory {
   local directory_path_color directory_path_content
 
   terminator::styles::directory_color directory_path_color
@@ -319,14 +319,14 @@ function terminator::prompt::directory() {
     "$@"
 }
 
-function terminator::prompt::directory_suffix() {
+function terminator::prompt::directory_suffix {
   terminator::styles::command_coalesce \
     --command "${TERMINATOR_STYLES_DIRECTORY_SUFFIX_COMMAND}" \
     --command terminator::prompt::static::directory_suffix \
     "$@"
 }
 
-function terminator::prompt::static::directory_suffix() {
+function terminator::prompt::static::directory_suffix {
   local directory_suffix_color directory_suffix_content
 
   terminator::styles::directory_suffix directory_suffix_content
@@ -338,7 +338,7 @@ function terminator::prompt::static::directory_suffix() {
     "$@"
 }
 
-function terminator::prompt::version_control() {
+function terminator::prompt::version_control {
   local svn_status git_status
 
   # terminator::prompt::svn svn_status
@@ -350,7 +350,7 @@ function terminator::prompt::version_control() {
     "$@"
 }
 
-function terminator::prompt::jobs_info() {
+function terminator::prompt::jobs_info {
   local jobs_symbol_color \
     jobs_symbol \
     jobs_content \
@@ -373,7 +373,7 @@ function terminator::prompt::jobs_info() {
     "$@"
 }
 
-function terminator::prompt::timestamp() {
+function terminator::prompt::timestamp {
   local timestamp_symbol_color \
     timestamp_symbol \
     timestamp_content \
@@ -397,14 +397,14 @@ function terminator::prompt::timestamp() {
     "$@"
 }
 
-function terminator::prompt::command_symbol_prefix() {
+function terminator::prompt::command_symbol_prefix {
   terminator::styles::command_coalesce \
     --command "${TERMINATOR_STYLES_COMMAND_SYMBOL_PREFIX_COMMAND}" \
     --command terminator::prompt::static::command_symbol_prefix \
     "$@"
 }
 
-function terminator::prompt::static::command_symbol_prefix() {
+function terminator::prompt::static::command_symbol_prefix {
   local command_symbol_prefix_color command_symbol_prefix_content
 
   terminator::styles::command_symbol_prefix command_symbol_prefix_content
@@ -416,7 +416,7 @@ function terminator::prompt::static::command_symbol_prefix() {
     "$@"
 }
 
-function terminator::prompt::command_symbol() {
+function terminator::prompt::command_symbol {
   local last_command_exit="${1:-$?}" \
     command_symbol_color \
     command_symbol_
@@ -435,14 +435,14 @@ function terminator::prompt::command_symbol() {
     "${@:2}"
 }
 
-function terminator::prompt::command_symbol_suffix() {
+function terminator::prompt::command_symbol_suffix {
   terminator::styles::command_coalesce \
     --command "${TERMINATOR_STYLES_COMMAND_SYMBOL_SUFFIX_COMMAND}" \
     --command terminator::prompt::static::command_symbol_suffix \
     "$@"
 }
 
-function terminator::prompt::static::command_symbol_suffix() {
+function terminator::prompt::static::command_symbol_suffix {
   local command_symbol_suffix_color command_symbol_suffix_content
 
   terminator::styles::command_symbol_suffix command_symbol_suffix_content
@@ -454,14 +454,14 @@ function terminator::prompt::static::command_symbol_suffix() {
     "$@"
 }
 
-function terminator::prompt::right_prompt_prefix() {
+function terminator::prompt::right_prompt_prefix {
   terminator::styles::command_coalesce \
     --command "${TERMINATOR_STYLES_RIGHT_PROMPT_PREFIX_COMMAND}" \
     --command terminator::prompt::static::right_prompt_prefix \
     "$@"
 }
 
-function terminator::prompt::static::right_prompt_prefix() {
+function terminator::prompt::static::right_prompt_prefix {
   local right_prompt_prefix_color right_prompt_prefix_content
 
   terminator::styles::right_prompt_prefix right_prompt_prefix_content
@@ -473,14 +473,14 @@ function terminator::prompt::static::right_prompt_prefix() {
     "$@"
 }
 
-function terminator::prompt::right_prompt_content() {
+function terminator::prompt::right_prompt_content {
   terminator::styles::command_coalesce \
     --command "${TERMINATOR_STYLES_RIGHT_PROMPT_CONTENT_COMMAND}" \
     --command terminator::prompt::static::right_prompt_content \
     "$@"
 }
 
-function terminator::prompt::static::right_prompt_content() {
+function terminator::prompt::static::right_prompt_content {
   local right_prompt_content_color right_prompt_content_content
 
   terminator::styles::right_prompt_content right_prompt_content_content
@@ -492,14 +492,14 @@ function terminator::prompt::static::right_prompt_content() {
     "$@"
 }
 
-function terminator::prompt::right_prompt_suffix() {
+function terminator::prompt::right_prompt_suffix {
   terminator::styles::command_coalesce \
     --command "${TERMINATOR_STYLES_RIGHT_PROMPT_SUFFIX_COMMAND}" \
     --command terminator::prompt::static::right_prompt_suffix \
     "$@"
 }
 
-function terminator::prompt::static::right_prompt_suffix() {
+function terminator::prompt::static::right_prompt_suffix {
   local right_prompt_suffix_color right_prompt_suffix_content
 
   terminator::styles::right_prompt_suffix right_prompt_suffix_content
@@ -511,7 +511,7 @@ function terminator::prompt::static::right_prompt_suffix() {
     "$@"
 }
 
-function terminator::prompt::print_if_exists() {
+function terminator::prompt::print_if_exists {
   local message_color \
     message_content \
     color_off \
@@ -610,7 +610,7 @@ function terminator::prompt::print_if_exists() {
   fi
 }
 
-function terminator::prompt::print_if_exists::usage() {
+function terminator::prompt::print_if_exists::usage {
   cat <<USAGE_TEXT
 Usage: ${FUNCNAME[1]} [OPTIONS] [ouput variable]
 
@@ -635,7 +635,7 @@ Usage: ${FUNCNAME[1]} [OPTIONS] [ouput variable]
 USAGE_TEXT
 }
 
-function terminator::prompt::__export__() {
+function terminator::prompt::__export__ {
   export -f terminator::prompt
   export -f terminator::prompt::ask
   export -f terminator::prompt::enable_env_tracing
@@ -676,7 +676,7 @@ function terminator::prompt::__export__() {
   export -f terminator::prompt::print_if_exists::usage
 }
 
-function terminator::prompt::__recall__() {
+function terminator::prompt::__recall__ {
   export -fn terminator::prompt
   export -fn terminator::prompt::ask
   export -fn terminator::prompt::enable_env_tracing
