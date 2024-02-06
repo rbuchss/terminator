@@ -6,7 +6,7 @@ source "${BASH_SOURCE[0]%/*}/version.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::tmux::config::path() {
+function terminator::tmux::config::path {
   local result="${TMUX_CONFIG_PATH:-${HOME}/.config/tmux}"
 
   for element in "$@"; do
@@ -16,13 +16,13 @@ function terminator::tmux::config::path() {
   echo "${result}"
 }
 
-function terminator::tmux::config::load() {
+function terminator::tmux::config::load {
   for element in "$@"; do
     source "$(terminator::tmux::config::path "${element}")"
   done
 }
 
-function terminator::tmux::config::version::path() {
+function terminator::tmux::config::version::path {
   if (( $# == 0 )); then
     terminator::tmux::config::path 'version'
     return
@@ -31,7 +31,7 @@ function terminator::tmux::config::version::path() {
   terminator::tmux::config::path 'version' "$@"
 }
 
-function terminator::tmux::config::current_version::path() {
+function terminator::tmux::config::current_version::path {
   local version path
   version="$(terminator::tmux::version)"
   path="$(terminator::tmux::config::version::path "${version}")"
@@ -44,7 +44,7 @@ function terminator::tmux::config::current_version::path() {
   fi
 }
 
-function terminator::tmux::config::rollback_version() {
+function terminator::tmux::config::rollback_version {
   local path versions=()
   path="$(terminator::tmux::config::version::path)"
 
@@ -67,7 +67,7 @@ function terminator::tmux::config::rollback_version() {
   return 1
 }
 
-function terminator::tmux::config::__export__() {
+function terminator::tmux::config::__export__ {
   export -f terminator::tmux::config::path
   export -f terminator::tmux::config::load
   export -f terminator::tmux::config::version::path
@@ -75,7 +75,7 @@ function terminator::tmux::config::__export__() {
   export -f terminator::tmux::config::rollback_version
 }
 
-function terminator::tmux::config::__recall__() {
+function terminator::tmux::config::__recall__ {
   export -fn terminator::tmux::config::path
   export -fn terminator::tmux::config::load
   export -fn terminator::tmux::config::version::path

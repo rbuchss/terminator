@@ -5,7 +5,7 @@ source "${BASH_SOURCE[0]%/*}/command.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::tmuxinator::__enable__() {
+function terminator::tmuxinator::__enable__ {
   terminator::command::exists -v tmuxinator || return
 
   alias tmuxinator='terminator::tmuxinator::invoke'
@@ -16,7 +16,7 @@ function terminator::tmuxinator::__enable__() {
     'mux'
 }
 
-function terminator::tmuxinator::__disable__() {
+function terminator::tmuxinator::__disable__ {
   unalias tmuxinator
   unalias mux
 
@@ -25,7 +25,7 @@ function terminator::tmuxinator::__disable__() {
     'mux'
 }
 
-function terminator::tmuxinator::invoke() {
+function terminator::tmuxinator::invoke {
   local recalled=0
 
   if [[ -z "${TMUX_PATH_INITIALIZED}" ]]; then
@@ -48,7 +48,7 @@ function terminator::tmuxinator::invoke() {
   return "${exit_status}"
 }
 
-function terminator::tmuxinator::completion() {
+function terminator::tmuxinator::completion {
   COMPREPLY=()
   local word
   word="${COMP_WORDS[COMP_CWORD]}"
@@ -75,7 +75,7 @@ function terminator::tmuxinator::completion() {
   fi
 }
 
-function terminator::tmuxinator::completion::add_alias() {
+function terminator::tmuxinator::completion::add_alias {
   # complete -F _tmuxinator tmuxinator mux
   local name
   for name in "$@"; do
@@ -83,21 +83,21 @@ function terminator::tmuxinator::completion::add_alias() {
   done
 }
 
-function terminator::tmuxinator::completion::remove_alias() {
+function terminator::tmuxinator::completion::remove_alias {
   local name
   for name in "$@"; do
     complete -r "${name}"
   done
 }
 
-function terminator::tmuxinator::__export__() {
+function terminator::tmuxinator::__export__ {
   export -f terminator::tmuxinator::invoke
   export -f terminator::tmuxinator::completion
   export -f terminator::tmuxinator::completion::add_alias
   export -f terminator::tmuxinator::completion::remove_alias
 }
 
-function terminator::tmuxinator::__recall__() {
+function terminator::tmuxinator::__recall__ {
   export -fn terminator::tmuxinator::invoke
   export -fn terminator::tmuxinator::completion
   export -fn terminator::tmuxinator::completion::add_alias

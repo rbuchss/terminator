@@ -5,7 +5,7 @@ source "${BASH_SOURCE[0]%/*}/number.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::string::bytes_to_length_offset() {
+function terminator::string::bytes_to_length_offset {
   local value \
     length \
     offset \
@@ -54,7 +54,7 @@ function terminator::string::bytes_to_length_offset() {
   printf '%s' "${offset}"
 }
 
-function terminator::string::bytes_to_length_offset::usage() {
+function terminator::string::bytes_to_length_offset::usage {
   cat <<USAGE_TEXT
 Usage: ${FUNCNAME[1]} [OPTIONS] [ouput variable]
 
@@ -69,7 +69,7 @@ Usage: ${FUNCNAME[1]} [OPTIONS] [ouput variable]
 USAGE_TEXT
 }
 
-function terminator::string::repeat() {
+function terminator::string::repeat {
   local value \
     count \
     output_buffer \
@@ -129,7 +129,7 @@ function terminator::string::repeat() {
 }
 
 
-function terminator::string::repeat::usage() {
+function terminator::string::repeat::usage {
   cat <<USAGE_TEXT
 Usage: ${FUNCNAME[1]} [OPTIONS] [ouput variable]
 
@@ -147,7 +147,7 @@ Usage: ${FUNCNAME[1]} [OPTIONS] [ouput variable]
 USAGE_TEXT
 }
 
-function terminator::string::strip_colors() {
+function terminator::string::strip_colors {
   local value \
     output_buffer \
     output \
@@ -191,7 +191,7 @@ function terminator::string::strip_colors() {
   printf '%s' "${output_buffer}"
 }
 
-function terminator::string::strip_colors::usage() {
+function terminator::string::strip_colors::usage {
   cat <<USAGE_TEXT
 Usage: ${FUNCNAME[1]} [OPTIONS] [ouput variable]
 
@@ -205,7 +205,7 @@ Usage: ${FUNCNAME[1]} [OPTIONS] [ouput variable]
 USAGE_TEXT
 }
 
-function terminator::string::__export__() {
+function terminator::string::__export__ {
   export -f terminator::string::bytes_to_length_offset
   export -f terminator::string::bytes_to_length_offset::usage
   export -f terminator::string::repeat
@@ -214,7 +214,7 @@ function terminator::string::__export__() {
   export -f terminator::string::strip_colors::usage
 }
 
-function terminator::string::__recall__() {
+function terminator::string::__recall__ {
   export -fn terminator::string::bytes_to_length_offset
   export -fn terminator::string::bytes_to_length_offset::usage
   export -fn terminator::string::repeat

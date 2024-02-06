@@ -5,7 +5,7 @@ source "${BASH_SOURCE[0]%/*}/path.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::pipx::__enable__() {
+function terminator::pipx::__enable__ {
   local local_bin_path="${HOME}/.local/bin"
 
   if [[ ! -d "${local_bin_path}" ]]; then
@@ -21,17 +21,17 @@ function terminator::pipx::__enable__() {
   terminator::path::append "${local_bin_path}"
 }
 
-function terminator::pipx::__disable__() {
+function terminator::pipx::__disable__ {
   local local_bin_path="${HOME}/.local/bin"
 
   terminator::path::remove "${local_bin_path}"
 }
 
-function terminator::pipx::__export__() {
+function terminator::pipx::__export__ {
   :
 }
 
-function terminator::pipx::__recall__() {
+function terminator::pipx::__recall__ {
   :
 }
 

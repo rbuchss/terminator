@@ -5,18 +5,18 @@ source "${BASH_SOURCE[0]%/*}/command.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::dotnet::__enable__() {
+function terminator::dotnet::__enable__ {
   terminator::command::exists -v dotnet || return
 
   complete -f -F terminator::dotnet::complete dotnet
 }
 
-function terminator::dotnet::__disable__() {
+function terminator::dotnet::__disable__ {
   complete -r dotnet
 }
 
 # bash parameter completion for the dotnet CLI
-function terminator::dotnet::complete() {
+function terminator::dotnet::complete {
   COMPREPLY=()
   local word completions
 
@@ -32,11 +32,11 @@ function terminator::dotnet::complete() {
   done < <(compgen -W "${completions}" -- "${word}")
 }
 
-function terminator::dotnet::__export__() {
+function terminator::dotnet::__export__ {
   export -f terminator::dotnet::complete
 }
 
-function terminator::dotnet::__recall__() {
+function terminator::dotnet::__recall__ {
   export -fn terminator::dotnet::complete
 }
 

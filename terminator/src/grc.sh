@@ -5,7 +5,7 @@ source "${BASH_SOURCE[0]%/*}/command.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::grc::__enable__() {
+function terminator::grc::__enable__ {
   terminator::command::exists -v grc || return
 
   alias colourify='command grc -es --colour=auto'
@@ -49,7 +49,7 @@ function terminator::grc::__enable__() {
   alias mvn='colourify mvn'
 }
 
-function terminator::grc::__disable__() {
+function terminator::grc::__disable__ {
   unalias colourify
   unalias blkid
   unalias configure
@@ -91,11 +91,11 @@ function terminator::grc::__disable__() {
   unalias mvn
 }
 
-function terminator::grc::__export__() {
+function terminator::grc::__export__ {
   :
 }
 
-function terminator::grc::__recall__() {
+function terminator::grc::__recall__ {
   :
 }
 

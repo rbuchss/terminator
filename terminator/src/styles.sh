@@ -7,7 +7,7 @@ source "${BASH_SOURCE[0]%/*}/user.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::styles::newline() {
+function terminator::styles::newline {
   local symbol
 
   case "${OSTYPE}" in
@@ -25,7 +25,7 @@ function terminator::styles::newline() {
   esac
 }
 
-function terminator::styles::coalesce() {
+function terminator::styles::coalesce {
   local cmd="$1"
   local environment_value="$2"
   local environment_code="$3"
@@ -47,15 +47,15 @@ function terminator::styles::coalesce() {
   esac
 }
 
-function terminator::styles::color_coalesce() {
+function terminator::styles::color_coalesce {
   terminator::styles::coalesce 'terminator::color::code' "$@"
 }
 
-function terminator::styles::unicode_coalesce() {
+function terminator::styles::unicode_coalesce {
   terminator::styles::coalesce 'terminator::unicode::code' "$@"
 }
 
-function terminator::styles::char_coalesce() {
+function terminator::styles::char_coalesce {
   local environment_value="$1"
   local default="$2"
   local symbol="${environment_value:-$default}"
@@ -66,7 +66,7 @@ function terminator::styles::char_coalesce() {
   esac
 }
 
-function terminator::styles::command_coalesce() {
+function terminator::styles::command_coalesce {
   local commands=() \
     invalid_commands=() \
     arguments=()
@@ -110,7 +110,7 @@ function terminator::styles::command_coalesce() {
   "${commands[0]}" "${arguments[@]}"
 }
 
-function terminator::styles::command_coalesce::usage() {
+function terminator::styles::command_coalesce::usage {
   cat <<USAGE_TEXT
 Usage: ${FUNCNAME[1]} [OPTIONS] <args>
 
@@ -121,14 +121,14 @@ Usage: ${FUNCNAME[1]} [OPTIONS] <args>
 USAGE_TEXT
 }
 
-function terminator::styles::user_prefix() {
+function terminator::styles::user_prefix {
   terminator::styles::char_coalesce \
     "${TERMINATOR_STYLES_USER_PREFIX}" \
     '' \
     "$@"
 }
 
-function terminator::styles::user_prefix_color() {
+function terminator::styles::user_prefix_color {
   terminator::styles::color_coalesce \
     "${TERMINATOR_STYLES_USER_PREFIX_COLOR}" \
     "${TERMINATOR_STYLES_USER_PREFIX_COLOR_CODE}" \
@@ -136,14 +136,14 @@ function terminator::styles::user_prefix_color() {
     "$@"
 }
 
-function terminator::styles::username() {
+function terminator::styles::username {
   terminator::styles::char_coalesce \
     "${TERMINATOR_STYLES_USERNAME}" \
     '\u' \
     "$@"
 }
 
-function terminator::styles::user_color() {
+function terminator::styles::user_color {
   if terminator::user::is_root; then
     terminator::styles::root::user_color "$@"
     return
@@ -156,7 +156,7 @@ function terminator::styles::user_color() {
     "$@"
 }
 
-function terminator::styles::root::user_color() {
+function terminator::styles::root::user_color {
   terminator::styles::color_coalesce \
     "${TERMINATOR_STYLES_ROOT_USER_COLOR}" \
     "${TERMINATOR_STYLES_ROOT_USER_COLOR_CODE}" \
@@ -164,7 +164,7 @@ function terminator::styles::root::user_color() {
     "$@"
 }
 
-function terminator::styles::user_suffix_color() {
+function terminator::styles::user_suffix_color {
   if terminator::user::is_root; then
     terminator::styles::root::user_suffix_color "$@"
     return
@@ -177,7 +177,7 @@ function terminator::styles::user_suffix_color() {
     "$@"
 }
 
-function terminator::styles::root::user_suffix_color() {
+function terminator::styles::root::user_suffix_color {
   terminator::styles::color_coalesce \
     "${TERMINATOR_STYLES_ROOT_USER_SUFFIX_COLOR}" \
     "${TERMINATOR_STYLES_ROOT_USER_SUFFIX_COLOR_CODE}" \
@@ -185,7 +185,7 @@ function terminator::styles::root::user_suffix_color() {
     "$@"
 }
 
-function terminator::styles::user_suffix() {
+function terminator::styles::user_suffix {
   if terminator::user::is_root; then
     terminator::styles::root::user_suffix "$@"
     return
@@ -197,21 +197,21 @@ function terminator::styles::user_suffix() {
     "$@"
 }
 
-function terminator::styles::root::user_suffix() {
+function terminator::styles::root::user_suffix {
   terminator::styles::char_coalesce \
     "${TERMINATOR_STYLES_ROOT_USER_SUFFIX}" \
     '#' \
     "$@"
 }
 
-function terminator::styles::host_prefix() {
+function terminator::styles::host_prefix {
   terminator::styles::char_coalesce \
     "${TERMINATOR_STYLES_HOST_PREFIX}" \
     '' \
     "$@"
 }
 
-function terminator::styles::host_prefix_color() {
+function terminator::styles::host_prefix_color {
   terminator::styles::color_coalesce \
     "${TERMINATOR_STYLES_HOST_PREFIX_COLOR}" \
     "${TERMINATOR_STYLES_HOST_PREFIX_COLOR_CODE}" \
@@ -219,14 +219,14 @@ function terminator::styles::host_prefix_color() {
     "$@"
 }
 
-function terminator::styles::hostname() {
+function terminator::styles::hostname {
   terminator::styles::char_coalesce \
     "${TERMINATOR_STYLES_HOSTNAME}" \
     '\h' \
     "$@"
 }
 
-function terminator::styles::host_color() {
+function terminator::styles::host_color {
   if terminator::user::is_root; then
     terminator::styles::root::host_color "$@"
     return
@@ -239,7 +239,7 @@ function terminator::styles::host_color() {
     "$@"
 }
 
-function terminator::styles::root::host_color() {
+function terminator::styles::root::host_color {
   terminator::styles::color_coalesce \
     "${TERMINATOR_STYLES_ROOT_HOST_COLOR}" \
     "${TERMINATOR_STYLES_ROOT_HOST_COLOR_CODE}" \
@@ -247,7 +247,7 @@ function terminator::styles::root::host_color() {
     "$@"
 }
 
-function terminator::styles::host_symbol() {
+function terminator::styles::host_symbol {
   terminator::styles::unicode_coalesce \
     "${TERMINATOR_STYLES_HOST_SYMBOL}" \
     "${TERMINATOR_STYLES_HOST_SYMBOL_CODE}" \
@@ -255,14 +255,14 @@ function terminator::styles::host_symbol() {
     "$@"
 }
 
-function terminator::styles::host_suffix() {
+function terminator::styles::host_suffix {
   terminator::styles::char_coalesce \
     "${TERMINATOR_STYLES_HOST_SUFFIX}" \
     '' \
     "$@"
 }
 
-function terminator::styles::host_suffix_color() {
+function terminator::styles::host_suffix_color {
   terminator::styles::color_coalesce \
     "${TERMINATOR_STYLES_HOST_SUFFIX_COLOR}" \
     "${TERMINATOR_STYLES_HOST_SUFFIX_COLOR_CODE}" \
@@ -270,14 +270,14 @@ function terminator::styles::host_suffix_color() {
     "$@"
 }
 
-function terminator::styles::directory_prefix() {
+function terminator::styles::directory_prefix {
   terminator::styles::char_coalesce \
     "${TERMINATOR_STYLES_DIRECTORY_PREFIX}" \
     ' ' \
     "$@"
 }
 
-function terminator::styles::directory_prefix_color() {
+function terminator::styles::directory_prefix_color {
   terminator::styles::color_coalesce \
     "${TERMINATOR_STYLES_DIRECTORY_PREFIX_COLOR}" \
     "${TERMINATOR_STYLES_DIRECTORY_PREFIX_COLOR_CODE}" \
@@ -285,14 +285,14 @@ function terminator::styles::directory_prefix_color() {
     "$@"
 }
 
-function terminator::styles::directory() {
+function terminator::styles::directory {
   terminator::styles::char_coalesce \
     "${TERMINATOR_STYLES_DIRECTORY}" \
     '\w' \
     "$@"
 }
 
-function terminator::styles::directory_color() {
+function terminator::styles::directory_color {
   if terminator::user::is_root; then
     terminator::styles::root::directory_color "$@"
     return
@@ -305,7 +305,7 @@ function terminator::styles::directory_color() {
     "$@"
 }
 
-function terminator::styles::root::directory_color() {
+function terminator::styles::root::directory_color {
   terminator::styles::color_coalesce \
     "${TERMINATOR_STYLES_ROOT_DIRECTORY_COLOR}" \
     "${TERMINATOR_STYLES_ROOT_DIRECTORY_COLOR_CODE}" \
@@ -313,14 +313,14 @@ function terminator::styles::root::directory_color() {
     "$@"
 }
 
-function terminator::styles::directory_suffix() {
+function terminator::styles::directory_suffix {
   terminator::styles::char_coalesce \
     "${TERMINATOR_STYLES_DIRECTORY_SUFFIX}" \
     ' ' \
     "$@"
 }
 
-function terminator::styles::directory_suffix_color() {
+function terminator::styles::directory_suffix_color {
   terminator::styles::color_coalesce \
     "${TERMINATOR_STYLES_DIRECTORY_SUFFIX_COLOR}" \
     "${TERMINATOR_STYLES_DIRECTORY_SUFFIX_COLOR_CODE}" \
@@ -328,35 +328,35 @@ function terminator::styles::directory_suffix_color() {
     "$@"
 }
 
-function terminator::styles::jobs() {
+function terminator::styles::jobs {
   terminator::styles::char_coalesce \
     "${TERMINATOR_STYLES_JOBS}" \
     '\j' \
     "$@"
 }
 
-function terminator::styles::timestamp() {
+function terminator::styles::timestamp {
   terminator::styles::char_coalesce \
     "${TERMINATOR_STYLES_TIMESTAMP}" \
     '\D{%FT%T%z}' \
     "$@"
 }
 
-function terminator::styles::time() {
+function terminator::styles::time {
   terminator::styles::char_coalesce \
     "${TERMINATOR_STYLES_TIME}" \
     '\t' \
     "$@"
 }
 
-function terminator::styles::command_symbol_prefix() {
+function terminator::styles::command_symbol_prefix {
   terminator::styles::char_coalesce \
     "${TERMINATOR_STYLES_COMMAND_SYMBOL_PREFIX}" \
     '' \
     "$@"
 }
 
-function terminator::styles::command_symbol_prefix_color() {
+function terminator::styles::command_symbol_prefix_color {
   terminator::styles::color_coalesce \
     "${TERMINATOR_STYLES_COMMAND_SYMBOL_PREFIX_COLOR}" \
     "${TERMINATOR_STYLES_COMMAND_SYMBOL_PREFIX_COLOR_CODE}" \
@@ -364,7 +364,7 @@ function terminator::styles::command_symbol_prefix_color() {
     "$@"
 }
 
-function terminator::styles::command_symbol() {
+function terminator::styles::command_symbol {
   terminator::styles::unicode_coalesce \
     "${TERMINATOR_STYLES_COMMAND_SYMBOL}" \
     "${TERMINATOR_STYLES_COMMAND_SYMBOL_CODE}" \
@@ -372,14 +372,14 @@ function terminator::styles::command_symbol() {
     "$@"
 }
 
-function terminator::styles::command_symbol_suffix() {
+function terminator::styles::command_symbol_suffix {
   terminator::styles::char_coalesce \
     "${TERMINATOR_STYLES_COMMAND_SYMBOL_SUFFIX}" \
     ' ' \
     "$@"
 }
 
-function terminator::styles::command_symbol_suffix_color() {
+function terminator::styles::command_symbol_suffix_color {
   terminator::styles::color_coalesce \
     "${TERMINATOR_STYLES_COMMAND_SYMBOL_SUFFIX_COLOR}" \
     "${TERMINATOR_STYLES_COMMAND_SYMBOL_SUFFIX_COLOR_CODE}" \
@@ -387,14 +387,14 @@ function terminator::styles::command_symbol_suffix_color() {
     "$@"
 }
 
-function terminator::styles::right_prompt_prefix() {
+function terminator::styles::right_prompt_prefix {
   terminator::styles::char_coalesce \
     "${TERMINATOR_STYLES_RIGHT_PROMPT_PREFIX}" \
     '' \
     "$@"
 }
 
-function terminator::styles::right_prompt_prefix_color() {
+function terminator::styles::right_prompt_prefix_color {
   terminator::styles::color_coalesce \
     "${TERMINATOR_STYLES_RIGHT_PROMPT_PREFIX_COLOR}" \
     "${TERMINATOR_STYLES_RIGHT_PROMPT_PREFIX_COLOR_CODE}" \
@@ -402,14 +402,14 @@ function terminator::styles::right_prompt_prefix_color() {
     "$@"
 }
 
-function terminator::styles::right_prompt_content() {
+function terminator::styles::right_prompt_content {
   terminator::styles::char_coalesce \
     "${TERMINATOR_STYLES_RIGHT_PROMPT_CONTENT}" \
     '' \
     "$@"
 }
 
-function terminator::styles::right_prompt_content_color() {
+function terminator::styles::right_prompt_content_color {
   terminator::styles::color_coalesce \
     "${TERMINATOR_STYLES_RIGHT_PROMPT_CONTENT_COLOR}" \
     "${TERMINATOR_STYLES_RIGHT_PROMPT_CONTENT_COLOR_CODE}" \
@@ -417,14 +417,14 @@ function terminator::styles::right_prompt_content_color() {
     "$@"
 }
 
-function terminator::styles::right_prompt_suffix() {
+function terminator::styles::right_prompt_suffix {
   terminator::styles::char_coalesce \
     "${TERMINATOR_STYLES_RIGHT_PROMPT_SUFFIX}" \
     '' \
     "$@"
 }
 
-function terminator::styles::right_prompt_suffix_color() {
+function terminator::styles::right_prompt_suffix_color {
   terminator::styles::color_coalesce \
     "${TERMINATOR_STYLES_RIGHT_PROMPT_SUFFIX_COLOR}" \
     "${TERMINATOR_STYLES_RIGHT_PROMPT_SUFFIX_COLOR_CODE}" \
@@ -432,7 +432,7 @@ function terminator::styles::right_prompt_suffix_color() {
     "$@"
 }
 
-function terminator::styles::error_symbol() {
+function terminator::styles::error_symbol {
   terminator::styles::unicode_coalesce \
     "${TERMINATOR_STYLES_ERROR_SYMBOL}" \
     "${TERMINATOR_STYLES_ERROR_SYMBOL_CODE}" \
@@ -440,7 +440,7 @@ function terminator::styles::error_symbol() {
     "$@"
 }
 
-function terminator::styles::error_color() {
+function terminator::styles::error_color {
   # '38;5;9m'
   terminator::styles::color_coalesce \
     "${TERMINATOR_STYLES_ERROR_COLOR}" \
@@ -449,7 +449,7 @@ function terminator::styles::error_color() {
     "$@"
 }
 
-function terminator::styles::warning_symbol() {
+function terminator::styles::warning_symbol {
   terminator::styles::unicode_coalesce \
     "${TERMINATOR_STYLES_WARNING_SYMBOL}" \
     "${TERMINATOR_STYLES_WARNING_SYMBOL_CODE}" \
@@ -457,7 +457,7 @@ function terminator::styles::warning_symbol() {
     "$@"
 }
 
-function terminator::styles::warning_color() {
+function terminator::styles::warning_color {
   terminator::styles::color_coalesce \
     "${TERMINATOR_STYLES_WARNING_COLOR}" \
     "${TERMINATOR_STYLES_WARNING_COLOR_CODE}" \
@@ -465,7 +465,7 @@ function terminator::styles::warning_color() {
     "$@"
 }
 
-function terminator::styles::ok_symbol() {
+function terminator::styles::ok_symbol {
   terminator::styles::unicode_coalesce \
     "${TERMINATOR_STYLES_OK_SYMBOL}" \
     "${TERMINATOR_STYLES_OK_SYMBOL_CODE}" \
@@ -473,7 +473,7 @@ function terminator::styles::ok_symbol() {
     "$@"
 }
 
-function terminator::styles::ok_color() {
+function terminator::styles::ok_color {
   # '38;5;10m'
   terminator::styles::color_coalesce \
     "${TERMINATOR_STYLES_OK_COLOR}" \
@@ -482,7 +482,7 @@ function terminator::styles::ok_color() {
     "$@"
 }
 
-function terminator::styles::branch_symbol() {
+function terminator::styles::branch_symbol {
   terminator::styles::unicode_coalesce \
     "${TERMINATOR_STYLES_BRANCH_SYMBOL}" \
     "${TERMINATOR_STYLES_BRANCH_SYMBOL_CODE}" \
@@ -490,7 +490,7 @@ function terminator::styles::branch_symbol() {
     "$@"
 }
 
-function terminator::styles::branch_color() {
+function terminator::styles::branch_color {
   terminator::styles::color_coalesce \
     "${TERMINATOR_STYLES_BRANCH_COLOR}" \
     "${TERMINATOR_STYLES_BRANCH_COLOR_CODE}" \
@@ -498,7 +498,7 @@ function terminator::styles::branch_color() {
     "$@"
 }
 
-function terminator::styles::detached_head_symbol() {
+function terminator::styles::detached_head_symbol {
   terminator::styles::unicode_coalesce \
     "${TERMINATOR_STYLES_DETACHED_HEAD_SYMBOL}" \
     "${TERMINATOR_STYLES_DETACHED_HEAD_SYMBOL_CODE}" \
@@ -506,7 +506,7 @@ function terminator::styles::detached_head_symbol() {
     "$@"
 }
 
-function terminator::styles::upstream_same_color() {
+function terminator::styles::upstream_same_color {
   terminator::styles::color_coalesce \
     "${TERMINATOR_STYLES_UPSTREAM_SAME_COLOR}" \
     "${TERMINATOR_STYLES_UPSTREAM_SAME_COLOR_CODE}" \
@@ -514,7 +514,7 @@ function terminator::styles::upstream_same_color() {
     "$@"
 }
 
-function terminator::styles::upstream_ahead_color() {
+function terminator::styles::upstream_ahead_color {
   terminator::styles::color_coalesce \
     "${TERMINATOR_STYLES_UPSTREAM_AHEAD_COLOR}" \
     "${TERMINATOR_STYLES_UPSTREAM_AHEAD_COLOR_CODE}" \
@@ -522,7 +522,7 @@ function terminator::styles::upstream_ahead_color() {
     "$@"
 }
 
-function terminator::styles::upstream_behind_color() {
+function terminator::styles::upstream_behind_color {
   terminator::styles::color_coalesce \
     "${TERMINATOR_STYLES_UPSTREAM_BEHIND_COLOR}" \
     "${TERMINATOR_STYLES_UPSTREAM_BEHIND_COLOR_CODE}" \
@@ -530,7 +530,7 @@ function terminator::styles::upstream_behind_color() {
     "$@"
 }
 
-function terminator::styles::upstream_gone_color() {
+function terminator::styles::upstream_gone_color {
   terminator::styles::color_coalesce \
     "${TERMINATOR_STYLES_UPSTREAM_GONE_COLOR}" \
     "${TERMINATOR_STYLES_UPSTREAM_GONE_COLOR_CODE}" \
@@ -538,7 +538,7 @@ function terminator::styles::upstream_gone_color() {
     "$@"
 }
 
-function terminator::styles::index_color() {
+function terminator::styles::index_color {
   terminator::styles::color_coalesce \
     "${TERMINATOR_STYLES_INDEX_COLOR}" \
     "${TERMINATOR_STYLES_INDEX_COLOR_CODE}" \
@@ -546,7 +546,7 @@ function terminator::styles::index_color() {
     "$@"
 }
 
-function terminator::styles::files_color() {
+function terminator::styles::files_color {
   terminator::styles::color_coalesce \
     "${TERMINATOR_STYLES_FILES_COLOR}" \
     "${TERMINATOR_STYLES_FILES_COLOR_CODE}" \
@@ -554,7 +554,7 @@ function terminator::styles::files_color() {
     "$@"
 }
 
-function terminator::styles::divider_color() {
+function terminator::styles::divider_color {
   terminator::styles::color_coalesce \
     "${TERMINATOR_STYLES_DIVIDER_COLOR}" \
     "${TERMINATOR_STYLES_DIVIDER_COLOR_CODE}" \
@@ -562,7 +562,7 @@ function terminator::styles::divider_color() {
     "$@"
 }
 
-function terminator::styles::stash_color() {
+function terminator::styles::stash_color {
   terminator::styles::color_coalesce \
     "${TERMINATOR_STYLES_STASH_COLOR}" \
     "${TERMINATOR_STYLES_STASH_COLOR_CODE}" \
@@ -570,7 +570,7 @@ function terminator::styles::stash_color() {
     "$@"
 }
 
-function terminator::styles::enclosure_color() {
+function terminator::styles::enclosure_color {
   terminator::styles::color_coalesce \
     "${TERMINATOR_STYLES_ENCLOSURE_COLOR}" \
     "${TERMINATOR_STYLES_ENCLOSURE_COLOR_CODE}" \
@@ -578,7 +578,7 @@ function terminator::styles::enclosure_color() {
     "$@"
 }
 
-function terminator::styles::__export__() {
+function terminator::styles::__export__ {
   export -f terminator::styles::newline
   export -f terminator::styles::coalesce
   export -f terminator::styles::color_coalesce
@@ -644,7 +644,7 @@ function terminator::styles::__export__() {
   export -f terminator::styles::enclosure_color
 }
 
-function terminator::styles::__recall__() {
+function terminator::styles::__recall__ {
   export -fn terminator::styles::newline
   export -fn terminator::styles::coalesce
   export -fn terminator::styles::color_coalesce

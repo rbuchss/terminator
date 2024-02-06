@@ -5,7 +5,7 @@ source "${BASH_SOURCE[0]%/*}/log.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::os::switch() {
+function terminator::os::switch {
   local darwin_block=terminator::os::switch::darwin_default \
     linux_block=terminator::os::switch::linux_default \
     windows_block=terminator::os::switch::windows_default \
@@ -54,7 +54,7 @@ function terminator::os::switch() {
   esac
 }
 
-function terminator::os::switch::usage() {
+function terminator::os::switch::usage {
   cat <<USAGE_TEXT
 Usage: ${FUNCNAME[1]} [OPTIONS] <args>
 
@@ -74,24 +74,24 @@ Usage: ${FUNCNAME[1]} [OPTIONS] <args>
 USAGE_TEXT
 }
 
-function terminator::os::switch::darwin_default() {
+function terminator::os::switch::darwin_default {
   terminator::log::warning "${FUNCNAME[0]}: noop -> args: $*"
 }
 
-function terminator::os::switch::linux_default() {
+function terminator::os::switch::linux_default {
   terminator::log::warning "${FUNCNAME[0]}: noop -> args: $*"
 }
 
-function terminator::os::switch::windows_default() {
+function terminator::os::switch::windows_default {
   terminator::log::warning "${FUNCNAME[0]}: noop -> args: $*"
 }
 
-function terminator::os::switch::unsupported_default() {
+function terminator::os::switch::unsupported_default {
   terminator::log::error "OS '${OSTYPE}' not supported"
   return 1
 }
 
-function terminator::os::__export__() {
+function terminator::os::__export__ {
   export -f terminator::os::switch
   export -f terminator::os::switch::usage
   export -f terminator::os::switch::darwin_default
@@ -100,7 +100,7 @@ function terminator::os::__export__() {
   export -f terminator::os::switch::unsupported_default
 }
 
-function terminator::os::__recall__() {
+function terminator::os::__recall__ {
   export -fn terminator::os::switch
   export -fn terminator::os::switch::usage
   export -fn terminator::os::switch::darwin_default

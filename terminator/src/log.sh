@@ -4,27 +4,27 @@ source "${BASH_SOURCE[0]%/*}/__module__.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::log::trace() {
+function terminator::log::trace {
   terminator::log::logger -l trace "$@"
 }
 
-function terminator::log::debug() {
+function terminator::log::debug {
   terminator::log::logger -l debug "$@"
 }
 
-function terminator::log::info() {
+function terminator::log::info {
   terminator::log::logger -l info "$@"
 }
 
-function terminator::log::warning() {
+function terminator::log::warning {
   terminator::log::logger -l warning "$@"
 }
 
-function terminator::log::error() {
+function terminator::log::error {
   terminator::log::logger -l error "$@"
 }
 
-function terminator::log::logger() {
+function terminator::log::logger {
   terminator::log::is_silenced && return
 
   local OPTIND flag
@@ -83,7 +83,7 @@ function terminator::log::logger() {
   done
 }
 
-function terminator::log::logger::usage() {
+function terminator::log::logger::usage {
   cat <<USAGE_TEXT
 Usage: ${FUNCNAME[1]} [OPTIONS] # prints log message
 
@@ -98,7 +98,7 @@ Usage: ${FUNCNAME[1]} [OPTIONS] # prints log message
 USAGE_TEXT
 }
 
-function terminator::log::datetime() {
+function terminator::log::datetime {
   local found_command=0 \
     date_command \
     date_commands=(
@@ -119,7 +119,7 @@ function terminator::log::datetime() {
   fi
 }
 
-function terminator::log::severity() {
+function terminator::log::severity {
   local severity
   case "$1" in
     [Tt][Rr][Aa][Cc][Ee]) severity=0 ;;
@@ -132,68 +132,68 @@ function terminator::log::severity() {
   echo "${severity}"
 }
 
-function terminator::log::level() {
+function terminator::log::level {
   local variable default
   variable="$(terminator::log::level::variable)"
   default="$(terminator::log::level_default)"
   terminator::log::severity "${!variable:-${default}}"
 }
 
-function terminator::log::level_default() {
+function terminator::log::level_default {
   local variable
   variable="$(terminator::log::level_default::variable)"
   echo "${!variable:-info}"
 }
 
-function terminator::log::level::variable() {
+function terminator::log::level::variable {
   echo "${TERMINATOR_LOG_LEVEL_VARIABLE:-TERMINATOR_LOG_LEVEL}"
 }
 
-function terminator::log::level::set_variable() {
+function terminator::log::level::set_variable {
   TERMINATOR_LOG_LEVEL_VARIABLE="$1"
 }
 
-function terminator::log::level::unset_variable() {
+function terminator::log::level::unset_variable {
   unset TERMINATOR_LOG_LEVEL_VARIABLE
 }
 
-function terminator::log::level_default::variable() {
+function terminator::log::level_default::variable {
   echo "${TERMINATOR_LOG_LEVEL_DEFAULT_VARIABLE:-TERMINATOR_LOG_LEVEL_DEFAULT}"
 }
 
-function terminator::log::level_default::set_variable() {
+function terminator::log::level_default::set_variable {
   TERMINATOR_LOG_LEVEL_DEFAULT_VARIABLE="$1"
 }
 
-function terminator::log::level_default::unset_variable() {
+function terminator::log::level_default::unset_variable {
   unset TERMINATOR_LOG_LEVEL_DEFAULT_VARIABLE
 }
 
-function terminator::log::is_silenced() {
+function terminator::log::is_silenced {
   local silence
   silence="$(terminator::log::silence)"
   (( silence == 1 ))
 }
 
-function terminator::log::silence() {
+function terminator::log::silence {
   local variable
   variable="$(terminator::log::silence::variable)"
   echo "${!variable:-0}"
 }
 
-function terminator::log::silence::variable() {
+function terminator::log::silence::variable {
   echo "${TERMINATOR_LOG_SILENCE_VARIABLE:-TERMINATOR_LOG_SILENCE}"
 }
 
-function terminator::log::silence::set_variable() {
+function terminator::log::silence::set_variable {
   TERMINATOR_LOG_SILENCE_VARIABLE="$1"
 }
 
-function terminator::log::silence::unset_variable() {
+function terminator::log::silence::unset_variable {
   unset TERMINATOR_LOG_SILENCE_VARIABLE
 }
 
-function terminator::log::caller_formatter() {
+function terminator::log::caller_formatter {
   read -r -a array <<< "$@"
   for index in "${!array[@]}"; do
     case "${index}" in
@@ -208,7 +208,7 @@ function terminator::log::caller_formatter() {
   echo ''
 }
 
-function terminator::log::__export__() {
+function terminator::log::__export__ {
   # We need to export the log functions for them to be accessible via xargs
   #
   # Helper script:
@@ -246,7 +246,7 @@ function terminator::log::__export__() {
   export -f terminator::log::caller_formatter
 }
 
-function terminator::log::__recall__() {
+function terminator::log::__recall__ {
   # We need to remove these exported functions otherwise tmux will not
   # properly load the .bash_profile if any of them are called during
   # the bash --login process.

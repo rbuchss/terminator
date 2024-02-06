@@ -6,7 +6,7 @@ terminator::__module__::load || return 0
 
 # unicode helper for lack of echo/printf code point
 # support in bash < 4.2
-function terminator::unicode::code() {
+function terminator::unicode::code {
   local code_point="$1"
   local ceiling=63
   local bits=128
@@ -37,18 +37,18 @@ function terminator::unicode::code() {
   esac
 }
 
-function terminator::unicode::octal() {
+function terminator::unicode::octal {
   local octal
   printf -v octal '%03o' "$1"
   printf -v "$2" '%b' "\\${octal}"
 }
 
-function terminator::unicode::__export__() {
+function terminator::unicode::__export__ {
   export -f terminator::unicode::code
   export -f terminator::unicode::octal
 }
 
-function terminator::unicode::__recall__() {
+function terminator::unicode::__recall__ {
   export -fn terminator::unicode::code
   export -fn terminator::unicode::octal
 }

@@ -7,7 +7,7 @@ source "${BASH_SOURCE[0]%/*}/prompt.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::postgresql::__enable__() {
+function terminator::postgresql::__enable__ {
   terminator::command::exists -v psql || return
 
   alias psql_list_config='terminator::postgresql::list_config'
@@ -15,22 +15,22 @@ function terminator::postgresql::__enable__() {
   alias psql_clear_pid='terminator::postgresql::clear_pid'
 }
 
-function terminator::postgresql::__disable__() {
+function terminator::postgresql::__disable__ {
   unalias psql_list_config
   unalias psql_edit_config
   unalias psql_clear_pid
 }
 
-function terminator::postgresql::list_config() {
+function terminator::postgresql::list_config {
   psql -qAt -c 'show hba_file' | xargs grep -v -E '^[[:space:]]*#'
 }
 
-function terminator::postgresql::edit_config() {
+function terminator::postgresql::edit_config {
   vim "$(psql -qAt  -c 'SHOW config_file')"
 }
 
 # from https://stackoverflow.com/questions/13573204/psql-could-not-connect-to-server-no-such-file-or-directory-mac-os-x
-function terminator::postgresql::clear_pid() {
+function terminator::postgresql::clear_pid {
   if terminator::homebrew::package::is_installed postgresql; then
     local path file
     path="$(brew --prefix)/var"
@@ -47,13 +47,13 @@ function terminator::postgresql::clear_pid() {
   fi
 }
 
-function terminator::postgresql::__export__() {
+function terminator::postgresql::__export__ {
   export -f terminator::postgresql::list_config
   export -f terminator::postgresql::edit_config
   export -f terminator::postgresql::clear_pid
 }
 
-function terminator::postgresql::__recall__() {
+function terminator::postgresql::__recall__ {
   export -fn terminator::postgresql::list_config
   export -fn terminator::postgresql::edit_config
   export -fn terminator::postgresql::clear_pid

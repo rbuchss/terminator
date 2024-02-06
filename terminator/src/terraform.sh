@@ -6,7 +6,7 @@ source "${BASH_SOURCE[0]%/*}/homebrew.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::terraform::__enable__() {
+function terminator::terraform::__enable__ {
   terminator::command::exists -v terraform || return
 
   if terminator::homebrew::package::is_installed terraform; then
@@ -18,18 +18,18 @@ function terminator::terraform::__enable__() {
   alias tf='terraform'
 }
 
-function terminator::terraform::__disable__() {
+function terminator::terraform::__disable__ {
   complete -r terraform
   complete -r tf
 
   unalias tf
 }
 
-function terminator::terraform::__export__() {
+function terminator::terraform::__export__ {
   :
 }
 
-function terminator::terraform::__recall__() {
+function terminator::terraform::__recall__ {
   :
 }
 

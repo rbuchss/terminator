@@ -6,7 +6,7 @@ source "${BASH_SOURCE[0]%/*/*}/styles.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::prompt::git() {
+function terminator::prompt::git {
   local repo_info
   if ! command -v git > /dev/null 2>&1 \
     || ! repo_info="$(git rev-parse \
@@ -45,7 +45,7 @@ function terminator::prompt::git() {
   terminator::prompt::git::format "${response[@]}" "$@"
 }
 
-function terminator::prompt::git::status() {
+function terminator::prompt::git::status {
   local git_dir="$1"
   local inside_work_tree="$2"
 
@@ -159,7 +159,7 @@ function terminator::prompt::git::status() {
 }
 
 # shellcheck disable=SC2178,SC2128
-function terminator::prompt::git::format() {
+function terminator::prompt::git::format {
   local branch="$1"
   local upstream="$2"
   local ahead_by="$3"
@@ -297,7 +297,7 @@ function terminator::prompt::git::format() {
   esac
 }
 
-function terminator::prompt::git::branch() {
+function terminator::prompt::git::branch {
   local git_dir="$1"
 
   [[ -z "${git_dir}" ]] && return 1
@@ -390,7 +390,7 @@ function terminator::prompt::git::branch() {
   esac
 }
 
-function terminator::prompt::git::stash() {
+function terminator::prompt::git::stash {
   local git_dir="$1" \
     count=0
 
@@ -409,7 +409,7 @@ function terminator::prompt::git::stash() {
   esac
 }
 
-function terminator::prompt::git::__export__() {
+function terminator::prompt::git::__export__ {
   export -f terminator::prompt::git
   export -f terminator::prompt::git::status
   export -f terminator::prompt::git::format
@@ -417,7 +417,7 @@ function terminator::prompt::git::__export__() {
   export -f terminator::prompt::git::stash
 }
 
-function terminator::prompt::git::__recall__() {
+function terminator::prompt::git::__recall__ {
   export -fn terminator::prompt::git
   export -fn terminator::prompt::git::status
   export -fn terminator::prompt::git::format

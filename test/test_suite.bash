@@ -11,7 +11,7 @@ setup_suite() {
   __export_test_suite_functions__
 }
 
-function repo_root() {
+repo_root() {
   git rev-parse --show-toplevel
 }
 

@@ -19,11 +19,11 @@ if ! command -v jq > /dev/null 2>&1; then
   exit 1
 fi
 
-function terminator::test::coverage::repo_root() {
+function terminator::test::coverage::repo_root {
   git rev-parse --show-toplevel
 }
 
-function terminator::test::coverage::get_overall_status() {
+function terminator::test::coverage::get_overall_status {
   local \
     coverage_report_input="${1:?}" \
     threshold="${2:-${THRESHOLD_ALL}}"
@@ -36,7 +36,7 @@ function terminator::test::coverage::get_overall_status() {
     < "${coverage_report_input}"
 }
 
-function terminator::test::coverage::get_overall_report() {
+function terminator::test::coverage::get_overall_report {
   local \
     coverage_report_input="${1:?}" \
     threshold="${2:-${THRESHOLD_ALL}}"
@@ -54,7 +54,7 @@ EOF
     < "${coverage_report_input}"
 }
 
-function terminator::test::coverage::get_files_report() {
+function terminator::test::coverage::get_files_report {
   local \
     coverage_report_input="${1:?}" \
     threshold="${2:?}" \
@@ -99,7 +99,7 @@ EOF
   return 1
 }
 
-function terminator::test::coverage::get_new_files_report() {
+function terminator::test::coverage::get_new_files_report {
   local \
     base_sha="${1:?}" \
     head_sha="${2:?}" \
@@ -116,7 +116,7 @@ function terminator::test::coverage::get_new_files_report() {
     || echo 'No new covered files...'
 }
 
-function terminator::test::coverage::get_modified_files_report() {
+function terminator::test::coverage::get_modified_files_report {
   local \
     base_sha="${1:?}" \
     head_sha="${2:?}" \
@@ -133,7 +133,7 @@ function terminator::test::coverage::get_modified_files_report() {
     || echo 'No modified covered files...'
 }
 
-function terminator::test::coverage::format_pull_request_comment() {
+function terminator::test::coverage::format_pull_request_comment {
   local \
     base_sha="${1:?}" \
     head_sha="${2:?}" \
@@ -175,7 +175,7 @@ EOF
 
 }
 
-function terminator::test::coverage::generate_pull_request_comment() {
+function terminator::test::coverage::generate_pull_request_comment {
   local \
     base_sha="${1:?}" \
     head_sha="${2:?}" \

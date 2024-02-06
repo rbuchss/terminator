@@ -6,7 +6,7 @@ source "${BASH_SOURCE[0]%/*}/homebrew.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::rbenv::__enable__() {
+function terminator::rbenv::__enable__ {
   terminator::command::exists -v rbenv || return
 
   eval "$(rbenv init -)" > /dev/null
@@ -18,15 +18,15 @@ function terminator::rbenv::__enable__() {
 }
 
 # TODO add support for this
-# function terminator::rbenv::__disable__() {
+# function terminator::rbenv::__disable__ {
 #   :
 # }
 
-function terminator::rbenv::__export__() {
+function terminator::rbenv::__export__ {
   :
 }
 
-function terminator::rbenv::__recall__() {
+function terminator::rbenv::__recall__ {
   :
 }
 

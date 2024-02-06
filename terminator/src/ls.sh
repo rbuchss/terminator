@@ -5,7 +5,7 @@ source "${BASH_SOURCE[0]%/*}/command.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::ls::__enable__() {
+function terminator::ls::__enable__ {
   terminator::command::exists -v ls || return
 
   alias ls='ls --color=auto'
@@ -24,7 +24,7 @@ function terminator::ls::__enable__() {
   alias llra='llr -a'
 }
 
-function terminator::ls::__disable__() {
+function terminator::ls::__disable__ {
   unalias ls
   unalias l
   unalias la
@@ -41,11 +41,11 @@ function terminator::ls::__disable__() {
   unalias llra
 }
 
-function terminator::ls::__export__() {
+function terminator::ls::__export__ {
   :
 }
 
-function terminator::ls::__recall__() {
+function terminator::ls::__recall__ {
   :
 }
 

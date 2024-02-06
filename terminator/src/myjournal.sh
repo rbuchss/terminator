@@ -8,7 +8,7 @@ source "${BASH_SOURCE[0]%/*}/vim.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::myjournal::__enable__() {
+function terminator::myjournal::__enable__ {
   alias myjournal='terminator::myjournal::invoke'
   alias mj='terminator::myjournal::invoke'
 
@@ -17,7 +17,7 @@ function terminator::myjournal::__enable__() {
     'mj'
 }
 
-function terminator::myjournal::__disable__() {
+function terminator::myjournal::__disable__ {
   unalias myjournal
   unalias mj
 
@@ -26,7 +26,7 @@ function terminator::myjournal::__disable__() {
     'mj'
 }
 
-function terminator::myjournal::invoke() {
+function terminator::myjournal::invoke {
   local journal_dir \
     journal_file \
     journal_filepath \
@@ -68,16 +68,16 @@ function terminator::myjournal::invoke() {
   terminator::vim::invoke -O "${journal_filepaths[@]}"
 }
 
-function terminator::myjournal::root_dir() {
+function terminator::myjournal::root_dir {
   echo "${TERMINATOR_MYJOURNAL_DIR:-${HOME}/chronicle/journal}"
 }
 
-function terminator::myjournal::valid_name() {
+function terminator::myjournal::valid_name {
   local journal_name="$1"
   [[ "${journal_name}" =~ ^[0-9]{4}/[0-9]{2}$ ]]
 }
 
-function terminator::myjournal::template() {
+function terminator::myjournal::template {
   local journal_name="$1"
 
   terminator::log::debug "Generating template for journal entry: '${journal_name}'"
@@ -94,7 +94,7 @@ $(ncal -w -d "${journal_name}" | sed -E 's/\s+$//')
 EOF
 }
 
-function terminator::myjournal::new_entry() {
+function terminator::myjournal::new_entry {
   local journal_filepath="$1"
 
   if [[ -z "${journal_filepath}" ]]; then
@@ -132,7 +132,7 @@ function terminator::myjournal::new_entry() {
   fi
 }
 
-function terminator::myjournal::completion() {
+function terminator::myjournal::completion {
   local journal_dir \
     word="${COMP_WORDS[COMP_CWORD]}"
 
@@ -156,21 +156,21 @@ function terminator::myjournal::completion() {
   done < <(compgen -W "${suggestions[@]}" -- "${word}")
 }
 
-function terminator::myjournal::completion::add_alias() {
+function terminator::myjournal::completion::add_alias {
   local name
   for name in "$@"; do
     complete -F terminator::myjournal::completion "${name}"
   done
 }
 
-function terminator::myjournal::completion::remove_alias() {
+function terminator::myjournal::completion::remove_alias {
   local name
   for name in "$@"; do
     complete -r "${name}"
   done
 }
 
-function terminator::myjournal::__export__() {
+function terminator::myjournal::__export__ {
   export -f terminator::myjournal::invoke
   export -f terminator::myjournal::root_dir
   export -f terminator::myjournal::valid_name
@@ -180,7 +180,7 @@ function terminator::myjournal::__export__() {
   export -f terminator::myjournal::completion::add_alias
 }
 
-function terminator::myjournal::__recall__() {
+function terminator::myjournal::__recall__ {
   export -fn terminator::myjournal::invoke
   export -fn terminator::myjournal::root_dir
   export -fn terminator::myjournal::valid_name

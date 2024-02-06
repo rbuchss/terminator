@@ -4,7 +4,7 @@ source "${BASH_SOURCE[0]%/*}/__module__.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::path::prepend() {
+function terminator::path::prepend {
   local updated_path
 
   terminator::path::__prepend__ \
@@ -15,7 +15,7 @@ function terminator::path::prepend() {
   export PATH="${updated_path}"
 }
 
-function terminator::path::append() {
+function terminator::path::append {
   local updated_path
 
   terminator::path::__append__ \
@@ -26,7 +26,7 @@ function terminator::path::append() {
   export PATH="${updated_path}"
 }
 
-function terminator::path::remove() {
+function terminator::path::remove {
   local updated_path
 
   terminator::path::__remove__ \
@@ -37,20 +37,20 @@ function terminator::path::remove() {
   export PATH="${updated_path}"
 }
 
-function terminator::path::includes() {
+function terminator::path::includes {
   terminator::path::__includes__ "${PATH}" "$1"
 }
 
-function terminator::path::excludes() {
+function terminator::path::excludes {
   ! terminator::path::includes "$@"
 }
 
-function terminator::path::clear() {
+function terminator::path::clear {
   # shellcheck disable=SC2123
   PATH=''
 }
 
-function terminator::cdpath::prepend() {
+function terminator::cdpath::prepend {
   local updated_cdpath
 
   terminator::path::__prepend__ \
@@ -61,7 +61,7 @@ function terminator::cdpath::prepend() {
   export CDPATH="${updated_cdpath}"
 }
 
-function terminator::cdpath::append() {
+function terminator::cdpath::append {
   local updated_cdpath
 
   terminator::path::__append__ \
@@ -72,7 +72,7 @@ function terminator::cdpath::append() {
   export CDPATH="${updated_cdpath}"
 }
 
-function terminator::cdpath::remove() {
+function terminator::cdpath::remove {
   local updated_cdpath
 
   terminator::path::__remove__ \
@@ -83,19 +83,19 @@ function terminator::cdpath::remove() {
   export CDPATH="${updated_cdpath}"
 }
 
-function terminator::cdpath::includes() {
+function terminator::cdpath::includes {
   terminator::path::__includes__ "${CDPATH}" "$1"
 }
 
-function terminator::cdpath::excludes() {
+function terminator::cdpath::excludes {
   ! terminator::cdpath::includes "$@"
 }
 
-function terminator::cdpath::clear() {
+function terminator::cdpath::clear {
   CDPATH=''
 }
 
-function terminator::manpath::prepend() {
+function terminator::manpath::prepend {
   local updated_manpath
 
   terminator::path::__prepend__ \
@@ -106,7 +106,7 @@ function terminator::manpath::prepend() {
   export MANPATH="${updated_manpath}"
 }
 
-function terminator::manpath::append() {
+function terminator::manpath::append {
   local updated_manpath
 
   terminator::path::__append__ \
@@ -117,7 +117,7 @@ function terminator::manpath::append() {
   export MANPATH="${updated_manpath}"
 }
 
-function terminator::manpath::remove() {
+function terminator::manpath::remove {
   local updated_manpath
 
   terminator::path::__remove__ \
@@ -128,25 +128,25 @@ function terminator::manpath::remove() {
   export MANPATH="${updated_manpath}"
 }
 
-function terminator::manpath::includes() {
+function terminator::manpath::includes {
   terminator::path::__includes__ "${MANPATH}" "$1"
 }
 
-function terminator::manpath::excludes() {
+function terminator::manpath::excludes {
   ! terminator::manpath::includes "$@"
 }
 
-function terminator::manpath::clear() {
+function terminator::manpath::clear {
   MANPATH=''
 }
 
-function terminator::paths::clear() {
+function terminator::paths::clear {
   terminator::path::clear
   terminator::cdpath::clear
   terminator::manpath::clear
 }
 
-function terminator::path::__prepend__() {
+function terminator::path::__prepend__ {
   local _output_var \
     _output_var_used=0 \
     _path \
@@ -227,7 +227,7 @@ function terminator::path::__prepend__() {
   return "${_ignored_count}"
 }
 
-function terminator::path::__prepend__::usage() {
+function terminator::path::__prepend__::usage {
   cat <<USAGE_TEXT
 Prepends arguments to the specified path.
 Usage: ${FUNCNAME[1]} [OPTIONS] <args>
@@ -250,7 +250,7 @@ Usage: ${FUNCNAME[1]} [OPTIONS] <args>
 USAGE_TEXT
 }
 
-function terminator::path::__append__() {
+function terminator::path::__append__ {
   local _output_var \
     _output_var_used=0 \
     _path \
@@ -331,7 +331,7 @@ function terminator::path::__append__() {
   return "${_ignored_count}"
 }
 
-function terminator::path::__append__::usage() {
+function terminator::path::__append__::usage {
   cat <<USAGE_TEXT
 Appends arguments to the specified path.
 Usage: ${FUNCNAME[1]} [OPTIONS] <args>
@@ -354,7 +354,7 @@ Usage: ${FUNCNAME[1]} [OPTIONS] <args>
 USAGE_TEXT
 }
 
-function terminator::path::__remove__() {
+function terminator::path::__remove__ {
   local _output_var \
     _output_var_used=0 \
     _path \
@@ -421,7 +421,7 @@ function terminator::path::__remove__() {
   fi
 }
 
-function terminator::path::__remove__::usage() {
+function terminator::path::__remove__::usage {
   cat <<USAGE_TEXT
 Removes arguments to the specified path.
 Usage: ${FUNCNAME[1]} [OPTIONS] <args>
@@ -439,7 +439,7 @@ Usage: ${FUNCNAME[1]} [OPTIONS] <args>
 USAGE_TEXT
 }
 
-function terminator::path::__includes__() {
+function terminator::path::__includes__ {
   [[ -z "$1" ]] && return 1
 
   case ":$1:" in
@@ -448,11 +448,11 @@ function terminator::path::__includes__() {
   esac
 }
 
-function terminator::path::__excludes__() {
+function terminator::path::__excludes__ {
   ! terminator::path::__includes__ "$@"
 }
 
-function terminator::path::__export__() {
+function terminator::path::__export__ {
   export -f terminator::path::prepend
   export -f terminator::path::append
   export -f terminator::path::remove
@@ -474,7 +474,7 @@ function terminator::path::__export__() {
   export -f terminator::paths::clear
 }
 
-function terminator::path::__recall__() {
+function terminator::path::__recall__ {
   export -fn terminator::path::prepend
   export -fn terminator::path::append
   export -fn terminator::path::remove

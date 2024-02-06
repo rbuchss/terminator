@@ -4,7 +4,7 @@ source "${BASH_SOURCE[0]%/*}/__module__.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::number::compare() {
+function terminator::number::compare {
   if (( $# != 2 )); then
     >&2 echo "ERROR: ${FUNCNAME[0]}: invalid number of arguments"
     >&2 echo "usage: ${FUNCNAME[0]} rhs lhs"
@@ -23,7 +23,7 @@ function terminator::number::compare() {
   }'
 }
 
-function terminator::number::is_integer() {
+function terminator::number::is_integer {
   if (( $# < 1 )); then
     >&2 echo 'ERROR: invalid # of args: expected at least 1 argument'
     >&2 echo "Usage: ${FUNCNAME[0]} value ... value"
@@ -39,7 +39,7 @@ function terminator::number::is_integer() {
   done
 }
 
-function terminator::number::is_unsigned_integer() {
+function terminator::number::is_unsigned_integer {
   if (( $# < 1 )); then
     >&2 echo 'ERROR: invalid # of args: expected at least 1 argument'
     >&2 echo "Usage: ${FUNCNAME[0]} value ... value"
@@ -55,13 +55,13 @@ function terminator::number::is_unsigned_integer() {
   done
 }
 
-function terminator::number::__export__() {
+function terminator::number::__export__ {
   export -f terminator::number::compare
   export -f terminator::number::is_integer
   export -f terminator::number::is_unsigned_integer
 }
 
-function terminator::number::__recall__() {
+function terminator::number::__recall__ {
   export -fn terminator::number::compare
   export -fn terminator::number::is_integer
   export -fn terminator::number::is_unsigned_integer

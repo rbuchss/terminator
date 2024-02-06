@@ -5,17 +5,17 @@ source "${BASH_SOURCE[0]%/*}/command.sh"
 
 terminator::__module__::load || return 0
 
-function terminator::vagrant::__enable__() {
+function terminator::vagrant::__enable__ {
   terminator::command::exists -v vagrant || return
 
   alias vagrant_scp='terminator::vagrant::scp'
 }
 
-function terminator::vagrant::__disable__() {
+function terminator::vagrant::__disable__ {
   unalias vagrant_scp
 }
 
-function terminator::vagrant::scp() {
+function terminator::vagrant::scp {
   scp -o UserKnownHostsFile=/dev/null \
     -o StrictHostKeyChecking=no \
     -o IdentitiesOnly=yes \
@@ -26,11 +26,11 @@ function terminator::vagrant::scp() {
     vagrant@127.0.0.1:
 }
 
-function terminator::vagrant::__export__() {
+function terminator::vagrant::__export__ {
   export -f terminator::vagrant::scp
 }
 
-function terminator::vagrant::__recall__() {
+function terminator::vagrant::__recall__ {
   export -fn terminator::vagrant::scp
 }
 
