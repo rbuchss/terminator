@@ -62,6 +62,10 @@ test-with-coverage:
 		coverage \
 		-- \
 		$(TEST_COMMAND)
+	@$(MAKE) --no-print-directory coverage-report
+
+.PHONY: coverage-report
+coverage-report:
 	[[ -n "$(COVERAGE_REPORT_BASE_SHA)" && -n "$(COVERAGE_REPORT_HEAD_SHA)" ]] \
 		&& $(THIS_DIR)/test/test_coverage/generate_report.sh \
 			"$(COVERAGE_REPORT_BASE_SHA)" \
@@ -83,6 +87,20 @@ linted-source-files:
 .PHONY: linted-test-files
 linted-test-files:
 	git ls-files -- $(LINTED_TEST_FILES)
+
+.PHONY: function-exports
+function-exports:
+	@if ! $(THIS_DIR)/terminator/tools/__module__/generate_function_exports.sh false; then \
+		printf '\n> Add function exports to files? [y/N] '; \
+		read reply; \
+		if [[ "$${reply:-N}" == 'y' ]]; then \
+			$(THIS_DIR)/terminator/tools/__module__/generate_function_exports.sh true; \
+		else \
+			echo 'Answered no - Skipping apply step'; \
+		fi \
+	else \
+		echo 'No missing function exports found!'; \
+	fi
 
 ################################################################################
 # Docker targets and config

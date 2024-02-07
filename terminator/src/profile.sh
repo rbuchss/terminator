@@ -69,6 +69,7 @@ function terminator::profile::os::unsupported {
 }
 
 function terminator::profile::__export__ {
+  export -f terminator::profile::load
   export -f terminator::profile::os::darwin
   export -f terminator::profile::os::linux
   export -f terminator::profile::os::windows
@@ -76,6 +77,7 @@ function terminator::profile::__export__ {
 }
 
 function terminator::profile::__recall__ {
+  export -fn terminator::profile::load
   export -fn terminator::profile::os::darwin
   export -fn terminator::profile::os::linux
   export -fn terminator::profile::os::windows

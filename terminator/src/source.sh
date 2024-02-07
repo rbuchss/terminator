@@ -115,6 +115,7 @@ function terminator::source::__export__ {
   export -f terminator::source::bash_profile::usage
   export -f terminator::source::bash_profile::completion
   export -f terminator::source::bash_profile::completion::add_alias
+  export -f terminator::source::bash_profile::completion::remove_alias
 }
 
 function terminator::source::__recall__ {
@@ -123,6 +124,7 @@ function terminator::source::__recall__ {
   export -fn terminator::source::bash_profile::usage
   export -fn terminator::source::bash_profile::completion
   export -fn terminator::source::bash_profile::completion::add_alias
+  export -fn terminator::source::bash_profile::completion::remove_alias
 }
 
 terminator::__module__::export
