@@ -178,6 +178,7 @@ function terminator::myjournal::__export__ {
   export -f terminator::myjournal::new_entry
   export -f terminator::myjournal::completion
   export -f terminator::myjournal::completion::add_alias
+  export -f terminator::myjournal::completion::remove_alias
 }
 
 function terminator::myjournal::__recall__ {
@@ -188,6 +189,7 @@ function terminator::myjournal::__recall__ {
   export -fn terminator::myjournal::new_entry
   export -fn terminator::myjournal::completion
   export -fn terminator::myjournal::completion::add_alias
+  export -fn terminator::myjournal::completion::remove_alias
 }
 
 terminator::__module__::export
