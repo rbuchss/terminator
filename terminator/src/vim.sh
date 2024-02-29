@@ -108,7 +108,8 @@ function terminator::vim::open::filename_match::rg {
     | command rg \
       --null-data \
       --smart-case \
-      "$1"
+      "$1" \
+    | sort -z
 }
 
 function terminator::vim::open::filename_match::ag {
@@ -117,7 +118,8 @@ function terminator::vim::open::filename_match::ag {
     --smart-case \
     --null \
     -g "$1" \
-    "${2:-./}"
+    "${2:-./}" \
+    | sort -z
 }
 
 function terminator::vim::open::filename_match::ack {
@@ -126,7 +128,8 @@ function terminator::vim::open::filename_match::ack {
     --smart-case \
     --print0 \
     -g "$1" \
-    "${2:-./}"
+    "${2:-./}" \
+    | sort -z
 }
 
 function terminator::vim::open::filename_match::find {
@@ -134,7 +137,8 @@ function terminator::vim::open::filename_match::find {
     -not \( -path "${2:-.}/.git" -prune \) \
     -type f \
     -regex ".*$1.*" \
-    -print0
+    -print0 \
+    | sort -z
 }
 
 function terminator::vim::open::content_match {
@@ -178,7 +182,8 @@ function terminator::vim::open::content_match::rg {
     -l \
     --null \
     "$1" \
-    "${2:-./}"
+    "${2:-./}" \
+    | sort -z
 }
 
 function terminator::vim::open::content_match::ag {
@@ -188,7 +193,8 @@ function terminator::vim::open::content_match::ag {
     -l \
     --null \
     "$1" \
-    "${2:-./}"
+    "${2:-./}" \
+    | sort -z
 }
 
 function terminator::vim::open::content_match::ack {
@@ -198,7 +204,8 @@ function terminator::vim::open::content_match::ack {
     -l \
     --print0 \
     "$1" \
-    "${2:-./}"
+    "${2:-./}" \
+    | sort -z
 }
 
 function terminator::vim::open::content_match::grep {
@@ -208,7 +215,8 @@ function terminator::vim::open::content_match::grep {
     -l \
     --null \
     "$1" \
-    "${2:-./}"
+    "${2:-./}" \
+    | sort -z
 }
 
 function terminator::vim::open::git_diff {
