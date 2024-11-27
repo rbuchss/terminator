@@ -223,11 +223,29 @@ function terminator::vim::open::git_diff {
   local found_ref=0 \
     ref \
     root_dir \
-    refs=("$@") \
+    option_read_mode='REF' \
+    refs=() \
+    path_params=() \
     default_refs=(
       'HEAD'
       'HEAD^!'
     )
+
+    while (( $# != 0 )); do
+      case "$1" in
+        --)
+          option_read_mode='PATH'
+          ;;
+        *)
+          if [[ "${option_read_mode}" == 'PATH' ]]; then
+            path_params+=("$1")
+          else
+            refs+=("$1")
+          fi
+          ;;
+      esac
+      shift
+    done
 
   if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
     terminator::log::error "Not in git repo!"
@@ -243,10 +261,17 @@ function terminator::vim::open::git_diff {
     refs=("${default_refs[@]}")
   fi
 
+  terminator::log::debug "Using git paths specified: [${path_params[*]}]"
+
   for ref in "${refs[@]}"; do
     terminator::log::debug "Trying to find git diff with ref: ${ref}"
 
-    if ! command git diff --name-only --exit-code "${ref}" > /dev/null 2>&1; then
+    if ! command git diff \
+        --name-only \
+        --exit-code \
+        "${ref}" \
+        -- "${path_params[@]}" \
+        > /dev/null 2>&1; then
       terminator::log::debug "Found git diff with ref: ${ref}"
 
       found_ref=1
@@ -259,7 +284,10 @@ function terminator::vim::open::git_diff {
       # Without this, usage of this command outside of the root directory would fail to open those files
       # since git diff provides names relative to the repo root.
       # shellcheck disable=SC2016
-      command git diff --name-only -z "${ref}" \
+      command git diff \
+        --name-only -z \
+        "${ref}" \
+        -- "${path_params[@]}" \
         | xargs -0 bash -c 'cd "$0" && terminator::vim::invoke -p "$@" < /dev/tty' "${root_dir}"
 
       break
