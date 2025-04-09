@@ -8,7 +8,7 @@ spoon.SpoonInstall.repos.ShiftIt = {
 
 spoon.SpoonInstall:andUse("ShiftIt", { repo = "ShiftIt" })
 
-spoon.ShiftIt:setWindowCyclingSizes({ 50, 33, 67 }, { 50 })
+spoon.ShiftIt:setWindowCyclingSizes({ 50, 33, 67 }, { 50, 33, 67 })
 spoon.ShiftIt:bindHotkeys({})
 
 hs.hotkey.bind({"alt"}, "R", function()
