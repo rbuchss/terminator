@@ -42,10 +42,13 @@ local function resolveAppFromEnvOrList(envVarName, bundleList)
 end
 
 -- app launcher
+-- helper script to get bundle id
+-- osascript -e 'id of app "Claude"
 
 local hotkey_q_app = resolveAppFromEnvOrList(
   "TERMINATOR_HAMMERSPOON_HOTKEY_Q_APP",
   {
+    "com.anthropic.claudefordesktop",
     "com.openai.chat",
   }
 )
