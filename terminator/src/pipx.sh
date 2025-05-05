@@ -13,9 +13,10 @@ function terminator::pipx::__enable__ {
     return 1
   fi
 
-  if [[ ! -x "${local_bin_path}/pipx" ]]; then
-    terminator::log::warning "${local_bin_path}/pipx does not exist"
-    return 1
+  if ! command -v pipx > /dev/null 2>&1 \
+    && [[ ! -x "${local_bin_path}/pipx" ]]; then
+      terminator::log::warning 'pipx command does not exist'
+      return 1
   fi
 
   terminator::path::append "${local_bin_path}"
