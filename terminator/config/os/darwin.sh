@@ -12,7 +12,9 @@ terminator::__module__::enable terminator::homebrew
 if [[ -n "${PS1}" ]]; then
   export BASH_SILENCE_DEPRECATION_WARNING=1
 
-  terminator::cdpath::prepend "${HOME}/Library/Services/"
+  terminator::cdpath::prepend \
+    "${HOME}/Library/Services" \
+    "${HOME}/Developer"
 
   # We need to reload tmuxinator -> mux alias again since homebrew
   # /usr/local/etc/bash_completion.d/tmuxinator overwrites it
