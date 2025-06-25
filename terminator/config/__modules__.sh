@@ -32,6 +32,7 @@ terminator::source \
   "${HOME}/.terminator/src/rg.sh" \
   "${HOME}/.terminator/src/ruby.sh" \
   "${HOME}/.terminator/src/rust.sh" \
+  "${HOME}/.terminator/src/ssh.sh" \
   "${HOME}/.terminator/src/terraform.sh" \
   "${HOME}/.terminator/src/tmux.sh" \
   "${HOME}/.terminator/src/tmuxinator.sh" \
@@ -69,6 +70,7 @@ __modules__=(
   terminator::ruby
   terminator::rust
   terminator::source
+  terminator::ssh
   terminator::terraform
   terminator::tmux
   terminator::tmuxinator
