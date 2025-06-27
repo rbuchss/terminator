@@ -119,11 +119,24 @@ function terminator::ssh::add_key {
     --darwin terminator::ssh::add_key::os::darwin \
     --linux terminator::ssh::add_key::os::linux \
     --windows terminator::ssh::add_key::os::windows \
-    --unsupported terminator::ssh::add_key::os::unsupported
+    --unsupported terminator::ssh::add_key::os::unsupported \
+    "${ssh_key_path}"
 }
 
 function terminator::ssh::add_key::os::darwin {
-  command ssh-add --apple-use-keychain "${1:?}"
+  local ssh_add_path_for_darwin='/usr/bin/ssh-add'
+
+  if ! [[ -x "${ssh_add_path_for_darwin}" ]]; then
+    local ssh_add_fallback_path
+
+    ssh_add_fallback_path="$(command -v ssh-add)"
+
+    terminator::log::warning "Cannot find ssh-add darwin default at: '${ssh_add_path_for_darwin}' - Falling back to first in PATH: '${ssh_add_fallback_path}'"
+
+    command ssh-add "${1:?}"
+  fi
+
+  "${ssh_add_path_for_darwin}" --apple-use-keychain "${1:?}"
 }
 
 function terminator::ssh::add_key::os::linux {
