@@ -9,6 +9,7 @@ terminator::source \
   "${HOME}/.terminator/src/diff.sh" \
   "${HOME}/.terminator/src/dotnet.sh" \
   "${HOME}/.terminator/src/file.sh" \
+  "${HOME}/.terminator/src/gcloud.sh" \
   "${HOME}/.terminator/src/git.sh" \
   "${HOME}/.terminator/src/go.sh" \
   "${HOME}/.terminator/src/grc.sh" \
@@ -46,6 +47,7 @@ __modules__=(
   terminator::diff
   terminator::dotnet
   terminator::file
+  terminator::gcloud
   terminator::git
   terminator::go
   terminator::grep
