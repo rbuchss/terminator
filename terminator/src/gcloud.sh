@@ -40,11 +40,11 @@ function terminator::gcloud::__disable__ {
 }
 
 function terminator::gcloud::__export__ {
-  :
+  export -f terminator::gcloud::alias_completion
 }
 
 function terminator::gcloud::__recall__ {
-  :
+  export -fn terminator::gcloud::alias_completion
 }
 
 terminator::__module__::export
