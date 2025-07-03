@@ -50,13 +50,9 @@ function terminator::config::hooks::invoke {
     hook_files+=("${hook_file}")
   done < <(
     find "${hook_dir}" \
-      -depth 1 \
-      -type f \
-      -or \
-      -type l \
-      -name '*.sh' \
-      -or \
-      -name '*.bash' \
+      -maxdepth 1 \
+      \( -type f -o -type l \) \
+      \( -name '*.sh' -o -name '*.bash' \) \
       | sort -n
   )
 
