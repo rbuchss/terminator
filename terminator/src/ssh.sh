@@ -1,6 +1,7 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${BASH_SOURCE[0]%/*}/__module__.sh"
+source "${BASH_SOURCE[0]%/*}/command.sh"
 source "${BASH_SOURCE[0]%/*}/log.sh"
 source "${BASH_SOURCE[0]%/*}/os.sh"
 
@@ -41,15 +42,19 @@ function terminator::ssh::ppinfo {
 }
 
 function terminator::ssh::is_ssh_sudo {
-  local regexp='^([[:digit:]]+)[[:space:]]+(sshd: (.*))?'
-  local ppinfo ppid ssh_user
+  local \
+    regexp='^([[:digit:]]+)[[:space:]]+(sshd: (.*))?' \
+    ppinfo \
+    ppid \
+    ssh_user
+
   ppinfo="$(terminator::ssh::ppinfo "${1:-$$}")"
 
   if [[ "${ppinfo}" =~ $regexp ]]; then
     ppid="${BASH_REMATCH[1]}"
     ssh_user="${BASH_REMATCH[3]}"
 
-    # echo "ppid: '${ppid}' ssh_user: '${ssh_user}'"
+    terminator::log::debug "ppid: '${ppid}' ssh_user: '${ssh_user}'"
 
     if [[ -n "${ssh_user}" ]]; then
       return 0
@@ -74,11 +79,11 @@ function terminator::ssh::find_keys {
 }
 
 function terminator::ssh::find_and_add_keys {
-local \
-  ssh_key_path \
-  ssh_key_paths=()
+  local \
+    ssh_key_path \
+    ssh_key_paths=()
 
-  if ! command -v fzf > /dev/null 2>&1; then
+  if ! terminator::command::exists fzf; then
     terminator::log::error 'Requires fzf which was not found - Exiting'
     return 1
   fi
