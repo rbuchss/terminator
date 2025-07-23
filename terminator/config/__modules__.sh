@@ -40,7 +40,8 @@ terminator::source \
   "${HOME}/.terminator/src/tmuxinator.sh" \
   "${HOME}/.terminator/src/tree.sh" \
   "${HOME}/.terminator/src/vagrant.sh" \
-  "${HOME}/.terminator/src/vim.sh"
+  "${HOME}/.terminator/src/vim.sh" \
+  "${HOME}/.terminator/src/windsurf.sh"
 
 __modules__=(
   terminator::ag
@@ -81,6 +82,7 @@ __modules__=(
   terminator::tree
   terminator::vagrant
   terminator::vim
+  terminator::windsurf
 )
 
 terminator::__module__::enable "${__modules__[@]}"
