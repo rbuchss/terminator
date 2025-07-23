@@ -35,7 +35,7 @@ if [[ -n "${PS1}" ]]; then
   # disable XON/XOFF so ctrl-s works for forward-searching
   stty -ixon
 
-  export TERM='xterm-256color'
+  export TERM='tmux-256color'
   export EDITOR=vim
   export CSCOPE_EDITOR="${EDITOR}"
   export INPUTRC="${HOME}/.inputrc"
