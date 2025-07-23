@@ -7,12 +7,17 @@ source "${BASH_SOURCE[0]%/*}/os.sh"
 
 terminator::__module__::load || return 0
 
+TERMINATOR_SSH_DEFAULT_KEY_TYPE='ed25519'
+TERMINATOR_SSH_INVALID_STATUS=255
+
 function terminator::ssh::__enable__ {
   alias ssh-init='terminator::ssh::find_and_add_keys'
+  alias ssh-generate='terminator::ssh::generate_key'
 }
 
 function terminator::ssh::__disable__ {
   unalias ssh-init
+  unalias ssh-generate
 }
 
 function terminator::ssh::is_ssh_session {
@@ -162,6 +167,86 @@ function terminator::ssh::add_key::os::unsupported {
   return 1
 }
 
+function terminator::ssh::generate_key {
+  local \
+    keytype="${TERMINATOR_SSH_DEFAULT_KEY_TYPE}" \
+    suffix \
+    verbose_flag \
+    user \
+    host \
+    timestamp \
+    keyfile \
+    keygen_options=()
+
+  user="$(whoami)"
+  host="$(hostname -s)"
+  timestamp="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+
+  while (( $# != 0 )); do
+    case "$1" in
+      -h | --help)
+        >&2 terminator::ssh::generate_key::usage
+        return "${TERMINATOR_SSH_INVALID_STATUS}"
+        ;;
+      -t | --key-type)
+        shift
+        keytype="$1"
+        ;;
+      -s | --suffix)
+        shift
+        suffix="$1"
+        ;;
+      -v | -vv | -vvv)
+        verbose_flag="$1"
+        ;;
+      *)
+        >&2 echo "ERROR: ${FUNCNAME[0]} invalid option: '$1'"
+        >&2 terminator::ssh::generate_key::usage
+        return "${TERMINATOR_SSH_INVALID_STATUS}"
+        ;;
+    esac
+    shift
+  done
+
+  if [[ -z "${suffix}" ]]; then
+    keyfile="${HOME}/.ssh/id_${keytype}"
+  else
+    keyfile="${HOME}/.ssh/id_${keytype}_${suffix}"
+  fi
+
+  keygen_options+=(
+    -t "${keytype}"
+    -C "${user}@${host}:${keyfile} -- ${timestamp}"
+    -f "${keyfile}"
+  )
+
+  if [[ -n "${verbose_flag}" ]]; then
+    keygen_options+=("${verbose_flag}")
+  fi
+
+  terminator::log::info 'Generating ssh key using:'
+  printf '  %s %s\n' "${keygen_options[@]}"
+
+  ssh-keygen "${keygen_options[@]}"
+}
+
+function terminator::ssh::generate_key::usage {
+  cat <<USAGE_TEXT
+Usage: ${FUNCNAME[1]} [OPTIONS]
+
+  -t, --key-type     Key type
+                     Default: ${TERMINATOR_SSH_DEFAULT_KEY_TYPE}
+
+  -s, --suffix       Key suffix. If specified adds this to the keyfile name.
+
+  -v, --vv, -vvv     Verbose mode.
+                     Multiple -v options increase the verbosity
+                     The maximum is 3.
+
+  -h, --help         Display this help message
+USAGE_TEXT
+}
+
 function terminator::ssh::__export__ {
   export -f terminator::ssh::is_ssh_session
   export -f terminator::ssh::ppinfo
@@ -173,6 +258,8 @@ function terminator::ssh::__export__ {
   export -f terminator::ssh::add_key::os::linux
   export -f terminator::ssh::add_key::os::windows
   export -f terminator::ssh::add_key::os::unsupported
+  export -f terminator::ssh::generate_key
+  export -f terminator::ssh::generate_key::usage
 }
 
 function terminator::ssh::__recall__ {
@@ -186,6 +273,8 @@ function terminator::ssh::__recall__ {
   export -fn terminator::ssh::add_key::os::linux
   export -fn terminator::ssh::add_key::os::windows
   export -fn terminator::ssh::add_key::os::unsupported
+  export -fn terminator::ssh::generate_key
+  export -fn terminator::ssh::generate_key::usage
 }
 
 terminator::__module__::export
