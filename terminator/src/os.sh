@@ -1,7 +1,7 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${BASH_SOURCE[0]%/*}/__module__.sh"
-source "${BASH_SOURCE[0]%/*}/log.sh"
+source "${BASH_SOURCE[0]%/*}/logger.sh"
 
 terminator::__module__::load || return 0
 
@@ -75,19 +75,19 @@ USAGE_TEXT
 }
 
 function terminator::os::switch::darwin_default {
-  terminator::log::warning "${FUNCNAME[0]}: noop -> args: $*"
+  terminator::logger::warning "${FUNCNAME[0]}: noop -> args: $*"
 }
 
 function terminator::os::switch::linux_default {
-  terminator::log::warning "${FUNCNAME[0]}: noop -> args: $*"
+  terminator::logger::warning "${FUNCNAME[0]}: noop -> args: $*"
 }
 
 function terminator::os::switch::windows_default {
-  terminator::log::warning "${FUNCNAME[0]}: noop -> args: $*"
+  terminator::logger::warning "${FUNCNAME[0]}: noop -> args: $*"
 }
 
 function terminator::os::switch::unsupported_default {
-  terminator::log::error "OS '${OSTYPE}' not supported"
+  terminator::logger::error "OS '${OSTYPE}' not supported"
   return 1
 }
 

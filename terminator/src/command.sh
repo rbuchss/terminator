@@ -1,7 +1,7 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${BASH_SOURCE[0]%/*}/__module__.sh"
-source "${BASH_SOURCE[0]%/*}/log.sh"
+source "${BASH_SOURCE[0]%/*}/logger.sh"
 
 terminator::__module__::load || return 0
 
@@ -50,7 +50,7 @@ function terminator::command::exists {
   argument="${arguments[0]}"
 
   if ! terminator::command::__exists__ "${argument}"; then
-    terminator::log::logger -l "${log_level}" -o "${log_output}" "${argument} is not installed"
+    terminator::logger::log -l "${log_level}" -o "${log_output}" "${argument} is not installed"
     return 1
   fi
 
@@ -98,7 +98,7 @@ function terminator::command::any_exist {
     terminator::command::__exists__ "${argument}" && return 0
   done
 
-  terminator::log::logger -l "${log_level}" -o "${log_output}" "[${arguments[*]}] are not installed"
+  terminator::logger::log -l "${log_level}" -o "${log_output}" "[${arguments[*]}] are not installed"
   return 1
 }
 
@@ -141,7 +141,7 @@ function terminator::command::none_exist {
 
   for argument in "${arguments[@]}"; do
     if terminator::command::__exists__ "${argument}"; then
-      terminator::log::logger -l "${log_level}" -o "${log_output}" "${argument} is installed"
+      terminator::logger::log -l "${log_level}" -o "${log_output}" "${argument} is installed"
       return 1
     fi
   done
@@ -188,7 +188,7 @@ function terminator::command::all_exist {
 
   for argument in "${arguments[@]}"; do
     if ! terminator::command::__exists__ "${argument}"; then
-      terminator::log::logger -l "${log_level}" -o "${log_output}" "${argument} is not installed"
+      terminator::logger::log -l "${log_level}" -o "${log_output}" "${argument} is not installed"
       return 1
     fi
   done

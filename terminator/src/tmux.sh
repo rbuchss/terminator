@@ -25,7 +25,7 @@ function terminator::tmux::invoke {
     source "${HOME}/.terminator/bin/tmux-session-create"
 
     # We need to remove exported log functions otherwise tmux will not be happy.
-    terminator::__module__::recall terminator::log
+    terminator::__module__::recall terminator::logger
     recalled=1
   fi
 
@@ -34,7 +34,7 @@ function terminator::tmux::invoke {
 
   if (( recalled == 1 )); then
     # Re-init removed exported log functions.
-    terminator::__module__::export terminator::log
+    terminator::__module__::export terminator::logger
   fi
 
   return "${exit_status}"

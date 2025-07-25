@@ -103,7 +103,7 @@ function terminator::config::hooks::invoke {
     hook_files=()
 
   if [[ -z "${hook_type}" ]]; then
-    terminator::log::error 'hook type not specified'
+    terminator::logger::error 'hook type not specified'
     return 1
   fi
 
@@ -120,7 +120,7 @@ function terminator::config::hooks::invoke {
   )
 
   if (( ${#hook_files[@]} == 0 )); then
-    terminator::log::debug "SKIPPING hook: '${hook_type}' - no files found in: '${hook_dir}'"
+    terminator::logger::debug "SKIPPING hook: '${hook_type}' - no files found in: '${hook_dir}'"
     return
   fi
 

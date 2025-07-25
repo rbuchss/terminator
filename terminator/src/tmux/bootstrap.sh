@@ -2,7 +2,7 @@
 # shellcheck source=/dev/null
 source "${BASH_SOURCE[0]%/*/*}/__module__.sh"
 source "${BASH_SOURCE[0]%/*}/config.sh"
-source "${BASH_SOURCE[0]%/*}/log.sh"
+source "${BASH_SOURCE[0]%/*}/logger.sh"
 
 terminator::__module__::load || return 0
 
@@ -10,11 +10,11 @@ function terminator::tmux::bootstrap::session_create {
   local path version
 
   if ! path="$(terminator::tmux::config::current_version::path)"; then
-    terminator::tmux::log::error "skipping load of missing config: '${path}'"
+    terminator::tmux::logger::error "skipping load of missing config: '${path}'"
 
     if version="$(terminator::tmux::config::rollback_version)"; then
       path="$(terminator::tmux::config::version::path "${version}")"
-      terminator::tmux::log::warning "reverting to version ${version} config: ${path}"
+      terminator::tmux::logger::warning "reverting to version ${version} config: ${path}"
     fi
   fi
 
@@ -34,7 +34,7 @@ function terminator::tmux::bootstrap::styles {
 
 function terminator::tmux::bootstrap::build_messages {
   local input output
-  input="$(terminator::tmux::log::path)"
+  input="$(terminator::tmux::logger::path)"
   output="$(terminator::tmux::bootstrap::messages::path)"
 
   # skip if log is empty
@@ -58,7 +58,7 @@ EOM
 
 function terminator::tmux::bootstrap::messages::path {
   local log_path
-  log_path="$(terminator::tmux::log::path)"
+  log_path="$(terminator::tmux::logger::path)"
   echo "${log_path/log/conf}"
 }
 

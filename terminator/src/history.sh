@@ -49,7 +49,7 @@ function terminator::history::search {
   done
 
   if (( found_command == 0 )); then
-    terminator::log::error "No possible search commands found: [${search_commands[*]}]"
+    terminator::logger::error "No possible search commands found: [${search_commands[*]}]"
     return 1
   fi
 }
