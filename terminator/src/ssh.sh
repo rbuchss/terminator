@@ -2,7 +2,7 @@
 # shellcheck source=/dev/null
 source "${BASH_SOURCE[0]%/*}/__module__.sh"
 source "${BASH_SOURCE[0]%/*}/command.sh"
-source "${BASH_SOURCE[0]%/*}/log.sh"
+source "${BASH_SOURCE[0]%/*}/logger.sh"
 source "${BASH_SOURCE[0]%/*}/os.sh"
 
 terminator::__module__::load || return 0
@@ -59,7 +59,7 @@ function terminator::ssh::is_ssh_sudo {
     ppid="${BASH_REMATCH[1]}"
     ssh_user="${BASH_REMATCH[3]}"
 
-    terminator::log::debug "ppid: '${ppid}' ssh_user: '${ssh_user}'"
+    terminator::logger::debug "ppid: '${ppid}' ssh_user: '${ssh_user}'"
 
     if [[ -n "${ssh_user}" ]]; then
       return 0
@@ -89,7 +89,7 @@ function terminator::ssh::find_and_add_keys {
     ssh_key_paths=()
 
   if ! terminator::command::exists fzf; then
-    terminator::log::error 'Requires fzf which was not found - Exiting'
+    terminator::logger::error 'Requires fzf which was not found - Exiting'
     return 1
   fi
 
@@ -98,11 +98,11 @@ function terminator::ssh::find_and_add_keys {
   done < <(terminator::ssh::find_keys | fzf --multi --header='Select ssh keys to add')
 
   if (( ${#ssh_key_paths[@]} == 0 )); then
-    terminator::log::warning 'No ssh keys found - Exiting'
+    terminator::logger::warning 'No ssh keys found - Exiting'
     return 1
   fi
 
-  terminator::log::info "Selected ssh keys: [${ssh_key_paths[*]}]"
+  terminator::logger::info "Selected ssh keys: [${ssh_key_paths[*]}]"
 
   for ssh_key_path in "${ssh_key_paths[@]}"; do
     terminator::ssh::add_key "${ssh_key_path}"
@@ -113,22 +113,22 @@ function terminator::ssh::add_key {
   local ssh_key_path="${1:?}"
 
   if [[ ! -f "${ssh_key_path}" ]]; then
-    terminator::log::warning "Cannot find ssh private key: '${ssh_key_path}' - Exiting"
+    terminator::logger::warning "Cannot find ssh private key: '${ssh_key_path}' - Exiting"
     return 1
   fi
 
   if [[ ! -f "${ssh_key_path}.pub" ]]; then
-    terminator::log::warning "Cannot find ssh public key: '${ssh_key_path}.pub' - Exiting"
+    terminator::logger::warning "Cannot find ssh public key: '${ssh_key_path}.pub' - Exiting"
     return 1
   fi
 
   # Check if public key already exists in ssh authentication agent - if so just noop
   if command ssh-add -L | command grep -q -f "${ssh_key_path}.pub"; then
-    terminator::log::info "ssh-identity '${ssh_key_path}' found in authentication agent - Noop"
+    terminator::logger::info "ssh-identity '${ssh_key_path}' found in authentication agent - Noop"
     return
   fi
 
-  terminator::log::info "ssh-identity '${ssh_key_path}' NOT found in authentication agent - Adding"
+  terminator::logger::info "ssh-identity '${ssh_key_path}' NOT found in authentication agent - Adding"
 
   terminator::os::switch \
     --darwin terminator::ssh::add_key::os::darwin \
@@ -146,7 +146,7 @@ function terminator::ssh::add_key::os::darwin {
 
     ssh_add_fallback_path="$(command -v ssh-add)"
 
-    terminator::log::warning "Cannot find ssh-add darwin default at: '${ssh_add_path_for_darwin}' - Falling back to first in PATH: '${ssh_add_fallback_path}'"
+    terminator::logger::warning "Cannot find ssh-add darwin default at: '${ssh_add_path_for_darwin}' - Falling back to first in PATH: '${ssh_add_fallback_path}'"
 
     command ssh-add "${1:?}"
   fi
@@ -163,7 +163,7 @@ function terminator::ssh::add_key::os::windows {
 }
 
 function terminator::ssh::add_key::os::unsupported {
-  terminator::log::error "OS '${OSTYPE}' not supported"
+  terminator::logger::error "OS '${OSTYPE}' not supported"
   return 1
 }
 
@@ -224,7 +224,7 @@ function terminator::ssh::generate_key {
     keygen_options+=("${verbose_flag}")
   fi
 
-  terminator::log::info 'Generating ssh key using:'
+  terminator::logger::info 'Generating ssh key using:'
   printf '  %s %s\n' "${keygen_options[@]}"
 
   ssh-keygen "${keygen_options[@]}"

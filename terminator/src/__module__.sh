@@ -46,10 +46,10 @@ function terminator::__module__::load {
     "${TERMINATOR_MODULE_LOAD_ACTION}"; then
         TERMINATOR_MODULES_LOADED+=("${module}")
 
-        if terminator::__module__::__function_exists__ 'terminator::log::trace'; then
+        if terminator::__module__::__function_exists__ 'terminator::logger::trace'; then
           local trace_message
           printf -v trace_message '  %s\n' "${TERMINATOR_MODULES_LOADED[@]}"
-          terminator::log::trace -- "-> TERMINATOR_MODULES_LOADED: [\n${trace_message}]"
+          terminator::logger::trace -- "-> TERMINATOR_MODULES_LOADED: [\n${trace_message}]"
         fi
 
         return "${should_source_status}"
@@ -128,10 +128,10 @@ function terminator::__module__::export {
       'terminator::__module__::__action__::__module_action_handler__'; then
           TERMINATOR_MODULES_EXPORTED+=("${module}")
 
-          if terminator::__module__::__function_exists__ 'terminator::log::trace'; then
+          if terminator::__module__::__function_exists__ 'terminator::logger::trace'; then
             local trace_message
             printf -v trace_message '  %s\n' "${TERMINATOR_MODULES_EXPORTED[@]}"
-            terminator::log::trace -- "-> TERMINATOR_MODULES_EXPORTED: [\n${trace_message}]"
+            terminator::logger::trace -- "-> TERMINATOR_MODULES_EXPORTED: [\n${trace_message}]"
           fi
     fi
   done
@@ -207,10 +207,10 @@ function terminator::__module__::enable {
       'terminator::__module__::__action__::__module_action_handler__'; then
           TERMINATOR_MODULES_ENABLED+=("${module}")
 
-          if terminator::__module__::__function_exists__ 'terminator::log::trace'; then
+          if terminator::__module__::__function_exists__ 'terminator::logger::trace'; then
             local trace_message
             printf -v trace_message '  %s\n' "${TERMINATOR_MODULES_ENABLED[@]}"
-            terminator::log::trace -- "-> TERMINATOR_MODULES_ENABLED: [\n${trace_message}]"
+            terminator::logger::trace -- "-> TERMINATOR_MODULES_ENABLED: [\n${trace_message}]"
           fi
     fi
   done
@@ -281,7 +281,7 @@ function terminator::__module__::__action__ {
     "${TERMINATOR_MODULE_DISABLE_ACTION}") ;;
     *)
       terminator::__module__::__invoke_function_if_exists__ \
-        'terminator::log::error' -c 2 \
+        'terminator::logger::error' -c 2 \
         "Action: '${action}' is not valid"
       return 2
       ;;
@@ -290,7 +290,7 @@ function terminator::__module__::__action__ {
   # Guard to do module action only if not already in desired state
   if terminator::__module__::__is_in_state__ "${module}" "${action}"; then
     terminator::__module__::__invoke_function_if_exists__ \
-      'terminator::log::trace' -c 3 \
+      'terminator::logger::trace' -c 3 \
       "Skipping: '${module}' since it is already in ${action} state"
 
     return 1
@@ -310,14 +310,14 @@ function terminator::__module__::__action__::__module_action_handler__ {
 
   if ! terminator::__module__::__function_exists__ "${module_action_function}"; then
     terminator::__module__::__invoke_function_if_exists__ \
-      'terminator::log::warning' -c 4 \
+      'terminator::logger::warning' -c 4 \
       "Skipping: '${module}' since it has no ${module_action_function} function defined"
 
     return 2
   fi
 
   terminator::__module__::__invoke_function_if_exists__ \
-    'terminator::log::trace' -c 4 "Invoking: '${module_action_function}'"
+    'terminator::logger::trace' -c 4 "Invoking: '${module_action_function}'"
 
   "${module_action_function}"
 }
@@ -358,7 +358,7 @@ function terminator::__module__::__is_in_state__ {
       ;;
     *)
       terminator::__module__::__invoke_function_if_exists__ \
-        'terminator::log::error' -c "${log_caller_level}" \
+        'terminator::logger::error' -c "${log_caller_level}" \
         "Action: '${action}' is not valid"
       return 2
       ;;
@@ -405,7 +405,7 @@ function terminator::__module__::__get_module_name__ {
   _module="${_module//_/::}"
 
   terminator::__module__::__invoke_function_if_exists__ \
-    'terminator::log::trace' -c 3 "Using module name: '${_module}' for file: '${_source_filepath}'"
+    'terminator::logger::trace' -c 3 "Using module name: '${_module}' for file: '${_source_filepath}'"
 
   printf -v "${_output_var}" '%s' "${_module}"
 }

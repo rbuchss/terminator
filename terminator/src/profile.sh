@@ -45,7 +45,7 @@ function terminator::profile::load {
   # ensure CDPATH has . as first element
   terminator::cdpath::prepend '.'
 
-  terminator::log::debug \
+  terminator::logger::debug \
     "Profile PATH: ${PATH}" \
     "Profile MANPATH: ${MANPATH}" \
     "Profile CDPATH: ${CDPATH}"
@@ -64,7 +64,7 @@ function terminator::profile::os::windows {
 }
 
 function terminator::profile::os::unsupported {
-  terminator::log::error "OS '${OSTYPE}' not supported"
+  terminator::logger::error "OS '${OSTYPE}' not supported"
   return 1
 }
 

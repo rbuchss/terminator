@@ -34,12 +34,12 @@ function terminator::homebrew::__enable__ {
   done
 
   if (( brew_path_exists == 0 )); then
-    terminator::log::warning "homebrew path is not found in possible paths: ${possible_brew_paths[*]}"
+    terminator::logger::warning "homebrew path is not found in possible paths: ${possible_brew_paths[*]}"
     return
   fi
 
   if ! terminator::homebrew::is_installed; then
-    terminator::log::warning 'homebrew is not installed'
+    terminator::logger::warning 'homebrew is not installed'
     return
   fi
 
@@ -64,11 +64,11 @@ function terminator::homebrew::add_paths {
   for element in "$@"; do
     if terminator::homebrew::package::is_installed "${element}"; then
       prefix="$(brew --prefix "${element}")"
-      terminator::log::debug "'${prefix}'"
+      terminator::logger::debug "'${prefix}'"
       terminator::path::prepend "${prefix}/libexec/gnubin"
       terminator::manpath::prepend "${prefix}/libexec/gnuman"
     else
-      terminator::log::warning "homebrew package ${element} is not installed"
+      terminator::logger::warning "homebrew package ${element} is not installed"
     fi
   done
 }
@@ -85,7 +85,7 @@ function terminator::homebrew::__enable__::bash_completion {
   if terminator::homebrew::package::is_installed bash-completion; then
     terminator::source "$(brew --prefix)/etc/bash_completion"
   else
-    terminator::log::warning 'homebrew package bash-completion is not installed'
+    terminator::logger::warning 'homebrew package bash-completion is not installed'
   fi
 }
 

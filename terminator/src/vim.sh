@@ -2,7 +2,7 @@
 # shellcheck source=/dev/null
 source "${BASH_SOURCE[0]%/*}/__module__.sh"
 source "${BASH_SOURCE[0]%/*}/command.sh"
-source "${BASH_SOURCE[0]%/*}/log.sh"
+source "${BASH_SOURCE[0]%/*}/logger.sh"
 
 terminator::__module__::load || return 0
 
@@ -42,13 +42,13 @@ function terminator::vim::invoke {
     )
 
   for vim_command in "${vim_commands[@]}"; do
-    if declare -F terminator::log::debug > /dev/null 2>&1; then
-      terminator::log::debug "Trying to use vim command: ${vim_command}"
+    if declare -F terminator::logger::debug > /dev/null 2>&1; then
+      terminator::logger::debug "Trying to use vim command: ${vim_command}"
     fi
 
     if command -v "${vim_command}" > /dev/null 2>&1; then
-      if declare -F terminator::log::debug > /dev/null 2>&1; then
-        terminator::log::debug "Found vim command: ${vim_command}"
+      if declare -F terminator::logger::debug > /dev/null 2>&1; then
+        terminator::logger::debug "Found vim command: ${vim_command}"
       fi
 
       found_command=1
@@ -60,7 +60,7 @@ function terminator::vim::invoke {
   done
 
   if (( found_command == 0 )); then
-    terminator::log::error "No possible vim commands found: [${vim_commands[*]}]"
+    terminator::logger::error "No possible vim commands found: [${vim_commands[*]}]"
     return 1
   fi
 }
@@ -76,10 +76,10 @@ function terminator::vim::open::filename_match {
     )
 
   for search_command in "${search_commands[@]}"; do
-    terminator::log::debug "Trying to search with command: ${search_command}"
+    terminator::logger::debug "Trying to search with command: ${search_command}"
 
     if command -v "${search_command}" > /dev/null 2>&1; then
-      terminator::log::debug "Found search command: ${search_command}"
+      terminator::logger::debug "Found search command: ${search_command}"
 
       found_command=1
 
@@ -94,7 +94,7 @@ function terminator::vim::open::filename_match {
   done
 
   if (( found_command == 0 )); then
-    terminator::log::error "No possible search commands found: [${search_commands[*]}]"
+    terminator::logger::error "No possible search commands found: [${search_commands[*]}]"
     return 1
   fi
 }
@@ -152,10 +152,10 @@ function terminator::vim::open::content_match {
     )
 
   for search_command in "${search_commands[@]}"; do
-    terminator::log::debug "Trying to search with command: ${search_command}"
+    terminator::logger::debug "Trying to search with command: ${search_command}"
 
     if command -v "${search_command}" > /dev/null 2>&1; then
-      terminator::log::debug "Found search command: ${search_command}"
+      terminator::logger::debug "Found search command: ${search_command}"
 
       found_command=1
 
@@ -170,7 +170,7 @@ function terminator::vim::open::content_match {
   done
 
   if (( found_command == 0 )); then
-    terminator::log::error "No possible search commands found: [${search_commands[*]}]"
+    terminator::logger::error "No possible search commands found: [${search_commands[*]}]"
     return 1
   fi
 }
@@ -248,23 +248,23 @@ function terminator::vim::open::git_diff {
     done
 
   if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
-    terminator::log::error "Not in git repo!"
+    terminator::logger::error "Not in git repo!"
     return 1
   fi
 
   root_dir="$(git rev-parse --show-toplevel)"
 
   if (( ${#refs[@]} > 0 )); then
-    terminator::log::debug "Using refs specified: [${refs[*]}]"
+    terminator::logger::debug "Using refs specified: [${refs[*]}]"
   else
-    terminator::log::debug "No refs specified - Using defaults: [${default_refs[*]}]"
+    terminator::logger::debug "No refs specified - Using defaults: [${default_refs[*]}]"
     refs=("${default_refs[@]}")
   fi
 
-  terminator::log::debug "Using git paths specified: [${path_params[*]}]"
+  terminator::logger::debug "Using git paths specified: [${path_params[*]}]"
 
   for ref in "${refs[@]}"; do
-    terminator::log::debug "Trying to find git diff with ref: ${ref}"
+    terminator::logger::debug "Trying to find git diff with ref: ${ref}"
 
     if ! command git diff \
         --name-only \
@@ -272,7 +272,7 @@ function terminator::vim::open::git_diff {
         "${ref}" \
         -- "${path_params[@]}" \
         > /dev/null 2>&1; then
-      terminator::log::debug "Found git diff with ref: ${ref}"
+      terminator::logger::debug "Found git diff with ref: ${ref}"
 
       found_ref=1
 
@@ -295,7 +295,7 @@ function terminator::vim::open::git_diff {
   done
 
   if (( found_ref == 0 )); then
-    terminator::log::error "No possible git diff refs found: [${refs[*]}]"
+    terminator::logger::error "No possible git diff refs found: [${refs[*]}]"
     return 1
   fi
 }

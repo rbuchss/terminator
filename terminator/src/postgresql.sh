@@ -41,7 +41,7 @@ function terminator::postgresql::clear_pid {
       sudo mv "${file}" "${HOME}/"
     fi
   else
-    terminator::log::warning \
+    terminator::logger::warning \
       'homebrew is not installed' \
       'and/or postgres is not brew installed'
   fi

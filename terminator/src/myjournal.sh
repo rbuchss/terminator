@@ -2,7 +2,7 @@
 # shellcheck source=/dev/null
 source "${BASH_SOURCE[0]%/*}/__module__.sh"
 source "${BASH_SOURCE[0]%/*}/array.sh"
-source "${BASH_SOURCE[0]%/*}/log.sh"
+source "${BASH_SOURCE[0]%/*}/logger.sh"
 source "${BASH_SOURCE[0]%/*}/prompt.sh"
 source "${BASH_SOURCE[0]%/*}/vim.sh"
 
@@ -37,9 +37,9 @@ function terminator::myjournal::invoke {
   journal_dir="$(terminator::myjournal::root_dir)"
 
   if (( ${#journal_files[@]} > 0 )); then
-    terminator::log::debug "Using journal files specified: [${journal_files[*]}]"
+    terminator::logger::debug "Using journal files specified: [${journal_files[*]}]"
   else
-    terminator::log::debug "No journal files specified - Using defaults: [${default_journal_files[*]}]"
+    terminator::logger::debug "No journal files specified - Using defaults: [${default_journal_files[*]}]"
     journal_files=("${default_journal_files[@]}")
   fi
 
@@ -47,7 +47,7 @@ function terminator::myjournal::invoke {
     journal_filepath="${journal_dir}/${journal_file}.myjournal"
 
     if ! terminator::myjournal::valid_name "${journal_file}"; then
-      terminator::log::error "Name '${journal_file}' is not valid!"
+      terminator::logger::error "Name '${journal_file}' is not valid!"
       return 1
     fi
 
@@ -60,11 +60,11 @@ function terminator::myjournal::invoke {
   done
 
   if (( ${#journal_filepaths[@]} == 0 )); then
-    terminator::log::error 'No valid journal files specified!'
+    terminator::logger::error 'No valid journal files specified!'
     return 1
   fi
 
-  terminator::log::debug "Opening journal files: [${journal_filepaths[*]}]"
+  terminator::logger::debug "Opening journal files: [${journal_filepaths[*]}]"
   terminator::vim::invoke -O "${journal_filepaths[@]}"
 }
 
@@ -80,10 +80,10 @@ function terminator::myjournal::valid_name {
 function terminator::myjournal::template {
   local journal_name="$1"
 
-  terminator::log::debug "Generating template for journal entry: '${journal_name}'"
+  terminator::logger::debug "Generating template for journal entry: '${journal_name}'"
 
   if ! terminator::myjournal::valid_name "${journal_name}"; then
-    terminator::log::error "Name '${journal_name}' is not valid!"
+    terminator::logger::error "Name '${journal_name}' is not valid!"
     return 1
   fi
 
@@ -98,21 +98,21 @@ function terminator::myjournal::new_entry {
   local journal_filepath="$1"
 
   if [[ -z "${journal_filepath}" ]]; then
-    terminator::log::error 'No new journal entry filepath specified'
+    terminator::logger::error 'No new journal entry filepath specified'
     return 1
   fi
 
-  terminator::log::debug "Creating new journal entry at: '${journal_filepath}'"
+  terminator::logger::debug "Creating new journal entry at: '${journal_filepath}'"
 
   local journal_dir="${journal_filepath%/*}"
 
   if [[ ! -d "${journal_dir}" ]]; then
-    terminator::log::debug "Creating a new journal dir at: '${journal_dir}'"
+    terminator::logger::debug "Creating a new journal dir at: '${journal_dir}'"
 
     if mkdir -p "${journal_dir}"; then
-      terminator::log::debug "Created a new journal dir at: '${journal_dir}'"
+      terminator::logger::debug "Created a new journal dir at: '${journal_dir}'"
     else
-      terminator::log::error "Failed to create a new journal dir at: '${journal_dir}'"
+      terminator::logger::error "Failed to create a new journal dir at: '${journal_dir}'"
       return 1
     fi
   fi
@@ -125,9 +125,9 @@ function terminator::myjournal::new_entry {
 
   if journal_content="$(terminator::myjournal::template "${journal_name}")" \
       && cat <<< "${journal_content}" > "${journal_filepath}"; then
-    terminator::log::info "Created a new journal entry at: '${journal_filepath}'"
+    terminator::logger::info "Created a new journal entry at: '${journal_filepath}'"
   else
-    terminator::log::error "Failed to create a new journal entry at: '${journal_filepath}'"
+    terminator::logger::error "Failed to create a new journal entry at: '${journal_filepath}'"
     return 1
   fi
 }

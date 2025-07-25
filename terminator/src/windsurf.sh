@@ -1,7 +1,7 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${BASH_SOURCE[0]%/*}/__module__.sh"
-source "${BASH_SOURCE[0]%/*}/log.sh"
+source "${BASH_SOURCE[0]%/*}/logger.sh"
 source "${BASH_SOURCE[0]%/*}/os.sh"
 source "${BASH_SOURCE[0]%/*}/path.sh"
 
@@ -64,12 +64,12 @@ function terminator::windsurf::__disable__::os::windows {
 }
 
 function terminator::windsurf::__enable__::os::unsupported {
-  terminator::log::error "OS '${OSTYPE}' not supported"
+  terminator::logger::error "OS '${OSTYPE}' not supported"
   return 1
 }
 
 function terminator::windsurf::__disable__::os::unsupported {
-  terminator::log::error "OS '${OSTYPE}' not supported"
+  terminator::logger::error "OS '${OSTYPE}' not supported"
   return 1
 }
 

@@ -2,19 +2,18 @@
 # shellcheck source=/dev/null
 source "${BASH_SOURCE[0]%/*}/__module__.sh"
 source "${BASH_SOURCE[0]%/*}/array.sh"
-source "${BASH_SOURCE[0]%/*}/log.sh"
-source "${BASH_SOURCE[0]%/*}/log.sh"
+source "${BASH_SOURCE[0]%/*}/logger.sh"
 
 terminator::__module__::load || return 0
 
 function terminator::source {
   for element in "$@"; do
     if [[ -s "${element}" ]]; then
-      terminator::log::debug "'${element}'"
+      terminator::logger::debug "'${element}'"
       # shellcheck source=/dev/null
       source "${element}"
     else
-      terminator::log::warning "'${element}' NOT found!"
+      terminator::logger::warning "'${element}' NOT found!"
     fi
   done
 }

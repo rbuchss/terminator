@@ -1,7 +1,7 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${BASH_SOURCE[0]%/*/*}/__module__.sh"
-source "${BASH_SOURCE[0]%/*}/log.sh"
+source "${BASH_SOURCE[0]%/*}/logger.sh"
 source "${BASH_SOURCE[0]%/*}/version.sh"
 
 terminator::__module__::load || return 0
@@ -38,7 +38,7 @@ function terminator::tmux::config::current_version::path {
   echo "${path}"
 
   if [[ ! -d "${path}" ]]; then
-    terminator::tmux::log::error \
+    terminator::tmux::logger::error \
       "current version ${version} config directory: '${path}' does NOT exist"
     return 1
   fi
@@ -52,17 +52,17 @@ function terminator::tmux::config::rollback_version {
     versions+=("${version}")
   done < <(find "${path}" -depth 1 -type d -exec basename {} \; | sort -rV)
 
-  terminator::tmux::log::debug "available versions: ${versions[*]}"
+  terminator::tmux::logger::debug "available versions: ${versions[*]}"
 
   for version in "${versions[@]}"; do
     if terminator::tmux::version::compare::greater_than "${version}"; then
-      terminator::tmux::log::debug "selected rollback version: ${version}"
+      terminator::tmux::logger::debug "selected rollback version: ${version}"
       echo "${version}"
       return
     fi
   done
 
-  terminator::tmux::log::error \
+  terminator::tmux::logger::error \
     "no eligible rollback versions found (current $(terminator::tmux::version) > rollback)"
   return 1
 }
