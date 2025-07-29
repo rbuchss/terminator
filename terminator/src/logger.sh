@@ -4,7 +4,14 @@ source "${BASH_SOURCE[0]%/*}/__module__.sh"
 
 terminator::__module__::load || return 0
 
-TERMINATOR_LOG_INVALID_STATUS=255
+readonly TERMINATOR_LOG_SEVERITY_TRACE=0
+readonly TERMINATOR_LOG_SEVERITY_DEBUG=1
+readonly TERMINATOR_LOG_SEVERITY_INFO=2
+readonly TERMINATOR_LOG_SEVERITY_WARNING=3
+readonly TERMINATOR_LOG_SEVERITY_ERROR=4
+readonly TERMINATOR_LOG_SEVERITY_FATAL=5
+
+readonly TERMINATOR_LOG_INVALID_STATUS=255
 
 function terminator::logger::trace {
   terminator::logger::log -l trace "$@"
@@ -90,12 +97,12 @@ function terminator::logger::log {
   datetime="$(terminator::logger::datetime)"
   progname="${FUNCNAME[${caller_level}+1]}"
 
-  case "${level}" in
-    [Tt][Rr][Aa][Cc][Ee]) level='TRACE' ;;
-    [Dd][Ee][Bb][Uu][Gg]) level='DEBUG' ;;
-    [Ii][Nn][Ff][Oo]) level='INFO' ;;
-    [Ww][Aa][Rr][Nn][Ii][Nn][Gg]) level='WARNING' ;;
-    [Ee][Rr][Rr][Oo][Rr]) level='ERROR' ;;
+  case "${severity}" in
+    "${TERMINATOR_LOG_SEVERITY_TRACE}") level='TRACE' ;;
+    "${TERMINATOR_LOG_SEVERITY_DEBUG}") level='DEBUG' ;;
+    "${TERMINATOR_LOG_SEVERITY_INFO}") level='INFO' ;;
+    "${TERMINATOR_LOG_SEVERITY_WARNING}") level='WARNING' ;;
+    "${TERMINATOR_LOG_SEVERITY_ERROR}") level='ERROR' ;;
     *)
       level='FATAL'
       caller_info="$(terminator::logger::stacktrace "${caller_level}")\n"
@@ -155,17 +162,20 @@ function terminator::logger::datetime {
 }
 
 function terminator::logger::severity {
-  local severity
-  case "$1" in
-    [Tt][Rr][Aa][Cc][Ee]) severity=0 ;;
-    [Dd][Ee][Bb][Uu][Gg]) severity=1 ;;
-    [Ii][Nn][Ff][Oo]) severity=2 ;;
-    [Ww][Aa][Rr][Nn][Ii][Nn][Gg]) severity=3 ;;
-    [Ee][Rr][Rr][Oo][Rr]) severity=4 ;;
-    *) severity=5 ;;
+  local \
+    _level="$1" \
+    _severity
+
+  case "${_level}" in
+    [Tt][Rr][Aa][Cc][Ee]) _severity="${TERMINATOR_LOG_SEVERITY_TRACE}" ;;
+    [Dd][Ee][Bb][Uu][Gg]) _severity="${TERMINATOR_LOG_SEVERITY_DEBUG}" ;;
+    [Ii][Nn][Ff][Oo]) _severity="${TERMINATOR_LOG_SEVERITY_INFO}" ;;
+    [Ww][Aa][Rr][Nn][Ii][Nn][Gg]) _severity="${TERMINATOR_LOG_SEVERITY_WARNING}" ;;
+    [Ee][Rr][Rr][Oo][Rr]) _severity="${TERMINATOR_LOG_SEVERITY_ERROR}" ;;
+    *) _severity="${TERMINATOR_LOG_SEVERITY_FATAL}" ;;
   esac
 
-  echo "${severity}"
+  echo "${_severity}"
 }
 
 function terminator::logger::level {
