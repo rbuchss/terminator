@@ -98,8 +98,7 @@ function terminator::logger::log {
     [Ee][Rr][Rr][Oo][Rr]) level='ERROR' ;;
     *)
       level='FATAL'
-      caller_info=" -> from: $(terminator::logger::caller_formatter \
-        "$(caller "${caller_level}")")\n"
+      caller_info="$(terminator::logger::stacktrace "${caller_level}")\n"
       ;;
   esac
 
@@ -248,19 +247,73 @@ function terminator::logger::silence::unset_variable {
   unset TERMINATOR_LOG_SILENCE_VARIABLE
 }
 
-function terminator::logger::caller_formatter {
-  read -r -a array <<< "$@"
-  for index in "${!array[@]}"; do
-    case "${index}" in
-      0) echo -n "line: ${array[${index}]}, " ;;
-      1) echo -n "function: ${array[${index}]}, " ;;
-      *)
-        echo -n "file: ${array[*]:${index}}"
-        break
-        ;;
-    esac
+function terminator::logger::stacktrace {
+  local \
+    _caller_level="${1:-0}" \
+    _caller_info \
+    _stack=()
+
+  # Add extra +1 to account for this function
+  (( _caller_level++ ))
+
+  while true; do
+    if ! _caller_info="$(caller "${_caller_level}")"; then
+      break
+    fi
+
+    _stack+=("$(terminator::logger::caller_formatter "${_caller_info}")")
+
+    (( _caller_level++ ))
   done
-  echo ''
+
+  if (( ${#_stack[@]} > 0 )); then
+    echo ' -> Traceback (most recent call last):'
+    printf '%s\n' "${_stack[@]}"
+  else
+    echo ' -> No Traceback (stack info not available!)'
+  fi
+}
+
+function terminator::logger::caller_formatter {
+  local \
+    _line \
+    _func \
+    _src \
+    _message
+
+  read -r _line _func _src <<< "$@"
+
+  if [[ -z "${_func}" ]]; then
+    _func='(top level)'
+  fi
+
+  if [[ -z "${_src}" ]]; then
+    _src='(no file)'
+  fi
+
+  printf -v _message '  %s\n    %s' \
+    "${_func}" \
+    "${_src}"
+
+  # Note that the default, super old, version of bash that ships with macOS has
+  # a bug where the caller/BASH_SOURCE[@] call stack gets corrupted and does
+  # not report valid line numbers. So we check if the bash version is greater
+  # than this version before including line numbers.
+  #
+  # BASH_VERSINFO[@] includes this version info - e.g. for macOS:
+  #
+  #   echo ${BASH_VERSINFO[@]}
+  #   3 2 57 1 release arm64-apple-darwin24
+  #
+  # Here to keep things simple we just check if the version is greater than
+  # 3 vs 3.2.57.
+  #
+  if (( ${BASH_VERSINFO[0]:-0} > 3 )) \
+    && (( ${_line:-0} > 0 )); then
+      printf -v _message '%s:%s' "${_message}" "${_line}"
+  fi
+
+  echo "${_message}"
 }
 
 function terminator::logger::__export__ {
@@ -303,6 +356,7 @@ function terminator::logger::__export__ {
   export -f terminator::logger::silence::variable
   export -f terminator::logger::silence::set_variable
   export -f terminator::logger::silence::unset_variable
+  export -f terminator::logger::stacktrace
   export -f terminator::logger::caller_formatter
 }
 
@@ -345,6 +399,7 @@ function terminator::logger::__recall__ {
   export -fn terminator::logger::silence::variable
   export -fn terminator::logger::silence::set_variable
   export -fn terminator::logger::silence::unset_variable
+  export -fn terminator::logger::stacktrace
   export -fn terminator::logger::caller_formatter
 }
 
