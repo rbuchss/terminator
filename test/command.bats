@@ -6,28 +6,6 @@ setup_with_coverage 'terminator/src/command.sh'
 
 bats_require_minimum_version 1.5.0
 
-# TODO convert this into bats-assert version
-assert_stderr() {
-  local original_stdout="${output}"
-
-  output="${stderr}"
-
-  assert_output "$@"
-
-  output="${original_stdout}"
-}
-
-# TODO convert this into bats-assert version
-refute_stderr() {
-  local original_stdout="${output}"
-
-  output="${stderr}"
-
-  refute_output "$@"
-
-  output="${original_stdout}"
-}
-
 ################################################################################
 # terminator::command::exists general error cases
 ################################################################################

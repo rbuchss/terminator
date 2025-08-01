@@ -28,6 +28,11 @@ __export_bats_support_functions__() {
   # our tests run. The same is true for setup_file.
   # This is since our tests run in sub-shells which will not inherit
   # these function definitions by default.
+  #
+  # To generate these run:
+  #
+  #   rg --no-line-number --sort=path '\(\) \{' vendor/test/bats/bats-support/src/
+  #
 
   # functions from error.bash
   export -f fail
@@ -54,18 +59,53 @@ __export_bats_assert_functions__() {
   # our tests run. The same is true for setup_file.
   # This is since our tests run in sub-shells which will not inherit
   # these function definitions by default.
+  #
+  # To generate these run:
+  #
+  #   rg --no-line-number --sort=path '\(\) \{' vendor/test/bats/bats-assert/src/
+  #
 
-  # functions in bats-assert are 1:1 with filenames
+  # functions in assert.bash
   export -f assert
+
+  # functions in assert_equal.bash
   export -f assert_equal
+
+  # functions in assert_failure.bash
   export -f assert_failure
+
+  # functions in assert_line.bash
   export -f assert_line
+  export -f assert_stderr_line
+  export -f __assert_line
+
+  # functions in assert_not_equal.bash
   export -f assert_not_equal
+
+  # functions in assert_output.bash
   export -f assert_output
+  export -f assert_stderr
+  export -f __assert_stream
+
+  # functions in assert_regex.bash
   export -f assert_regex
+
+  # functions in assert_success.bash
   export -f assert_success
+
+  # functions in refute.bash
   export -f refute
+
+  # functions in refute_line.bash
   export -f refute_line
+  export -f refute_stderr_line
+  export -f __refute_stream_line
+
+  # functions in refute_output.bash
   export -f refute_output
+  export -f refute_stderr
+  export -f __refute_stream
+
+  # functions in refute_regex.bash
   export -f refute_regex
 }
