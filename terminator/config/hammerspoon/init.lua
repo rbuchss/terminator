@@ -43,7 +43,7 @@ end
 
 -- app launcher
 -- helper script to get bundle id
--- osascript -e 'id of app "Claude"
+-- osascript -e 'id of app "Claude"'
 
 local hotkey_q_app = resolveAppFromEnvOrList(
   "TERMINATOR_HAMMERSPOON_HOTKEY_Q_APP",
@@ -60,12 +60,23 @@ end)
 local hotkey_w_app = resolveAppFromEnvOrList(
   "TERMINATOR_HAMMERSPOON_HOTKEY_W_APP",
   {
-    "com.spotify.client",
+    "ai.perplexity.mac",
   }
 )
 
 hs.hotkey.bind({"cmd", "alt"}, "W", function()
   hs.application.launchOrFocusByBundleID(hotkey_w_app)
+end)
+
+local hotkey_e_app = resolveAppFromEnvOrList(
+  "TERMINATOR_HAMMERSPOON_HOTKEY_E_APP",
+  {
+    "notion.id",
+  }
+)
+
+hs.hotkey.bind({"cmd", "alt"}, "E", function()
+  hs.application.launchOrFocusByBundleID(hotkey_e_app)
 end)
 
 local hotkey_a_app = resolveAppFromEnvOrList(
@@ -88,6 +99,17 @@ local hotkey_s_app = resolveAppFromEnvOrList(
 
 hs.hotkey.bind({"cmd", "alt"}, "S", function()
   hs.application.launchOrFocusByBundleID(hotkey_s_app)
+end)
+
+local hotkey_d_app = resolveAppFromEnvOrList(
+  "TERMINATOR_HAMMERSPOON_HOTKEY_D_APP",
+  {
+    "com.spotify.client",
+  }
+)
+
+hs.hotkey.bind({"cmd", "alt"}, "D", function()
+  hs.application.launchOrFocusByBundleID(hotkey_d_app)
 end)
 
 local hotkey_z_app = resolveAppFromEnvOrList(
@@ -116,6 +138,7 @@ end)
 local hotkey_c_app = resolveAppFromEnvOrList(
   "TERMINATOR_HAMMERSPOON_HOTKEY_C_APP",
   {
+    "com.jetbrains.goland",
     "com.jetbrains.intellij",
   }
 )
