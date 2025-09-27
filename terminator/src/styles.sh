@@ -486,7 +486,7 @@ function terminator::styles::branch_symbol {
   terminator::styles::unicode_coalesce \
     "${TERMINATOR_STYLES_BRANCH_SYMBOL}" \
     "${TERMINATOR_STYLES_BRANCH_SYMBOL_CODE}" \
-    0xE0A0 \
+    0xF418 \
     "$@"
 }
 
@@ -502,7 +502,7 @@ function terminator::styles::detached_head_symbol {
   terminator::styles::unicode_coalesce \
     "${TERMINATOR_STYLES_DETACHED_HEAD_SYMBOL}" \
     "${TERMINATOR_STYLES_DETACHED_HEAD_SYMBOL_CODE}" \
-    0x27A6 \
+    0xF417 \
     "$@"
 }
 
