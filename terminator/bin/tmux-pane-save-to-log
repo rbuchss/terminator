@@ -1,0 +1,5 @@
+#!/bin/bash
+# shellcheck source=/dev/null
+source "${HOME}/.terminator/src/tmux/pane.sh"
+
+terminator::tmux::pane::save_to_log "$@"
