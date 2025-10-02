@@ -53,7 +53,7 @@ function terminator::tmux::pane::save_to_log {
 function terminator::tmux::pane::session_window_pane_pattern {
   local \
     session="session-#{session_name}" \
-    window="window-#{window_index}" \
+    window="window-#{window_name}" \
     pane="pane-#{pane_index}"
 
   printf '%s.%s.%s' \
@@ -83,7 +83,7 @@ function terminator::tmux::pane::default_log_path {
   # TODO: allow the log_directory to be set by env var?
   local \
     log_type="${1:?}" \
-    log_directory="${2:-${HOME}}" \
+    log_directory="${2:-${TMUX_LOG_DIR:-${HOME}}}" \
     log_name
 
   log_name="$(terminator::tmux::pane::default_log_name "${log_type}")"
