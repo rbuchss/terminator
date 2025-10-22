@@ -1,8 +1,8 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*/*}/__module__.sh"
-source "${BASH_SOURCE[0]%/*}/logger.sh"
-source "${BASH_SOURCE[0]%/*}/version.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*/*}}/__module__.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*/*}}/tmux/logger.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*/*}}/tmux/version.sh"
 
 terminator::__module__::load || return 0
 

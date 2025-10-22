@@ -1,8 +1,8 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__module__.sh"
-source "${BASH_SOURCE[0]%/*}/array.sh"
-source "${BASH_SOURCE[0]%/*}/source.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/__module__.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/array.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/source.sh"
 
 terminator::__module__::load || return 0
 
@@ -140,6 +140,9 @@ function terminator::config::hooks::after {
 }
 
 function terminator::config::__export__ {
+  export TERMINATOR_CONFIG_DIR
+  export TERMINATOR_HOOKS_DIR
+
   export -f terminator::config::path
   export -f terminator::config::is_path_absolute
   export -f terminator::config::cd
@@ -153,6 +156,9 @@ function terminator::config::__export__ {
 }
 
 function terminator::config::__recall__ {
+  unset TERMINATOR_CONFIG_DIR
+  unset TERMINATOR_HOOKS_DIR
+
   export -fn terminator::config::path
   export -fn terminator::config::is_path_absolute
   export -fn terminator::config::cd
