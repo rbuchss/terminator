@@ -1,9 +1,9 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__module__.sh"
-source "${BASH_SOURCE[0]%/*}/command.sh"
-source "${BASH_SOURCE[0]%/*}/logger.sh"
-source "${BASH_SOURCE[0]%/*}/os.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/__module__.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/command.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/logger.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/os.sh"
 
 terminator::__module__::load || return 0
 

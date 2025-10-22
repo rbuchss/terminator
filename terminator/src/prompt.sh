@@ -1,12 +1,12 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__module__.sh"
-source "${BASH_SOURCE[0]%/*}/number.sh"
-source "${BASH_SOURCE[0]%/*}/prompt/git.sh"
-source "${BASH_SOURCE[0]%/*}/prompt/svn.sh"
-source "${BASH_SOURCE[0]%/*}/ssh.sh"
-source "${BASH_SOURCE[0]%/*}/string.sh"
-source "${BASH_SOURCE[0]%/*}/styles.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/__module__.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/number.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/prompt/git.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/prompt/svn.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/ssh.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/string.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/styles.sh"
 
 terminator::__module__::load || return 0
 

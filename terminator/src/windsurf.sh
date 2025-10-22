@@ -1,9 +1,9 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__module__.sh"
-source "${BASH_SOURCE[0]%/*}/logger.sh"
-source "${BASH_SOURCE[0]%/*}/os.sh"
-source "${BASH_SOURCE[0]%/*}/path.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/__module__.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/logger.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/os.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/path.sh"
 
 function terminator::windsurf::__enable__ {
   terminator::os::switch \

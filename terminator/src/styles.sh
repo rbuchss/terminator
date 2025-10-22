@@ -1,9 +1,9 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*}/__module__.sh"
-source "${BASH_SOURCE[0]%/*}/color.sh"
-source "${BASH_SOURCE[0]%/*}/unicode.sh"
-source "${BASH_SOURCE[0]%/*}/user.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/__module__.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/color.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/unicode.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/user.sh"
 
 terminator::__module__::load || return 0
 

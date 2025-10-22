@@ -1,8 +1,8 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${BASH_SOURCE[0]%/*/*}/__module__.sh"
-source "${BASH_SOURCE[0]%/*/*}/path.sh"
-source "${BASH_SOURCE[0]%/*/*}/source.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*/*}}/__module__.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*/*}}/path.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*/*}}/source.sh"
 
 terminator::__module__::load || return 0
 
