@@ -96,11 +96,17 @@ function terminator::tmux::pane::default_log_path {
 function terminator::tmux::pane::__export__ {
   export -f terminator::tmux::pane::toggle_pipe_to_log
   export -f terminator::tmux::pane::save_to_log
+  export -f terminator::tmux::pane::session_window_pane_pattern
+  export -f terminator::tmux::pane::default_log_name
+  export -f terminator::tmux::pane::default_log_path
 }
 
 function terminator::tmux::pane::__recall__ {
   export -fn terminator::tmux::pane::toggle_pipe_to_log
   export -fn terminator::tmux::pane::save_to_log
+  export -fn terminator::tmux::pane::session_window_pane_pattern
+  export -fn terminator::tmux::pane::default_log_name
+  export -fn terminator::tmux::pane::default_log_path
 }
 
 terminator::__module__::export
