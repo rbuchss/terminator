@@ -59,11 +59,11 @@ function terminator::claude::mcp::add::context7 {
 }
 
 function terminator::claude::__export__ {
-  :
+  export -f terminator::claude::mcp::add::context7
 }
 
 function terminator::claude::__recall__ {
-  :
+  export -fn terminator::claude::mcp::add::context7
 }
 
 terminator::__module__::export
