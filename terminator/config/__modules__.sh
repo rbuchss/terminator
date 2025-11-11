@@ -6,6 +6,7 @@ source "${HOME}/.terminator/src/source.sh"
 terminator::source \
   "${HOME}/.terminator/src/ag.sh" \
   "${HOME}/.terminator/src/byte.sh" \
+  "${HOME}/.terminator/src/claude.sh" \
   "${HOME}/.terminator/src/config.sh" \
   "${HOME}/.terminator/src/diff.sh" \
   "${HOME}/.terminator/src/dotnet.sh" \
@@ -47,6 +48,7 @@ terminator::source \
 __modules__=(
   terminator::ag
   terminator::byte
+  terminator::claude
   terminator::config
   terminator::diff
   terminator::dotnet
