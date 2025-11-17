@@ -6,6 +6,11 @@ source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*/*}}/src/logger.sh"
 function terminator::kubectl::__enable__ {
   terminator::command::exists -v kubectl || return
 
+  eval "$(kubectl completion bash)"
+
+  alias k=kubectl
+  complete -o default -F __start_kubectl k
+
   alias kubectl-add='terminator::kubectl::cluster::add'
   alias kubectl-remove='terminator::kubectl::cluster::remove'
 }
