@@ -9,15 +9,32 @@ function terminator::kubectl::__enable__ {
   eval "$(kubectl completion bash)"
 
   alias k=kubectl
-  complete -o default -F __start_kubectl k
+  complete -o default -o nospace -F __start_kubectl k
 
   alias kubectl-add='terminator::kubectl::cluster::add'
   alias kubectl-remove='terminator::kubectl::cluster::remove'
+
+  # If kubectx or kubens is not installed emit a warning message
+  # to remind to install these tools.
+  #
+  terminator::command::all_exist -v kubectx kubens || return
+
+  alias kcx=kubectx
+  complete -F _kube_contexts kcx
+
+  alias kns=kubens
+  complete -F _kube_namespaces kns
 }
 
 function terminator::kubectl::__disable__ {
+  unalias k
   unalias kubectl-add
   unalias kubectl-remove
+
+  terminator::command::all_exist kubectx kubens || return
+
+  unalias kcx
+  unalias kns
 }
 
 function terminator::kubectl::cluster::add::usage {
