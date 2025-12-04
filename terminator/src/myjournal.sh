@@ -32,19 +32,32 @@ function terminator::myjournal::invoke {
     journal_filepath \
     journal_files=("$@") \
     journal_filepaths=() \
-    default_journal_files=("$(date +'%Y/%m')")
+    default_journal_files=("$(date +'%Y/%m/%d')")
 
   journal_dir="$(terminator::myjournal::root_dir)"
 
   if (( ${#journal_files[@]} > 0 )); then
     terminator::logger::debug "Using journal files specified: [${journal_files[*]}]"
+
+    # Convert any keywords (today, tomorrow, yesterday) to dates
+    local \
+      file \
+      converted_files=()
+
+    for file in "${journal_files[@]}"; do
+      converted_files+=("$(terminator::myjournal::convert_keyword_to_date "${file}")")
+    done
+
+    journal_files=("${converted_files[@]}")
+
+    terminator::logger::debug "After conversion: [${journal_files[*]}]"
   else
     terminator::logger::debug "No journal files specified - Using defaults: [${default_journal_files[*]}]"
     journal_files=("${default_journal_files[@]}")
   fi
 
   for journal_file in "${journal_files[@]}"; do
-    journal_filepath="${journal_dir}/${journal_file}.myjournal"
+    journal_filepath="${journal_dir}/${journal_file}.md"
 
     if ! terminator::myjournal::valid_name "${journal_file}"; then
       terminator::logger::error "Name '${journal_file}' is not valid!"
@@ -69,12 +82,50 @@ function terminator::myjournal::invoke {
 }
 
 function terminator::myjournal::root_dir {
-  echo "${TERMINATOR_MYJOURNAL_DIR:-${HOME}/chronicle/journal}"
+  echo "${TERMINATOR_MYJOURNAL_DIR:-${HOME}/vaults/chronicle/Journal}"
 }
 
 function terminator::myjournal::valid_name {
   local journal_name="$1"
-  [[ "${journal_name}" =~ ^[0-9]{4}/[0-9]{2}$ ]]
+
+  # Allow special keywords (they get converted to dates)
+  case "${journal_name}" in
+    today|tomorrow|yesterday)
+      return 0
+      ;;
+  esac
+
+  # Validate date format YYYY/MM/DD
+  [[ "${journal_name}" =~ ^[0-9]{4}/[0-9]{2}/[0-9]{2}$ ]]
+}
+
+function terminator::myjournal::convert_keyword_to_date {
+  local keyword="$1"
+
+  case "${keyword}" in
+    today)
+      date +'%Y/%m/%d'
+      ;;
+    tomorrow)
+      # GNU date (Linux) vs BSD date (macOS) compatibility
+      if date -d '+1 day' +'%Y/%m/%d' 2>/dev/null; then
+        : # GNU date worked, already output
+      else
+        date -v+1d +'%Y/%m/%d' 2>/dev/null
+      fi
+      ;;
+    yesterday)
+      # GNU date (Linux) vs BSD date (macOS) compatibility
+      if date -d '-1 day' +'%Y/%m/%d' 2>/dev/null; then
+        : # GNU date worked, already output
+      else
+        date -v-1d +'%Y/%m/%d' 2>/dev/null
+      fi
+      ;;
+    *)
+      echo "${keyword}"
+      ;;
+  esac
 }
 
 function terminator::myjournal::template {
@@ -87,10 +138,17 @@ function terminator::myjournal::template {
     return 1
   fi
 
+  # Convert YYYY/MM/DD to YYYY-MM-DD for date parsing
+  local date_str="${journal_name//\//-}"
+
   cat <<EOF
---------------------
-$(ncal -w -d "${journal_name}" | sed -E 's/\s+$//')
---------------------
+---
+id: ${date_str}
+aliases: []
+tags:
+  - Journal
+  - daily-notes
+---
 EOF
 }
 
@@ -141,10 +199,13 @@ function terminator::myjournal::completion {
   local suggestions=(
       "$(find "${journal_dir}" \
         -type f \
-        -name '*.myjournal' \
+        -name '*.md' \
         -mindepth 2 \
-        | sed -E "s%${journal_dir}/(.+).myjournal%\1%")"
+        | sed -E "s%${journal_dir}/(.+).md%\1%")"
       )
+
+  # Add special keywords (converted to dates)
+  suggestions+=('today' 'tomorrow' 'yesterday')
 
   COMPREPLY=()
 
@@ -153,7 +214,7 @@ function terminator::myjournal::completion {
     if ! terminator::array::contains "${completion}" "${COMP_WORDS[@]}"; then
       COMPREPLY+=("${completion}")
     fi
-  done < <(compgen -W "${suggestions[@]}" -- "${word}")
+  done < <(compgen -W "${suggestions[*]}" -- "${word}")
 }
 
 function terminator::myjournal::completion::add_alias {
@@ -174,6 +235,7 @@ function terminator::myjournal::__export__ {
   export -f terminator::myjournal::invoke
   export -f terminator::myjournal::root_dir
   export -f terminator::myjournal::valid_name
+  export -f terminator::myjournal::convert_keyword_to_date
   export -f terminator::myjournal::template
   export -f terminator::myjournal::new_entry
   export -f terminator::myjournal::completion
@@ -185,6 +247,7 @@ function terminator::myjournal::__recall__ {
   export -fn terminator::myjournal::invoke
   export -fn terminator::myjournal::root_dir
   export -fn terminator::myjournal::valid_name
+  export -fn terminator::myjournal::convert_keyword_to_date
   export -fn terminator::myjournal::template
   export -fn terminator::myjournal::new_entry
   export -fn terminator::myjournal::completion
