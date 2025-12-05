@@ -71,6 +71,7 @@ end)
 local hotkey_e_app = resolveAppFromEnvOrList(
   "TERMINATOR_HAMMERSPOON_HOTKEY_E_APP",
   {
+    "md.obsidian",
     "notion.id",
   }
 )
