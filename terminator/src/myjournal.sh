@@ -175,11 +175,17 @@ function terminator::myjournal::new_entry {
     fi
   fi
 
-  local journal_subdir="${journal_dir##*/}" \
-    journal_filename="${journal_filepath##*/}"
-
-  local journal_name="${journal_subdir}/${journal_filename%%.*}" \
+  local \
+    journal_root \
+    journal_relative_path \
+    journal_name \
     journal_content
+
+  journal_root="$(terminator::myjournal::root_dir)"
+  # Remove the root directory and extension from filepath to get the journal name
+  # e.g., /path/to/root/2025/12/11.md -> 2025/12/11
+  journal_relative_path="${journal_filepath#"${journal_root}/"}"
+  journal_name="${journal_relative_path%.md}"
 
   if journal_content="$(terminator::myjournal::template "${journal_name}")" \
       && cat <<< "${journal_content}" > "${journal_filepath}"; then
