@@ -1,0 +1,122 @@
+################################################################################
+# Ghostty Configs
+#
+# Ref:
+#   - https://ghostty.org/docs/config/reference
+#
+################################################################################
+
+# NOTE: we need to set this to make dircolors work
+term = xterm-256color
+
+confirm-close-surface = false
+quit-after-last-window-closed = true
+
+clipboard-paste-protection = true
+
+auto-update = check
+
+link-url = true
+
+################################################################################
+# Font
+################################################################################
+
+font-family = "JetBrainsMonoNL Nerd Font Mono"
+font-size = 12
+
+########################################
+# NOTE: this is a fix for an outstanding issue with external displays and font
+# rendering.
+#
+# See:
+#   - https://github.com/ghostty-org/ghostty/issues/4504
+#   - https://github.com/ghostty-org/ghostty/discussions/4197
+#   - https://github.com/peinan/dotfiles/blob/main/src/.config/ghostty/config
+#
+########################################
+
+font-thicken = true
+
+# valid values: 0 - 255
+font-thicken-strength = 32
+
+font-feature = -calt
+font-feature = -liga
+font-feature = -dlig
+
+adjust-cell-width = -7%
+alpha-blending = linear-corrected
+
+########################################
+
+################################################################################
+# Appearance
+################################################################################
+
+theme = Catppuccin Mocha
+
+background-opacity = 0.95
+
+# Optional: disable background blur if you want a sharper comparison
+background-blur = false
+
+################################################################################
+# macOS-specific tweaks
+################################################################################
+
+# NOTE: this allows meta keys to be used in the terminal.
+macos-option-as-alt = true
+
+macos-non-native-fullscreen = true
+
+# Customize the macOS app icon.
+#
+# Valid values:
+# - offical - This is the default
+# - blueprint
+# - chalkboard
+# - microchip
+# - glass
+# - holographic
+# - paper
+# - retro
+# - xray
+# - custom-style
+#
+macos-icon = custom-style
+
+# The material to use for the frame of the macOS app icon.
+#
+# Valid values:
+# - aluminum - A brushed aluminum frame. This is the default.
+# - beige - A classic 90's computer beige frame.
+# - plastic - A glossy, dark plastic frame.
+# - chrome - A shiny chrome frame.
+#
+macos-icon-frame = plastic
+
+# The color of the ghost in the macOS app icon.
+#
+macos-icon-ghost-color = #00FF00
+
+# Specified as either hex (#RRGGBB or RRGGBB) or a named X11 color.
+#
+# The color of the screen in the macOS app icon.
+# The screen is a linear gradient so you can specify multiple colors that make
+# up the gradient. Up to 64 comma-separated colors may be specified as either
+# hex (#RRGGBB or RRGGBB) or as named X11 colors. The first color is the
+# bottom of the gradient and the last color is the top of the gradient.
+#
+macos-icon-screen-color = blue,black
+
+################################################################################
+# keybindings
+################################################################################
+
+# TODO: add a keybind for toggling opacity.
+# There is an outstanding issue to add this.
+# See:
+#   - https://github.com/ghostty-org/ghostty/issues/5047
+#
+# keybind = cmd+u=toggle_background_opacity
