@@ -116,6 +116,7 @@ end)
 local hotkey_z_app = resolveAppFromEnvOrList(
   "TERMINATOR_HAMMERSPOON_HOTKEY_Z_APP",
   {
+    "com.mitchellh.ghostty",
     "com.googlecode.iterm2",
     "com.apple.Terminal",
   }
