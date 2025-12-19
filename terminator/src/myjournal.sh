@@ -141,13 +141,35 @@ function terminator::myjournal::template {
   # Convert YYYY/MM/DD to YYYY-MM-DD for date parsing
   local date_str="${journal_name//\//-}"
 
+  # Start building the tags array
+  local tags=('daily-notes')
+
+  # Add extra tags from environment variable if set
+  if [[ -n "${OBSIDIAN_DAILY_NOTE_EXTRA_TAGS}" ]]; then
+    local \
+      tag \
+      extra_tags
+
+    IFS=',' read -ra extra_tags <<< "${OBSIDIAN_DAILY_NOTE_EXTRA_TAGS}"
+
+    for tag in "${extra_tags[@]}"; do
+      # Trim whitespace
+      tag="$(echo "${tag}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+
+      if [[ -n "${tag}" ]] \
+        && ! terminator::array::contains "${tag}" "${tags[@]}"
+      then
+        tags+=("${tag}")
+      fi
+    done
+  fi
+
   cat <<EOF
 ---
 id: ${date_str}
 aliases: []
 tags:
-  - Journal
-  - daily-notes
+$(printf '  - %s\n' "${tags[@]}")
 ---
 EOF
 }
