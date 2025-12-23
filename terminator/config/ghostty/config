@@ -46,7 +46,7 @@ font-feature = -liga
 font-feature = -dlig
 
 adjust-cell-width = -7%
-alpha-blending = linear-corrected
+alpha-blending = linear
 
 ########################################
 
@@ -68,7 +68,7 @@ background-blur = false
 # NOTE: this allows meta keys to be used in the terminal.
 macos-option-as-alt = true
 
-macos-non-native-fullscreen = true
+macos-non-native-fullscreen = false
 
 # Customize the macOS app icon.
 #
