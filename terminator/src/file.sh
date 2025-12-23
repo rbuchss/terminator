@@ -143,7 +143,9 @@ function terminator::file::dirsize {
   dir="${dir%%+(/)}"
   cache="/tmp/dirsize-list.$$"
 
-  du -shx "${dir}"/* 2>/dev/null \
+  # Include visible files (*), hidden files (.[!.]*), and edge case files (..?*)
+  # This pattern excludes '.' and '..' to avoid recursive parent directory issues
+  du -shx "${dir}"/* "${dir}"/.[!.]* "${dir}"/..?* 2>/dev/null \
     | sort -n > "${cache}"
   # Units are K,M,G,T,P,E,Z,Y
   grep -E '^ *[0-9.]*[^KMGTPEZY]\s+' "${cache}"
