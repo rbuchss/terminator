@@ -1,0 +1,117 @@
+{
+  "version": 3,
+  "lines": [
+    [
+      {
+        "id": "53f7f14a-6bba-4681-9506-2c6f52a14389",
+        "type": "model",
+        "color": "brightBlue"
+      },
+      {
+        "id": "8dc87795-b7e0-4f43-93e4-094e934bb82d",
+        "type": "separator"
+      },
+      {
+        "id": "0684db0e-df3e-4ae3-a538-f2a6d64ec07c",
+        "type": "version",
+        "color": "brightMagenta"
+      },
+      {
+        "id": "7a36f20d-3e97-4cac-94e6-ec346c309322",
+        "type": "separator"
+      },
+      {
+        "id": "513a088a-8c15-4893-9118-7ee76ea8236d",
+        "type": "session-clock",
+        "color": "cyan"
+      },
+      {
+        "id": "b82ce2b4-c7c1-4220-baf4-ad77a18d1e35",
+        "type": "separator"
+      },
+      {
+        "id": "189fcf7b-62a1-4560-90b0-b2e422aa85b5",
+        "type": "block-timer",
+        "color": "brightBlack"
+      }
+    ],
+    [
+      {
+        "id": "7d5a2c0c-81e0-4f71-96c8-f4ffb6c7950f",
+        "type": "tokens-input",
+        "color": "brightBlue"
+      },
+      {
+        "id": "cf6064ba-89a0-4bf3-8653-2019b23a2164",
+        "type": "separator"
+      },
+      {
+        "id": "16edad09-191a-437a-b053-df772a91fdc7",
+        "type": "tokens-output",
+        "color": "brightMagenta"
+      },
+      {
+        "id": "accfa041-0bbf-433d-8938-20f0d2073709",
+        "type": "separator"
+      },
+      {
+        "id": "30aed8a8-c5f8-404b-9e3a-6922fddfe4bc",
+        "type": "tokens-cached",
+        "color": "cyan"
+      },
+      {
+        "id": "0f30338f-23f3-4e84-9b24-52f2dedc591b",
+        "type": "separator"
+      },
+      {
+        "id": "67dbfbbb-360f-49a7-9a02-7127af8a0c15",
+        "type": "tokens-total",
+        "color": "brightBlack"
+      },
+      {
+        "id": "c66ef6e3-70c3-4c28-8359-36299bd7766f",
+        "type": "separator"
+      },
+      {
+        "id": "a0c9d525-e6d0-4cd6-9c04-856f1253682c",
+        "type": "context-length",
+        "color": ""
+      },
+      {
+        "id": "f9d1721e-a5df-499c-a3f5-c4d723f516d3",
+        "type": "separator"
+      },
+      {
+        "id": "519cde7d-0187-485c-bfb8-0dcd431bb469",
+        "type": "context-percentage",
+        "color": "brightBlue"
+      },
+      {
+        "id": "76cb16be-a2e1-4b6b-92b1-144da4f2efe0",
+        "type": "separator"
+      },
+      {
+        "id": "b6d3e4d8-e2ec-4b8d-ae16-81defb2f5451",
+        "type": "context-percentage-usable",
+        "color": "brightMagenta"
+      }
+    ]
+  ],
+  "flexMode": "full-minus-40",
+  "compactThreshold": 60,
+  "colorLevel": 3,
+  "inheritSeparatorColors": false,
+  "globalBold": false,
+  "powerline": {
+    "enabled": false,
+    "separators": [
+      ""
+    ],
+    "separatorInvertBackground": [
+      false
+    ],
+    "startCaps": [],
+    "endCaps": [],
+    "autoAlign": false
+  }
+}
