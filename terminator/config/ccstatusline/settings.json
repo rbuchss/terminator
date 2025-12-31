@@ -67,15 +67,13 @@
         "id": "67dbfbbb-360f-49a7-9a02-7127af8a0c15",
         "type": "tokens-total",
         "color": "brightBlack"
-      },
-      {
-        "id": "c66ef6e3-70c3-4c28-8359-36299bd7766f",
-        "type": "separator"
-      },
+      }
+    ],
+    [
       {
         "id": "a0c9d525-e6d0-4cd6-9c04-856f1253682c",
         "type": "context-length",
-        "color": ""
+        "color": "brightBlue"
       },
       {
         "id": "f9d1721e-a5df-499c-a3f5-c4d723f516d3",
@@ -84,7 +82,7 @@
       {
         "id": "519cde7d-0187-485c-bfb8-0dcd431bb469",
         "type": "context-percentage",
-        "color": "brightBlue"
+        "color": "brightMagenta"
       },
       {
         "id": "76cb16be-a2e1-4b6b-92b1-144da4f2efe0",
@@ -93,7 +91,16 @@
       {
         "id": "b6d3e4d8-e2ec-4b8d-ae16-81defb2f5451",
         "type": "context-percentage-usable",
-        "color": "brightMagenta"
+        "color": "cyan"
+      },
+      {
+        "id": "bc588916-17ef-4460-adb0-9819d84e4093",
+        "type": "separator"
+      },
+      {
+        "id": "6a50739f-0683-47dc-bd5c-cfea34ead749",
+        "type": "claude-session-id",
+        "color": "brightBlack"
       }
     ]
   ],
