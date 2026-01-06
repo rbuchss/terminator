@@ -32,6 +32,8 @@ ARG WORKDIR
 
 WORKDIR ${WORKDIR}
 
+ENV TERMINATOR_MODULE_SRC_DIR=${WORKDIR}/terminator/src
+
 RUN addgroup ${GROUP}
 
 RUN adduser \
@@ -56,6 +58,12 @@ CMD exec make guards
 ################################################################################
 
 FROM terminator-tester-base as terminator-tester-github-actions
+
+# Set working directory for GitHub Actions (even though GH docs recommend not to,
+# we need it to properly locate terminator source files)
+WORKDIR /github/workspace
+
+ENV TERMINATOR_MODULE_SRC_DIR=/github/workspace/terminator/src
 
 COPY . .
 

@@ -5,11 +5,17 @@
 
 # BASH_SOURCE[0] is not always available (e.g., in Claude Code or other limited bash environments)
 # where the array may be empty or set to "/". In these cases, fall back to the known symlink path.
-if [[ -n "${BASH_SOURCE[0]}" && "${BASH_SOURCE[0]}" != '/' ]]; then
-  export TERMINATOR_MODULE_HOME_DIR="${BASH_SOURCE[0]%/*/*/*}"
-else
-  # Fallback when BASH_SOURCE is unavailable (e.g., in Claude)
-  export TERMINATOR_MODULE_HOME_DIR="${HOME}"
+#
+# Allow environment to override (e.g., Docker/CI can pre-set TERMINATOR_MODULE_SRC_DIR)
+if [[ -z "${TERMINATOR_MODULE_SRC_DIR}" ]]; then
+  if [[ -n "${BASH_SOURCE[0]}" && "${BASH_SOURCE[0]}" != '/' ]]; then
+    export TERMINATOR_MODULE_HOME_DIR="${BASH_SOURCE[0]%/*/*/*}"
+  else
+    # Fallback when BASH_SOURCE is unavailable (e.g., in Claude)
+    export TERMINATOR_MODULE_HOME_DIR="${HOME}"
+  fi
+
+  # Set these derived paths
   export TERMINATOR_MODULE_ROOT_DIR="${TERMINATOR_MODULE_HOME_DIR}/.terminator"
   export TERMINATOR_MODULE_SRC_DIR="${TERMINATOR_MODULE_ROOT_DIR}/src"
 fi
