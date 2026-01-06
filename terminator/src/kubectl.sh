@@ -1,7 +1,7 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*/*}}/src/__module__.sh"
-source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*/*}}/src/logger.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/__module__.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/logger.sh"
 
 function terminator::kubectl::__enable__ {
   terminator::command::exists -v kubectl || return
