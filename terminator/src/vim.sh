@@ -16,7 +16,9 @@ function terminator::vim::__enable__ {
   alias vd='terminator::vim::open::git_diff'
 
   # Sets up completion for git branches
-  __git_complete vd _git_checkout
+  if declare -F __git_complete > /dev/null 2>&1; then
+    __git_complete vd _git_checkout
+  fi
 }
 
 function terminator::vim::__disable__ {
