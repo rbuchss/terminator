@@ -11,7 +11,9 @@ function terminator::git::__enable__ {
   alias git='terminator::git::invoke'
   alias g='terminator::git::invoke'
 
-  __git_complete g __git_main
+  if declare -F __git_complete > /dev/null 2>&1; then
+    __git_complete g __git_main
+  fi
 }
 
 function terminator::git::__disable__ {
