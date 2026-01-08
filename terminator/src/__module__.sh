@@ -50,9 +50,10 @@ function terminator::__module__::load {
 
   # Generates module based on filename if none specified
   if [[ -z "${module}" ]]; then
-    # Fail-safe to source file if BASH_SOURCE stack only points to this file
+    # When caller info is unavailable, e.g. Claude Code shells where BASH_SOURCE
+    # is empty, allow the file to be sourced anyway. We just can't track it.
     if ! terminator::__module__::__get_module_name__ module "$(caller)"; then
-      return 1
+      return "${should_source_status}"
     fi
   fi
 
