@@ -19,6 +19,8 @@ function terminator::vim::__enable__ {
   if declare -F __git_complete > /dev/null 2>&1; then
     __git_complete vd _git_checkout
   fi
+
+  terminator::vim::set_editor
 }
 
 function terminator::vim::__disable__ {
@@ -33,11 +35,12 @@ function terminator::vim::__disable__ {
   # ref:
   #   https://github.com/git/git/blob/e79552d19784ee7f4bbce278fe25f93fbda196fa/contrib/completion/git-completion.bash#L3741-L3747
   complete -r vd
+
+  terminator::vim::unset_editor
 }
 
-function terminator::vim::invoke {
-  local found_command=0 \
-    vim_command \
+function terminator::vim::get_command {
+  local vim_command \
     vim_commands=(
       nvim
       vim
@@ -53,18 +56,43 @@ function terminator::vim::invoke {
         terminator::logger::debug "Found vim command: ${vim_command}"
       fi
 
-      found_command=1
-
-      command "${vim_command}" "$@"
-
-      break
+      echo "${vim_command}"
+      return 0
     fi
   done
 
-  if (( found_command == 0 )); then
-    terminator::logger::error "No possible vim commands found: [${vim_commands[*]}]"
-    return 1
+  terminator::logger::error "No possible vim commands found: [${vim_commands[*]}]"
+  return 1
+}
+
+function terminator::vim::set_editor {
+  local vim_command
+
+  vim_command="$(terminator::vim::get_command)" || return 1
+
+  export EDITOR="${vim_command}"
+  export CSCOPE_EDITOR="${vim_command}"
+
+  if declare -F terminator::logger::debug > /dev/null 2>&1; then
+    terminator::logger::debug "Set EDITOR and CSCOPE_EDITOR to: ${vim_command}"
   fi
+}
+
+function terminator::vim::unset_editor {
+  unset EDITOR
+  unset CSCOPE_EDITOR
+
+  if declare -F terminator::logger::debug > /dev/null 2>&1; then
+    terminator::logger::debug "Unset EDITOR and CSCOPE_EDITOR"
+  fi
+}
+
+function terminator::vim::invoke {
+  local vim_command
+
+  vim_command="$(terminator::vim::get_command)" || return 1
+
+  command "${vim_command}" "$@"
 }
 
 function terminator::vim::open::filename_match {
@@ -303,6 +331,9 @@ function terminator::vim::open::git_diff {
 }
 
 function terminator::vim::__export__ {
+  export -f terminator::vim::get_command
+  export -f terminator::vim::set_editor
+  export -f terminator::vim::unset_editor
   export -f terminator::vim::invoke
   export -f terminator::vim::open::filename_match
   export -f terminator::vim::open::filename_match::rg
@@ -318,6 +349,9 @@ function terminator::vim::__export__ {
 }
 
 function terminator::vim::__recall__ {
+  export -fn terminator::vim::get_command
+  export -fn terminator::vim::set_editor
+  export -fn terminator::vim::unset_editor
   export -fn terminator::vim::invoke
   export -fn terminator::vim::open::filename_match
   export -fn terminator::vim::open::filename_match::rg
