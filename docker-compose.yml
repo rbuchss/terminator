@@ -1,0 +1,14 @@
+services:
+  tester:
+    image: rbuchss/terminator-tester-builder
+    user: root
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges
+    environment:
+      TERM: ${TERM:-}
+      TERMINATOR_MODULE_SRC_DIR: /workspace/terminator/src
