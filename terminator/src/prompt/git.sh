@@ -8,14 +8,14 @@ terminator::__module__::load || return 0
 
 function terminator::prompt::git {
   local repo_info
-  if ! command -v git > /dev/null 2>&1 \
+  if ! command -v git >/dev/null 2>&1 \
     || ! repo_info="$(git rev-parse \
-    --git-dir \
-    --is-inside-git-dir \
-    --is-bare-repository \
-    --is-inside-work-tree 2>/dev/null)" \
+      --git-dir \
+      --is-inside-git-dir \
+      --is-bare-repository \
+      --is-inside-work-tree 2>/dev/null)" \
     || [[ -z "${repo_info}" ]]; then
-      return 0
+    return 0
   fi
 
   local inside_work_tree="${repo_info##*$'\n'}"
@@ -120,8 +120,8 @@ function terminator::prompt::git::status {
   [[ -z "${branch}" ]] && terminator::prompt::git::branch "${git_dir}" branch
 
   if [[ 'true' == "${inside_work_tree}" ]] \
-    && (( "${TERMINATOR_GIT_STATUS_STASH_ENABLED:-0}" == 1 )) ; then
-      terminator::prompt::git::stash "${git_dir}" stash_count
+    && (("${TERMINATOR_GIT_STATUS_STASH_ENABLED:-0}" == 1)); then
+    terminator::prompt::git::stash "${git_dir}" stash_count
   fi
 
   # echo "branch: ${branch}"
@@ -217,59 +217,59 @@ function terminator::prompt::git::format {
   if [[ -n "${upstream}" ]]; then
     if [[ -n "${gone}" ]]; then
       upstream_message+=" ${upstream_gone_color}x${color_off}"
-    elif (( ahead_by == 0 && behind_by == 0 )); then
+    elif ((ahead_by == 0 && behind_by == 0)); then
       upstream_message+=" ${upstream_same_color}≡${color_off}"
     elif [[ "${TERMINATOR_GIT_STATUS_BRANCH_BEHIND_AND_AHEAD}" == 'compact' ]] \
-      && (( ahead_by != 0 && behind_by != 0 )); then
-          upstream_message+=" ${upstream_ahead_color}${ahead_by}${color_off}"
-          upstream_message+="${upstream_same_color}↕${color_off}"
-          upstream_message+="${upstream_behind_color}${behind_by}${color_off}"
+      && ((ahead_by != 0 && behind_by != 0)); then
+      upstream_message+=" ${upstream_ahead_color}${ahead_by}${color_off}"
+      upstream_message+="${upstream_same_color}↕${color_off}"
+      upstream_message+="${upstream_behind_color}${behind_by}${color_off}"
     else
-      (( ahead_by != 0 )) && upstream_message+=" ${upstream_ahead_color}↑${ahead_by}${color_off}"
-      (( behind_by != 0 )) && upstream_message+=" ${upstream_behind_color}↓${behind_by}${color_off}"
+      ((ahead_by != 0)) && upstream_message+=" ${upstream_ahead_color}↑${ahead_by}${color_off}"
+      ((behind_by != 0)) && upstream_message+=" ${upstream_behind_color}↓${behind_by}${color_off}"
     fi
   fi
 
-  if (( index_added != 0 )) \
-    || (( index_modified != 0 )) \
-    || (( index_deleted != 0 )) \
-    || (( index_unmerged != 0 )); then
-      index_message+="${index_color}"
-      # (( index_added != 0 )) && index_message+=" +${index_added}"
-      index_message+=" +${index_added}"
-      # (( index_modified != 0 )) && index_message+=" ~${index_modified}"
-      index_message+=" ~${index_modified}"
-      # (( index_deleted != 0 )) && index_message+=" -${index_deleted}"
-      index_message+=" -${index_deleted}"
-      (( index_unmerged != 0 )) && index_message+=" !${index_unmerged}"
-      index_message+="${color_off}"
+  if ((index_added != 0)) \
+    || ((index_modified != 0)) \
+    || ((index_deleted != 0)) \
+    || ((index_unmerged != 0)); then
+    index_message+="${index_color}"
+    # (( index_added != 0 )) && index_message+=" +${index_added}"
+    index_message+=" +${index_added}"
+    # (( index_modified != 0 )) && index_message+=" ~${index_modified}"
+    index_message+=" ~${index_modified}"
+    # (( index_deleted != 0 )) && index_message+=" -${index_deleted}"
+    index_message+=" -${index_deleted}"
+    ((index_unmerged != 0)) && index_message+=" !${index_unmerged}"
+    index_message+="${color_off}"
   fi
 
-  if (( files_added != 0 )) \
-    || (( files_modified != 0 )) \
-    || (( files_deleted != 0 )) \
-    || (( files_unmerged != 0 )); then
-      # add divider only if index message exists
-      if (( index_added != 0 )) \
-        || (( index_modified != 0 )) \
-        || (( index_deleted != 0 )) \
-        || (( index_unmerged != 0 )); then
-          files_message+=" ${divider_color}|${color_off}"
-      fi
-      files_message+="${files_color}"
-      # (( files_added != 0 )) && files_message+=" +${files_added}"
-      files_message+=" +${files_added}"
-      # (( files_modified != 0 )) && files_message+=" ~${files_modified}"
-      files_message+=" ~${files_modified}"
-      # (( files_deleted != 0 )) && files_message+=" -${files_deleted}"
-      files_message+=" -${files_deleted}"
-      (( files_unmerged != 0 )) && files_message+=" !${files_unmerged}"
-      files_message+="${color_off}"
+  if ((files_added != 0)) \
+    || ((files_modified != 0)) \
+    || ((files_deleted != 0)) \
+    || ((files_unmerged != 0)); then
+    # add divider only if index message exists
+    if ((index_added != 0)) \
+      || ((index_modified != 0)) \
+      || ((index_deleted != 0)) \
+      || ((index_unmerged != 0)); then
+      files_message+=" ${divider_color}|${color_off}"
+    fi
+    files_message+="${files_color}"
+    # (( files_added != 0 )) && files_message+=" +${files_added}"
+    files_message+=" +${files_added}"
+    # (( files_modified != 0 )) && files_message+=" ~${files_modified}"
+    files_message+=" ~${files_modified}"
+    # (( files_deleted != 0 )) && files_message+=" -${files_deleted}"
+    files_message+=" -${files_deleted}"
+    ((files_unmerged != 0)) && files_message+=" !${files_unmerged}"
+    files_message+="${color_off}"
   fi
 
-  if (( "${TERMINATOR_GIT_STATUS_STASH_ENABLED:-0}" == 1 )) \
-    && (( stash_count > 0 )); then
-      stash_message+=" ${stash_color}#${stash_count}${color_off}"
+  if (("${TERMINATOR_GIT_STATUS_STASH_ENABLED:-0}" == 1)) \
+    && ((stash_count > 0)); then
+    stash_message+=" ${stash_color}#${stash_count}${color_off}"
   fi
 
   # [{HEAD-name} S +A ~B -C !D | +E ~F -G !H W]
@@ -337,17 +337,17 @@ function terminator::prompt::git::branch {
       mode='|REVERTING'
     elif terminator::file::read_first_line \
       "${git_dir}/sequencer/todo" todo; then
-          case "${todo}" in
-            p[\ $'\t']|pick[\ $'\t']*) mode="|CHERRY-PICKING" ;;
-            revert[\ $'\t']*) mode="|REVERTING" ;;
-          esac
+      case "${todo}" in
+        p[\ $'\t'] | pick[\ $'\t']*) mode="|CHERRY-PICKING" ;;
+        revert[\ $'\t']*) mode="|REVERTING" ;;
+      esac
     elif [[ -f "${git_dir}/BISECT_LOG" ]]; then
       mode='|BISECTING'
     fi
 
     if [[ -n "${branch_}" ]]; then
       :
-    elif [[ -h "${git_dir}/HEAD" ]]; then
+    elif [[ -L "${git_dir}/HEAD" ]]; then
       # symlink symbolic ref
       branch_="$(git symbolic-ref HEAD -q 2>/dev/null)"
     else
@@ -364,7 +364,7 @@ function terminator::prompt::git::branch {
       local ref_regexp='ref: (.+)'
       if [[ "${ref}" =~ $ref_regexp ]]; then
         branch_="${BASH_REMATCH[1]}"
-      elif [[ -n "${ref}" ]] && (( "${#ref}" >= 7 )); then
+      elif [[ -n "${ref}" ]] && (("${#ref}" >= 7)); then
         branch_="(${ref:0:7}...)"
       else
         branch_='unknown'
@@ -396,15 +396,15 @@ function terminator::prompt::git::stash {
 
   if [[ -n "${git_dir}" ]] \
     && [[ -r "${git_dir}/logs/refs/stash" ]]; then
-      while IFS= read -r _; do
-        (( count++ ))
-      done < "${git_dir}/logs/refs/stash"
+    while IFS= read -r _; do
+      ((count++))
+    done <"${git_dir}/logs/refs/stash"
   else
     count="$(git stash list | wc -l)" # slow ... can take ~20ms
   fi
 
   case "$#" in
-    2) read -r "$2" <<< "${count}" ;;
+    2) read -r "$2" <<<"${count}" ;;
     *) echo "${count}" ;;
   esac
 }

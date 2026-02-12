@@ -35,7 +35,7 @@ function terminator::prompt::ask {
   echo -n "$*" '[y/n] '
   read -r response
   case "${response}" in
-    y*|Y*) return 0 ;;
+    y* | Y*) return 0 ;;
     *) return 1 ;;
   esac
 }
@@ -144,8 +144,8 @@ function terminator::prompt::right {
     --value "${right_prompt_buffer}" \
     --output sanitized_buffer
 
-  total_offset="$(( ${#right_prompt_buffer} - ${#sanitized_buffer} + multi_byte_offset ))"
-  right_prompt_padding="$(( COLUMNS + total_offset ))"
+  total_offset="$((${#right_prompt_buffer} - ${#sanitized_buffer} + multi_byte_offset))"
+  right_prompt_padding="$((COLUMNS + total_offset))"
 
   printf -v right_prompt_buffer '%*s' \
     "${right_prompt_padding}" \
@@ -159,7 +159,7 @@ function terminator::prompt::right {
 function terminator::prompt::error {
   local last_command_exit="${1:-$?}"
 
-  if (( last_command_exit != 0 )); then
+  if ((last_command_exit != 0)); then
     local error_color error_symbol
 
     terminator::styles::error_color error_color
@@ -423,7 +423,7 @@ function terminator::prompt::command_symbol {
 
   terminator::styles::command_symbol command_symbol_
 
-  if (( last_command_exit != 0 )); then
+  if ((last_command_exit != 0)); then
     terminator::styles::error_color command_symbol_color
   # else
   #   terminator::styles::ok_color command_symbol_color
@@ -522,7 +522,7 @@ function terminator::prompt::print_if_exists {
     output \
     help_command=terminator::prompt::print_if_exists::usage
 
-  while (( $# != 0 )); do
+  while (($# != 0)); do
     case "$1" in
       -h | --help)
         "${help_command}"
@@ -564,16 +564,16 @@ function terminator::prompt::print_if_exists {
 
   if ! terminator::number::is_unsigned_integer "${left_padding}"; then
     >&2 printf "ERROR: %s invalid value left_padding: '%s' is not an unsigned integer\n" \
-        "${FUNCNAME[0]}" \
-        "${left_padding}"
+      "${FUNCNAME[0]}" \
+      "${left_padding}"
     "${help_command}"
     return 1
   fi
 
   if ! terminator::number::is_unsigned_integer "${right_padding}"; then
     >&2 printf "ERROR: %s invalid value right_padding: '%s' is not an unsigned integer\n" \
-        "${FUNCNAME[0]}" \
-        "${right_padding}"
+      "${FUNCNAME[0]}" \
+      "${right_padding}"
     "${help_command}"
     return 1
   fi
@@ -592,13 +592,13 @@ function terminator::prompt::print_if_exists {
       --output right_padding_content
 
     if [[ -n "${output}" ]]; then
-        printf -v "${output}" '%s%s%s%s%s' \
-          "${left_padding_content}" \
-          "${message_color}" \
-          "${message_content}" \
-          "${color_off}" \
-          "${right_padding_content}"
-        return
+      printf -v "${output}" '%s%s%s%s%s' \
+        "${left_padding_content}" \
+        "${message_color}" \
+        "${message_content}" \
+        "${color_off}" \
+        "${right_padding_content}"
+      return
     fi
 
     printf '%s%s%s%s%s' \

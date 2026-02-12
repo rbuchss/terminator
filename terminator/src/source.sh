@@ -40,7 +40,7 @@ function terminator::source::bash_profile {
   local refresh_all_modules=0 \
     refresh_modules=()
 
-  while (( $# != 0 )); do
+  while (($# != 0)); do
     case "$1" in
       -h | --help)
         terminator::source::bash_profile::usage
@@ -61,7 +61,7 @@ function terminator::source::bash_profile {
     shift
   done
 
-  if (( refresh_all_modules == 1 )); then
+  if ((refresh_all_modules == 1)); then
     terminator::__module__::unload_all
   else
     terminator::__module__::unload "${refresh_modules[@]}"

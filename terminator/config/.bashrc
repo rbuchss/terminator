@@ -29,7 +29,7 @@ if [[ -n "${PS1}" ]]; then
   # update the values of LINES and COLUMNS.
   shopt -s checkwinsize
 
-  shopt -s cdspell # cd spell guessing
+  shopt -s cdspell     # cd spell guessing
   shopt -s cdable_vars # if path not found assumes is var
 
   # disable XON/XOFF so ctrl-s works for forward-searching

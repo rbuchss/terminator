@@ -13,10 +13,10 @@ function terminator::claude::__enable__ {
     return 1
   fi
 
-  if ! command -v claude > /dev/null 2>&1 \
+  if ! command -v claude >/dev/null 2>&1 \
     && [[ ! -x "${local_bin_path}/claude" ]]; then
-      terminator::logger::warning 'claude command does not exist'
-      return 1
+    terminator::logger::warning 'claude command does not exist'
+    return 1
   fi
 
   terminator::path::append "${local_bin_path}"
@@ -49,8 +49,7 @@ function terminator::claude::mcp::add::context7 {
   )"
 
   if [[ -z "${current_version}" ]] \
-    || [[ "${current_version}" != "${desired_version}" ]]
-  then
+    || [[ "${current_version}" != "${desired_version}" ]]; then
     claude mcp remove --scope user context7 2>/dev/null || true
     claude mcp add \
       --scope user context7 \

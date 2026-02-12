@@ -47,7 +47,7 @@ function terminator::python::invoke::with_uv {
     major_version="${1:?}" \
     full_path
 
-  if ! command -v uv > /dev/null 2>&1; then
+  if ! command -v uv >/dev/null 2>&1; then
     terminator::logger::debug 'Cannot find uv'
     return 1
   fi
@@ -66,7 +66,7 @@ function terminator::python::invoke::with_pyenv {
     full_version \
     full_path
 
-  if ! command -v pyenv > /dev/null 2>&1; then
+  if ! command -v pyenv >/dev/null 2>&1; then
     terminator::logger::debug 'Cannot find pyenv'
     return 1
   fi
@@ -98,7 +98,7 @@ function terminator::python::invoke::with_homebrew {
     prefix_path \
     full_path
 
-  if ! command -v brew > /dev/null 2>&1; then
+  if ! command -v brew >/dev/null 2>&1; then
     terminator::logger::debug 'Cannot find homebrew'
     return 1
   fi

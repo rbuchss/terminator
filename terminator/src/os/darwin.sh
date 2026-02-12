@@ -26,8 +26,8 @@ function terminator::os::darwin::finder::hide_hidden_files {
 
 function terminator::os::darwin::finder::set_show_all_files {
   local value="${1:-NO}"
-  defaults write com.apple.finder AppleShowAllFiles "${value}" &&
-    killall Finder /System/Library/CoreServices/Finder.app
+  defaults write com.apple.finder AppleShowAllFiles "${value}" \
+    && killall Finder /System/Library/CoreServices/Finder.app
 }
 
 function terminator::os::darwin::screencapture::set_location {
@@ -39,8 +39,8 @@ function terminator::os::darwin::screencapture::set_location {
   fi
 
   # Set the screenshot location
-  defaults write com.apple.screencapture location "${location}" &&
-    killall SystemUIServer
+  defaults write com.apple.screencapture location "${location}" \
+    && killall SystemUIServer
 
   terminator::logger::info "Screenshot location set to: ${location}"
 }

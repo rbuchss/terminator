@@ -16,7 +16,7 @@ function terminator::command::exists {
     log_output="${TERMINATOR_COMMAND_LOG_OUTPUT_NONE}" \
     arguments=()
 
-  while (( $# != 0 )); do
+  while (($# != 0)); do
     case "$1" in
       -h | --help)
         >&2 terminator::command::exists::usage
@@ -41,7 +41,7 @@ function terminator::command::exists {
     shift
   done
 
-  if (( ${#arguments[@]} != 1 )); then
+  if ((${#arguments[@]} != 1)); then
     >&2 echo "ERROR: ${FUNCNAME[0]} invalid number of arguments: ${#arguments[@]} - must be 1"
     >&2 terminator::command::exists::usage
     return "${TERMINATOR_COMMAND_INVALID_STATUS}"
@@ -67,7 +67,7 @@ function terminator::command::any_exist {
     log_output="${TERMINATOR_COMMAND_LOG_OUTPUT_NONE}" \
     arguments=()
 
-  while (( $# != 0 )); do
+  while (($# != 0)); do
     case "$1" in
       -h | --help)
         >&2 terminator::command::exists::usage
@@ -92,7 +92,7 @@ function terminator::command::any_exist {
     shift
   done
 
-  if (( ${#arguments[@]} == 0 )); then
+  if ((${#arguments[@]} == 0)); then
     >&2 echo "ERROR: ${FUNCNAME[0]} invalid number of arguments: ${#arguments[@]} - must be > 0"
     >&2 terminator::command::exists::usage
     return "${TERMINATOR_COMMAND_INVALID_STATUS}"
@@ -116,7 +116,7 @@ function terminator::command::none_exist {
     log_output="${TERMINATOR_COMMAND_LOG_OUTPUT_NONE}" \
     arguments=()
 
-  while (( $# != 0 )); do
+  while (($# != 0)); do
     case "$1" in
       -h | --help)
         >&2 terminator::command::exists::usage
@@ -141,7 +141,7 @@ function terminator::command::none_exist {
     shift
   done
 
-  if (( ${#arguments[@]} == 0 )); then
+  if ((${#arguments[@]} == 0)); then
     >&2 echo "ERROR: ${FUNCNAME[0]} invalid number of arguments: ${#arguments[@]} - must be > 0"
     >&2 terminator::command::exists::usage
     return "${TERMINATOR_COMMAND_INVALID_STATUS}"
@@ -167,7 +167,7 @@ function terminator::command::all_exist {
     log_output="${TERMINATOR_COMMAND_LOG_OUTPUT_NONE}" \
     arguments=()
 
-  while (( $# != 0 )); do
+  while (($# != 0)); do
     case "$1" in
       -h | --help)
         >&2 terminator::command::exists::usage
@@ -192,7 +192,7 @@ function terminator::command::all_exist {
     shift
   done
 
-  if (( ${#arguments[@]} == 0 )); then
+  if ((${#arguments[@]} == 0)); then
     >&2 echo "ERROR: ${FUNCNAME[0]} invalid number of arguments: ${#arguments[@]} - must be > 0"
     >&2 terminator::command::exists::usage
     return "${TERMINATOR_COMMAND_INVALID_STATUS}"
@@ -226,7 +226,7 @@ USAGE_TEXT
 }
 
 function terminator::command::__exists__ {
-  command -v "$1" > /dev/null 2>&1
+  command -v "$1" >/dev/null 2>&1
 }
 
 function terminator::command::__export__ {

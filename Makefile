@@ -86,6 +86,14 @@ compose-test-with-coverage:
 compose-lint:
 	$(call compose-run,make lint)
 
+.PHONY: compose-format
+compose-format:
+	$(call compose-run,make format)
+
+.PHONY: compose-format-check
+compose-format-check:
+	$(call compose-run,make format-check)
+
 .PHONY: compose-debug
 compose-debug:
 	$(call compose-run,exec $(DOCKER_IMAGE_BASH_PATH))
@@ -148,7 +156,7 @@ endef
 ################################################################################
 
 .PHONY: guards
-guards: test-with-coverage lint
+guards: test-with-coverage lint format-check
 
 .PHONY: test
 test:
@@ -235,6 +243,18 @@ linted-source-files:
 .PHONY: linted-test-files
 linted-test-files:
 	git ls-files -- $(LINTED_TEST_FILES)
+
+################################################################################
+# Format targets
+################################################################################
+
+.PHONY: format
+format:
+	shfmt -w $$(git ls-files -- $(LINTED_FILES))
+
+.PHONY: format-check
+format-check:
+	shfmt -d $$(git ls-files -- $(LINTED_FILES))
 
 ################################################################################
 # Function exports

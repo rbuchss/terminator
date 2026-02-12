@@ -40,7 +40,7 @@ function terminator::tmuxinator::invoke {
   command tmuxinator "$@"
   local exit_status=$?
 
-  if (( recalled == 1 )); then
+  if ((recalled == 1)); then
     # Re-init removed exported log functions.
     terminator::__module__::export terminator::logger
   fi

@@ -7,7 +7,7 @@ source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/source.sh"
 terminator::__module__::load || return 0
 
 function terminator::homebrew::is_installed {
-  command -v brew > /dev/null 2>&1
+  command -v brew >/dev/null 2>&1
 }
 
 function terminator::homebrew::package::is_installed {
@@ -17,8 +17,8 @@ function terminator::homebrew::package::is_installed {
   # brew list --full-name "$1" > /dev/null 2>&1
   # brew --prefix --installed "$1" > /dev/null 2>&1
   #
-  terminator::homebrew::is_installed &&
-    ls "$(brew --prefix "$1")" > /dev/null 2>&1
+  terminator::homebrew::is_installed \
+    && ls "$(brew --prefix "$1")" >/dev/null 2>&1
 }
 
 function terminator::homebrew::__enable__ {
@@ -33,7 +33,7 @@ function terminator::homebrew::__enable__ {
     fi
   done
 
-  if (( brew_path_exists == 0 )); then
+  if ((brew_path_exists == 0)); then
     terminator::logger::warning "homebrew path is not found in possible paths: ${possible_brew_paths[*]}"
     return
   fi

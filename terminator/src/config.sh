@@ -60,11 +60,11 @@ function terminator::config::cd::completion {
   config_dir="$(terminator::config::path)"
 
   local suggestions=(
-      "$(find "${config_dir}" \
-        -type d \
-        -mindepth 1 \
-        | sed -E "s%${config_dir}/(.+)%\1%")"
-      )
+    "$(find "${config_dir}" \
+      -type d \
+      -mindepth 1 \
+      | sed -E "s%${config_dir}/(.+)%\1%")"
+  )
 
   COMPREPLY=()
 
@@ -119,7 +119,7 @@ function terminator::config::hooks::invoke {
       | sort -n
   )
 
-  if (( ${#hook_files[@]} == 0 )); then
+  if ((${#hook_files[@]} == 0)); then
     terminator::logger::debug "SKIPPING hook: '${hook_type}' - no files found in: '${hook_dir}'"
     return
   fi

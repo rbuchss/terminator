@@ -26,7 +26,7 @@ function terminator::postgresql::list_config {
 }
 
 function terminator::postgresql::edit_config {
-  vim "$(psql -qAt  -c 'SHOW config_file')"
+  vim "$(psql -qAt -c 'SHOW config_file')"
 }
 
 # from https://stackoverflow.com/questions/13573204/psql-could-not-connect-to-server-no-such-file-or-directory-mac-os-x

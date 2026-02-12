@@ -24,7 +24,7 @@ function terminator::mysql::show_process_list {
 }
 
 function terminator::mysql::find_column {
-  if (( $# != 2 )); then
+  if (($# != 2)); then
     >&2 echo "ERROR: invalid # of args"
     >&2 echo "Usage: ${FUNCNAME[0]}: database column"
     return 65
@@ -55,7 +55,7 @@ function terminator::mysql::invoke {
 
   export MYSQL_PS1="[mysql] \u@${host}:\d> "
 
-  if command -v grcat > /dev/null 2>&1; then
+  if command -v grcat >/dev/null 2>&1; then
     arguments+=("--pager="'grcat conf.sql'"")
   fi
 

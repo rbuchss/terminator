@@ -158,7 +158,7 @@ function terminator::path::__prepend__ {
     _argument \
     _invalid_status=255
 
-  while (( $# != 0 )); do
+  while (($# != 0)); do
     case "$1" in
       -h | --help)
         >&2 terminator::path::__prepend__::usage
@@ -168,7 +168,7 @@ function terminator::path::__prepend__ {
         _force=1
         ;;
       -p | --path)
-        if (( _path_used == 1 )); then
+        if ((_path_used == 1)); then
           >&2 echo "ERROR: ${FUNCNAME[0]} $1 specified more than once"
           >&2 terminator::path::__prepend__::usage
           return "${_invalid_status}"
@@ -179,7 +179,7 @@ function terminator::path::__prepend__ {
         _path_used=1
         ;;
       -o | --output)
-        if (( _output_var_used == 1 )); then
+        if ((_output_var_used == 1)); then
           >&2 echo "ERROR: ${FUNCNAME[0]} $1 specified more than once"
           >&2 terminator::path::__prepend__::usage
           return "${_invalid_status}"
@@ -204,7 +204,7 @@ function terminator::path::__prepend__ {
   for _argument in "${_arguments[@]}"; do
     if terminator::path::__excludes__ "${_path}" "${_argument}"; then
       _path="${_argument}${_path:+:${_path}}"
-    elif (( _force == 1 )); then
+    elif ((_force == 1)); then
       unset -v __prepend_tmp_path
 
       terminator::path::__remove__ \
@@ -214,7 +214,7 @@ function terminator::path::__prepend__ {
 
       _path="${_argument}${__prepend_tmp_path:+:${__prepend_tmp_path}}"
     else
-      (( _ignored_count++ ))
+      ((_ignored_count++))
     fi
   done
 
@@ -262,7 +262,7 @@ function terminator::path::__append__ {
     _argument \
     _invalid_status=255
 
-  while (( $# != 0 )); do
+  while (($# != 0)); do
     case "$1" in
       -h | --help)
         >&2 terminator::path::__append__::usage
@@ -272,7 +272,7 @@ function terminator::path::__append__ {
         _force=1
         ;;
       -p | --path)
-        if (( _path_used == 1 )); then
+        if ((_path_used == 1)); then
           >&2 echo "ERROR: ${FUNCNAME[0]} $1 specified more than once"
           >&2 terminator::path::__append__::usage
           return "${_invalid_status}"
@@ -283,7 +283,7 @@ function terminator::path::__append__ {
         _path_used=1
         ;;
       -o | --output)
-        if (( _output_var_used == 1 )); then
+        if ((_output_var_used == 1)); then
           >&2 echo "ERROR: ${FUNCNAME[0]} $1 specified more than once"
           >&2 terminator::path::__append__::usage
           return "${_invalid_status}"
@@ -308,7 +308,7 @@ function terminator::path::__append__ {
   for _argument in "${_arguments[@]}"; do
     if terminator::path::__excludes__ "${_path}" "${_argument}"; then
       _path="${_path:+${_path}:}${_argument}"
-    elif (( _force == 1 )); then
+    elif ((_force == 1)); then
       unset -v __append_tmp_path
 
       terminator::path::__remove__ \
@@ -318,7 +318,7 @@ function terminator::path::__append__ {
 
       _path="${__append_tmp_path:+${__append_tmp_path}:}${_argument}"
     else
-      (( _ignored_count++ ))
+      ((_ignored_count++))
     fi
   done
 
@@ -363,14 +363,14 @@ function terminator::path::__remove__ {
     _argument \
     _invalid_status=255
 
-  while (( $# != 0 )); do
+  while (($# != 0)); do
     case "$1" in
       -h | --help)
         >&2 terminator::path::__remove__::usage
         return "${_invalid_status}"
         ;;
       -p | --path)
-        if (( _path_used == 1 )); then
+        if ((_path_used == 1)); then
           >&2 echo "ERROR: ${FUNCNAME[0]} $1 specified more than once"
           >&2 terminator::path::__remove__::usage
           return "${_invalid_status}"
@@ -381,7 +381,7 @@ function terminator::path::__remove__ {
         _path_used=1
         ;;
       -o | --output)
-        if (( _output_var_used == 1 )); then
+        if ((_output_var_used == 1)); then
           >&2 echo "ERROR: ${FUNCNAME[0]} $1 specified more than once"
           >&2 terminator::path::__remove__::usage
           return "${_invalid_status}"

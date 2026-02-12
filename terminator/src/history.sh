@@ -36,7 +36,7 @@ function terminator::history::search {
     )
 
   for search_command in "${search_commands[@]}"; do
-    if command -v "${search_command}" > /dev/null 2>&1; then
+    if command -v "${search_command}" >/dev/null 2>&1; then
       found_command=1
       history \
         | "terminator::history::search::${search_command}" "$1" \
@@ -48,7 +48,7 @@ function terminator::history::search {
     fi
   done
 
-  if (( found_command == 0 )); then
+  if ((found_command == 0)); then
     terminator::logger::error "No possible search commands found: [${search_commands[*]}]"
     return 1
   fi

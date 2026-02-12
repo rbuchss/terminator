@@ -12,7 +12,7 @@ function terminator::string::bytes_to_length_offset {
     output \
     help_command=terminator::string::byte_to_length::usage
 
-  while (( $# != 0 )); do
+  while (($# != 0)); do
     case "$1" in
       -h | --help)
         "${help_command}"
@@ -44,7 +44,7 @@ function terminator::string::bytes_to_length_offset {
 
   local LANG=C LC_ALL=C # converts bash length calculation to bytes
 
-  offset="$(( ${#value} - length ))"
+  offset="$((${#value} - length))"
 
   if [[ -n "${output}" ]]; then
     printf -v "${output}" '%s' "${offset}"
@@ -76,7 +76,7 @@ function terminator::string::repeat {
     output \
     help_command=terminator::string::repeat::usage
 
-  while (( $# != 0 )); do
+  while (($# != 0)); do
     case "$1" in
       -h | --help)
         "${help_command}"
@@ -110,13 +110,13 @@ function terminator::string::repeat {
 
   if ! terminator::number::is_unsigned_integer "${count}"; then
     >&2 printf "ERROR: %s invalid count: '%s' is not an unsigned integer\n" \
-        "${FUNCNAME[0]}" \
-        "${count}"
+      "${FUNCNAME[0]}" \
+      "${count}"
     "${help_command}"
     return 1
   fi
 
-  for (( index = 0; index < count; index++ )); do
+  for ((index = 0; index < count; index++)); do
     output_buffer="${output_buffer}${value}"
   done
 
@@ -127,7 +127,6 @@ function terminator::string::repeat {
 
   printf '%s' "${output_buffer}"
 }
-
 
 function terminator::string::repeat::usage {
   cat <<USAGE_TEXT
@@ -153,7 +152,7 @@ function terminator::string::strip_colors {
     output \
     help_command=terminator::string::strip_colors::usage
 
-  while (( $# != 0 )); do
+  while (($# != 0)); do
     case "$1" in
       -h | --help)
         "${help_command}"
@@ -183,7 +182,7 @@ function terminator::string::strip_colors {
 
   # Regex strips ANSI escapes; not expressible with ${//}
   # shellcheck disable=SC2001
-  output_buffer="$(sed $'s,\x1b\\[[0-9;]*[a-zA-Z],,g' <<< "${value}" | sed 's/\\\[//g' | sed 's/\\\]//g')"
+  output_buffer="$(sed $'s,\x1b\\[[0-9;]*[a-zA-Z],,g' <<<"${value}" | sed 's/\\\[//g' | sed 's/\\\]//g')"
 
   if [[ -n "${output}" ]]; then
     printf -v "${output}" '%s' "${output_buffer}"

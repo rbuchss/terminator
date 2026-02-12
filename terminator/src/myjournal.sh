@@ -36,7 +36,7 @@ function terminator::myjournal::invoke {
 
   journal_dir="$(terminator::myjournal::root_dir)"
 
-  if (( ${#journal_files[@]} > 0 )); then
+  if ((${#journal_files[@]} > 0)); then
     terminator::logger::debug "Using journal files specified: [${journal_files[*]}]"
 
     # Convert any keywords (today, tomorrow, yesterday) to dates
@@ -67,12 +67,12 @@ function terminator::myjournal::invoke {
     if [[ -f "${journal_filepath}" ]]; then
       journal_filepaths+=("${journal_filepath}")
     elif terminator::prompt::ask "Create new journal entry at: '${journal_filepath}' ?" \
-        && terminator::myjournal::new_entry "${journal_filepath}"; then
+      && terminator::myjournal::new_entry "${journal_filepath}"; then
       journal_filepaths+=("${journal_filepath}")
     fi
   done
 
-  if (( ${#journal_filepaths[@]} == 0 )); then
+  if ((${#journal_filepaths[@]} == 0)); then
     terminator::logger::error 'No valid journal files specified!'
     return 1
   fi
@@ -90,7 +90,7 @@ function terminator::myjournal::valid_name {
 
   # Allow special keywords (they get converted to dates)
   case "${journal_name}" in
-    today|tomorrow|yesterday)
+    today | tomorrow | yesterday)
       return 0
       ;;
   esac
@@ -150,15 +150,14 @@ function terminator::myjournal::template {
       tag \
       extra_tags
 
-    IFS=',' read -ra extra_tags <<< "${OBSIDIAN_DAILY_NOTE_EXTRA_TAGS}"
+    IFS=',' read -ra extra_tags <<<"${OBSIDIAN_DAILY_NOTE_EXTRA_TAGS}"
 
     for tag in "${extra_tags[@]}"; do
       # Trim whitespace
       tag="$(echo "${tag}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
 
       if [[ -n "${tag}" ]] \
-        && ! terminator::array::contains "${tag}" "${tags[@]}"
-      then
+        && ! terminator::array::contains "${tag}" "${tags[@]}"; then
         tags+=("${tag}")
       fi
     done
@@ -210,7 +209,7 @@ function terminator::myjournal::new_entry {
   journal_name="${journal_relative_path%.md}"
 
   if journal_content="$(terminator::myjournal::template "${journal_name}")" \
-      && cat <<< "${journal_content}" > "${journal_filepath}"; then
+    && cat <<<"${journal_content}" >"${journal_filepath}"; then
     terminator::logger::info "Created a new journal entry at: '${journal_filepath}'"
   else
     terminator::logger::error "Failed to create a new journal entry at: '${journal_filepath}'"
@@ -225,12 +224,12 @@ function terminator::myjournal::completion {
   journal_dir="$(terminator::myjournal::root_dir)"
 
   local suggestions=(
-      "$(find "${journal_dir}" \
-        -type f \
-        -name '*.md' \
-        -mindepth 2 \
-        | sed -E "s%${journal_dir}/(.+).md%\1%")"
-      )
+    "$(find "${journal_dir}" \
+      -type f \
+      -name '*.md' \
+      -mindepth 2 \
+      | sed -E "s%${journal_dir}/(.+).md%\1%")"
+  )
 
   # Add special keywords (converted to dates)
   suggestions+=('today' 'tomorrow' 'yesterday')

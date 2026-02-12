@@ -23,7 +23,7 @@ function terminator::tmux::config::load {
 }
 
 function terminator::tmux::config::version::path {
-  if (( $# == 0 )); then
+  if (($# == 0)); then
     terminator::tmux::config::path 'version'
     return
   fi
