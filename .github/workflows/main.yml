@@ -11,6 +11,7 @@ on:
         - test
         - lint
         - format-check
+        - function-exports-check
         - guards
       with_coverage:
         type: boolean

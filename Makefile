@@ -164,9 +164,9 @@ endef
 # Test targets
 ################################################################################
 
-## Run all guards: test with coverage, lint, and format check
+## Run all guards: test with coverage, lint, format check, and function exports check
 .PHONY: guards
-guards: test-with-coverage lint format-check
+guards: test-with-coverage lint format-check function-exports-check
 
 ## Run bats tests
 ## Override: make test TEST_DIRS=test/logger.bats FILTER_TAGS=terminator::logger
@@ -282,6 +282,11 @@ format-check:
 ################################################################################
 # Function exports
 ################################################################################
+
+## Check for missing function exports (CI-safe, non-interactive)
+.PHONY: function-exports-check
+function-exports-check:
+	$(THIS_DIR)/terminator/tools/__module__/generate_function_exports.sh false
 
 ## Check and optionally add missing function exports
 .PHONY: function-exports

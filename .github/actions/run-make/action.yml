@@ -10,6 +10,7 @@ inputs:
     - test
     - lint
     - format-check
+    - function-exports-check
     - guards
   base_sha:
     description: Base sha ref
