@@ -1,0 +1,19 @@
+name: Bash Lint
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint_job:
+    runs-on: ubuntu-latest
+    name: Run Lint Check
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Run Lint
+        uses: ./.github/actions/run-make
+        with:
+          target: lint
+          with_coverage: false

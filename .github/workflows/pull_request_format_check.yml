@@ -1,0 +1,19 @@
+name: Bash Format Check
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  format_check_job:
+    runs-on: ubuntu-latest
+    name: Run Format Check
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Run Format Check
+        uses: ./.github/actions/run-make
+        with:
+          target: format-check
+          with_coverage: false

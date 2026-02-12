@@ -9,6 +9,7 @@ inputs:
     options:
     - test
     - lint
+    - format-check
     - guards
   base_sha:
     description: Base sha ref

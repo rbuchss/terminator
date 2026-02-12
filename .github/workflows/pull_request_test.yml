@@ -1,4 +1,4 @@
-name: Run Quality Checks and Publish PR
+name: Bash Test
 on:
   pull_request:
     branches: [main]
@@ -6,7 +6,7 @@ on:
 jobs:
   pull_request_job:
     runs-on: ubuntu-latest
-    name: Run Quality Checks
+    name: Run Tests
     permissions:
       pull-requests: write
     steps:
