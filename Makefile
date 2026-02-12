@@ -53,7 +53,7 @@ DOCKER_DEBUG_CMD := $(DOCKER_IMAGE_BASH_PATH)
 # :param $(1): Command to run inside the container
 define compose-run
 	docker compose run --rm tester $(DOCKER_IMAGE_BASH_PATH) -c \
-		'git config --global --add safe.directory /workspace && $(1)'
+		'git config --global --add safe.directory "$$PWD" && $(1)'
 endef
 
 # Compose make runner
