@@ -181,6 +181,8 @@ function terminator::string::strip_colors {
     shift
   done
 
+  # Regex strips ANSI escapes; not expressible with ${//}
+  # shellcheck disable=SC2001
   output_buffer="$(sed $'s,\x1b\\[[0-9;]*[a-zA-Z],,g' <<< "${value}" | sed 's/\\\[//g' | sed 's/\\\]//g')"
 
   if [[ -n "${output}" ]]; then
