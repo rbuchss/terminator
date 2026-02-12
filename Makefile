@@ -2,7 +2,7 @@ THIS_DIR := $(patsubst %/,%,$(dir $(realpath $(firstword $(MAKEFILE_LIST)))))
 
 include $(THIS_DIR)/vendor/container-build-tools/modules.mk
 
-.DEFAULT_GOAL := guards
+.DEFAULT_GOAL := compose-guards
 
 ################################################################################
 # Platform defaults
@@ -70,6 +70,10 @@ endef
 # Docker Compose targets
 ################################################################################
 
+.PHONY: compose-guards
+compose-guards:
+	$(call compose-make-test,guards)
+
 .PHONY: compose-test
 compose-test:
 	$(call compose-make-test,test)
@@ -77,6 +81,10 @@ compose-test:
 .PHONY: compose-test-with-coverage
 compose-test-with-coverage:
 	$(call compose-make-test,test-with-coverage)
+
+.PHONY: compose-lint
+compose-lint:
+	$(call compose-run,make lint)
 
 .PHONY: compose-debug
 compose-debug:
