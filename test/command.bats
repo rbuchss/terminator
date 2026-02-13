@@ -10,6 +10,7 @@ bats_require_minimum_version 1.5.0
 # terminator::command::exists general error cases
 ################################################################################
 
+# bats test_tags=terminator::command,terminator::command::exists
 @test "terminator::command::exists invalid with-unknown-flag" {
   local arguments=('ls')
 
@@ -22,6 +23,7 @@ bats_require_minimum_version 1.5.0
   assert_stderr
 }
 
+# bats test_tags=terminator::command,terminator::command::exists
 @test "terminator::command::exists invalid with-empty-arguments" {
   local arguments=()
 
@@ -33,6 +35,7 @@ bats_require_minimum_version 1.5.0
   assert_stderr
 }
 
+# bats test_tags=terminator::command,terminator::command::exists
 @test "terminator::command::exists invalid with-many-arguments" {
   local arguments=(ls cat)
 
@@ -44,6 +47,7 @@ bats_require_minimum_version 1.5.0
   assert_stderr
 }
 
+# bats test_tags=terminator::command,terminator::command::exists
 @test "terminator::command::exists invalid with-help-flag" {
   local arguments=('ls')
 
@@ -60,6 +64,7 @@ bats_require_minimum_version 1.5.0
 # terminator::command::exists
 ################################################################################
 
+# bats test_tags=terminator::command,terminator::command::exists
 @test "terminator::command::exists command-exists" {
   local arguments=('ls')
 
@@ -71,6 +76,7 @@ bats_require_minimum_version 1.5.0
   refute_stderr
 }
 
+# bats test_tags=terminator::command,terminator::command::exists
 @test "terminator::command::exists command-does-not-exist" {
   local arguments=('invalid-command')
 
@@ -82,6 +88,7 @@ bats_require_minimum_version 1.5.0
   refute_stderr
 }
 
+# bats test_tags=terminator::command,terminator::command::exists
 @test "terminator::command::exists command-exists verbose-mode" {
   local arguments=('ls')
 
@@ -94,6 +101,7 @@ bats_require_minimum_version 1.5.0
   refute_stderr
 }
 
+# bats test_tags=terminator::command,terminator::command::exists
 @test "terminator::command::exists command-does-not-exist verbose-mode" {
   local arguments=('invalid-command')
 
@@ -106,6 +114,7 @@ bats_require_minimum_version 1.5.0
   assert_stderr --regexp 'WARNING'
 }
 
+# bats test_tags=terminator::command,terminator::command::exists
 @test "terminator::command::exists command-does-not-exist verbose-mode error-log-level" {
   local arguments=('invalid-command')
 
@@ -123,6 +132,7 @@ bats_require_minimum_version 1.5.0
 # terminator::command::any_exist general error cases
 ################################################################################
 
+# bats test_tags=terminator::command,terminator::command::any_exist
 @test "terminator::command::any_exist invalid with-unknown-flag" {
   local arguments=('ls')
 
@@ -135,6 +145,7 @@ bats_require_minimum_version 1.5.0
   assert_stderr
 }
 
+# bats test_tags=terminator::command,terminator::command::any_exist
 @test "terminator::command::any_exist invalid with-empty-arguments" {
   local arguments=()
 
@@ -146,6 +157,7 @@ bats_require_minimum_version 1.5.0
   assert_stderr
 }
 
+# bats test_tags=terminator::command,terminator::command::any_exist
 @test "terminator::command::any_exist invalid with-help-flag" {
   local arguments=('ls')
 
@@ -162,6 +174,7 @@ bats_require_minimum_version 1.5.0
 # terminator::command::any_exist
 ################################################################################
 
+# bats test_tags=terminator::command,terminator::command::any_exist
 @test "terminator::command::any_exist single-command-exists" {
   local arguments=('ls')
 
@@ -173,6 +186,7 @@ bats_require_minimum_version 1.5.0
   refute_stderr
 }
 
+# bats test_tags=terminator::command,terminator::command::any_exist
 @test "terminator::command::any_exist single-command-does-not-exist" {
   local arguments=('invalid-command')
 
@@ -184,6 +198,7 @@ bats_require_minimum_version 1.5.0
   refute_stderr
 }
 
+# bats test_tags=terminator::command,terminator::command::any_exist
 @test "terminator::command::any_exist single-command-exists verbose-mode" {
   local arguments=('ls')
 
@@ -196,6 +211,7 @@ bats_require_minimum_version 1.5.0
   refute_stderr
 }
 
+# bats test_tags=terminator::command,terminator::command::any_exist
 @test "terminator::command::any_exist single-command-does-not-exist verbose-mode" {
   local arguments=('invalid-command')
 
@@ -208,6 +224,7 @@ bats_require_minimum_version 1.5.0
   assert_stderr --regexp 'WARNING'
 }
 
+# bats test_tags=terminator::command,terminator::command::any_exist
 @test "terminator::command::any_exist single-command-does-not-exist verbose-mode error-log-level" {
   local arguments=('invalid-command')
 
@@ -221,6 +238,7 @@ bats_require_minimum_version 1.5.0
   assert_stderr --regexp 'ERROR'
 }
 
+# bats test_tags=terminator::command,terminator::command::any_exist
 @test "terminator::command::any_exist multiple-commands-all-exist" {
   local arguments=('ls' 'cat')
 
@@ -232,6 +250,7 @@ bats_require_minimum_version 1.5.0
   refute_stderr
 }
 
+# bats test_tags=terminator::command,terminator::command::any_exist
 @test "terminator::command::any_exist multiple-commands-one-exists" {
   local arguments=('ls' 'invalid-command')
 
@@ -243,6 +262,7 @@ bats_require_minimum_version 1.5.0
   refute_stderr
 }
 
+# bats test_tags=terminator::command,terminator::command::any_exist
 @test "terminator::command::any_exist multiple-commands-all-do-not-exist" {
   local arguments=('invalid-command-1' 'invalid-command-2')
 
@@ -254,6 +274,7 @@ bats_require_minimum_version 1.5.0
   refute_stderr
 }
 
+# bats test_tags=terminator::command,terminator::command::any_exist
 @test "terminator::command::any_exist multiple-commands-all-exist verbose-mode" {
   local arguments=('ls' 'cat')
 
@@ -266,6 +287,7 @@ bats_require_minimum_version 1.5.0
   refute_stderr
 }
 
+# bats test_tags=terminator::command,terminator::command::any_exist
 @test "terminator::command::any_exist multiple-commands-one-exists verbose-mode" {
   local arguments=('ls' 'invalid-command')
 
@@ -278,6 +300,7 @@ bats_require_minimum_version 1.5.0
   refute_stderr
 }
 
+# bats test_tags=terminator::command,terminator::command::any_exist
 @test "terminator::command::any_exist multiple-commands-all-do-not-exist verbose-mode" {
   local arguments=('invalid-command-1' 'invalid-command-2')
 
@@ -290,6 +313,7 @@ bats_require_minimum_version 1.5.0
   assert_stderr --regexp 'WARNING'
 }
 
+# bats test_tags=terminator::command,terminator::command::any_exist
 @test "terminator::command::any_exist multiple-commands-all-do-not-exist verbose-mode error-log-level" {
   local arguments=('invalid-command-1' 'invalid-command-2')
 
@@ -307,6 +331,7 @@ bats_require_minimum_version 1.5.0
 # terminator::command::none_exist general error cases
 ################################################################################
 
+# bats test_tags=terminator::command,terminator::command::none_exist
 @test "terminator::command::none_exist invalid with-unknown-flag" {
   local arguments=('ls')
 
@@ -319,6 +344,7 @@ bats_require_minimum_version 1.5.0
   assert_stderr
 }
 
+# bats test_tags=terminator::command,terminator::command::none_exist
 @test "terminator::command::none_exist invalid with-empty-arguments" {
   local arguments=()
 
@@ -330,6 +356,7 @@ bats_require_minimum_version 1.5.0
   assert_stderr
 }
 
+# bats test_tags=terminator::command,terminator::command::none_exist
 @test "terminator::command::none_exist invalid with-help-flag" {
   local arguments=('ls')
 
@@ -346,6 +373,7 @@ bats_require_minimum_version 1.5.0
 # terminator::command::none_exist
 ################################################################################
 
+# bats test_tags=terminator::command,terminator::command::none_exist
 @test "terminator::command::none_exist single-command-exists" {
   local arguments=('ls')
 
@@ -357,6 +385,7 @@ bats_require_minimum_version 1.5.0
   refute_stderr
 }
 
+# bats test_tags=terminator::command,terminator::command::none_exist
 @test "terminator::command::none_exist single-command-does-not-exist" {
   local arguments=('invalid-command')
 
@@ -368,6 +397,7 @@ bats_require_minimum_version 1.5.0
   refute_stderr
 }
 
+# bats test_tags=terminator::command,terminator::command::none_exist
 @test "terminator::command::none_exist single-command-exists verbose-mode" {
   local arguments=('ls')
 
@@ -380,6 +410,7 @@ bats_require_minimum_version 1.5.0
   assert_stderr --regexp 'WARNING'
 }
 
+# bats test_tags=terminator::command,terminator::command::none_exist
 @test "terminator::command::none_exist single-command-does-not-exist verbose-mode" {
   local arguments=('invalid-command')
 
@@ -392,6 +423,7 @@ bats_require_minimum_version 1.5.0
   refute_stderr
 }
 
+# bats test_tags=terminator::command,terminator::command::none_exist
 @test "terminator::command::none_exist single-command-exists verbose-mode error-log-level" {
   local arguments=('ls')
 
@@ -405,6 +437,7 @@ bats_require_minimum_version 1.5.0
   assert_stderr --regexp 'ERROR'
 }
 
+# bats test_tags=terminator::command,terminator::command::none_exist
 @test "terminator::command::none_exist multiple-commands-all-exist" {
   local arguments=('ls' 'cat')
 
@@ -416,6 +449,7 @@ bats_require_minimum_version 1.5.0
   refute_stderr
 }
 
+# bats test_tags=terminator::command,terminator::command::none_exist
 @test "terminator::command::none_exist multiple-commands-one-exists" {
   local arguments=('ls' 'invalid-command')
 
@@ -427,6 +461,7 @@ bats_require_minimum_version 1.5.0
   refute_stderr
 }
 
+# bats test_tags=terminator::command,terminator::command::none_exist
 @test "terminator::command::none_exist multiple-commands-all-do-not-exist" {
   local arguments=('invalid-command-1' 'invalid-command-2')
 
@@ -438,6 +473,7 @@ bats_require_minimum_version 1.5.0
   refute_stderr
 }
 
+# bats test_tags=terminator::command,terminator::command::none_exist
 @test "terminator::command::none_exist multiple-commands-all-exist verbose-mode" {
   local arguments=('ls' 'cat')
 
@@ -450,6 +486,7 @@ bats_require_minimum_version 1.5.0
   assert_stderr --regexp 'WARNING'
 }
 
+# bats test_tags=terminator::command,terminator::command::none_exist
 @test "terminator::command::none_exist multiple-commands-one-exists verbose-mode" {
   local arguments=('ls' 'invalid-command')
 
@@ -462,6 +499,7 @@ bats_require_minimum_version 1.5.0
   assert_stderr --regexp 'WARNING'
 }
 
+# bats test_tags=terminator::command,terminator::command::none_exist
 @test "terminator::command::none_exist multiple-commands-all-do-not-exist verbose-mode" {
   local arguments=('invalid-command-1' 'invalid-command-2')
 
@@ -474,6 +512,7 @@ bats_require_minimum_version 1.5.0
   refute_stderr
 }
 
+# bats test_tags=terminator::command,terminator::command::none_exist
 @test "terminator::command::none_exist multiple-commands-one-exists verbose-mode error-log-level" {
   local arguments=('ls' 'invalid-command-2')
 
@@ -491,6 +530,7 @@ bats_require_minimum_version 1.5.0
 # terminator::command::all_exist general error cases
 ################################################################################
 
+# bats test_tags=terminator::command,terminator::command::all_exist
 @test "terminator::command::all_exist invalid with-unknown-flag" {
   local arguments=('ls')
 
@@ -503,6 +543,7 @@ bats_require_minimum_version 1.5.0
   assert_stderr
 }
 
+# bats test_tags=terminator::command,terminator::command::all_exist
 @test "terminator::command::all_exist invalid with-empty-arguments" {
   local arguments=()
 
@@ -514,6 +555,7 @@ bats_require_minimum_version 1.5.0
   assert_stderr
 }
 
+# bats test_tags=terminator::command,terminator::command::all_exist
 @test "terminator::command::all_exist invalid with-help-flag" {
   local arguments=('ls')
 
@@ -530,6 +572,7 @@ bats_require_minimum_version 1.5.0
 # terminator::command::all_exist
 ################################################################################
 
+# bats test_tags=terminator::command,terminator::command::all_exist
 @test "terminator::command::all_exist single-command-exists" {
   local arguments=('ls')
 
@@ -541,6 +584,7 @@ bats_require_minimum_version 1.5.0
   refute_stderr
 }
 
+# bats test_tags=terminator::command,terminator::command::all_exist
 @test "terminator::command::all_exist single-command-does-not-exist" {
   local arguments=('invalid-command')
 
@@ -552,6 +596,7 @@ bats_require_minimum_version 1.5.0
   refute_stderr
 }
 
+# bats test_tags=terminator::command,terminator::command::all_exist
 @test "terminator::command::all_exist single-command-exists verbose-mode" {
   local arguments=('ls')
 
@@ -564,6 +609,7 @@ bats_require_minimum_version 1.5.0
   refute_stderr
 }
 
+# bats test_tags=terminator::command,terminator::command::all_exist
 @test "terminator::command::all_exist single-command-does-not-exist verbose-mode" {
   local arguments=('invalid-command')
 
@@ -576,6 +622,7 @@ bats_require_minimum_version 1.5.0
   assert_stderr --regexp 'WARNING'
 }
 
+# bats test_tags=terminator::command,terminator::command::all_exist
 @test "terminator::command::all_exist single-command-does-not-exist verbose-mode error-log-level" {
   local arguments=('invalid-command')
 
@@ -589,6 +636,7 @@ bats_require_minimum_version 1.5.0
   assert_stderr --regexp 'ERROR'
 }
 
+# bats test_tags=terminator::command,terminator::command::all_exist
 @test "terminator::command::all_exist multiple-commands-all-exist" {
   local arguments=('ls' 'cat')
 
@@ -600,6 +648,7 @@ bats_require_minimum_version 1.5.0
   refute_stderr
 }
 
+# bats test_tags=terminator::command,terminator::command::all_exist
 @test "terminator::command::all_exist multiple-commands-one-exists" {
   local arguments=('ls' 'invalid-command')
 
@@ -611,6 +660,7 @@ bats_require_minimum_version 1.5.0
   refute_stderr
 }
 
+# bats test_tags=terminator::command,terminator::command::all_exist
 @test "terminator::command::all_exist multiple-commands-all-do-not-exist" {
   local arguments=('invalid-command-1' 'invalid-command-2')
 
@@ -622,6 +672,7 @@ bats_require_minimum_version 1.5.0
   refute_stderr
 }
 
+# bats test_tags=terminator::command,terminator::command::all_exist
 @test "terminator::command::all_exist multiple-commands-all-exist verbose-mode" {
   local arguments=('ls' 'cat')
 
@@ -634,6 +685,7 @@ bats_require_minimum_version 1.5.0
   refute_stderr
 }
 
+# bats test_tags=terminator::command,terminator::command::all_exist
 @test "terminator::command::all_exist multiple-commands-one-exists verbose-mode" {
   local arguments=('ls' 'invalid-command')
 
@@ -646,6 +698,7 @@ bats_require_minimum_version 1.5.0
   assert_stderr --regexp 'WARNING'
 }
 
+# bats test_tags=terminator::command,terminator::command::all_exist
 @test "terminator::command::all_exist multiple-commands-all-do-not-exist verbose-mode" {
   local arguments=('invalid-command-1' 'invalid-command-2')
 
@@ -658,6 +711,7 @@ bats_require_minimum_version 1.5.0
   assert_stderr --regexp 'WARNING'
 }
 
+# bats test_tags=terminator::command,terminator::command::all_exist
 @test "terminator::command::all_exist multiple-commands-one-exists verbose-mode error-log-level" {
   local arguments=('ls' 'invalid-command-2')
 
