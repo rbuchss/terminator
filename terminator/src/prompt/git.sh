@@ -1,6 +1,7 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*/*}}/__module__.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*/*}}/command.sh"
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*/*}}/file.sh"
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*/*}}/styles.sh"
 
@@ -8,7 +9,7 @@ terminator::__module__::load || return 0
 
 function terminator::prompt::git {
   local repo_info
-  if ! command -v git >/dev/null 2>&1 \
+  if ! terminator::command::exists git \
     || ! repo_info="$(git rev-parse \
       --git-dir \
       --is-inside-git-dir \
@@ -397,7 +398,7 @@ function terminator::prompt::git::stash {
   if [[ -n "${git_dir}" ]] \
     && [[ -r "${git_dir}/logs/refs/stash" ]]; then
     while IFS= read -r _; do
-      ((count++))
+      ((++count))
     done <"${git_dir}/logs/refs/stash"
   else
     count="$(git stash list | wc -l)" # slow ... can take ~20ms
@@ -417,6 +418,7 @@ function terminator::prompt::git::__export__ {
   export -f terminator::prompt::git::stash
 }
 
+# KCOV_EXCL_START
 function terminator::prompt::git::__recall__ {
   export -fn terminator::prompt::git
   export -fn terminator::prompt::git::status
@@ -424,5 +426,6 @@ function terminator::prompt::git::__recall__ {
   export -fn terminator::prompt::git::branch
   export -fn terminator::prompt::git::stash
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

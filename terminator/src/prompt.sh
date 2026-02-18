@@ -676,6 +676,7 @@ function terminator::prompt::__export__ {
   export -f terminator::prompt::print_if_exists::usage
 }
 
+# KCOV_EXCL_START
 function terminator::prompt::__recall__ {
   export -fn terminator::prompt
   export -fn terminator::prompt::ask
@@ -716,5 +717,6 @@ function terminator::prompt::__recall__ {
   export -fn terminator::prompt::print_if_exists
   export -fn terminator::prompt::print_if_exists::usage
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

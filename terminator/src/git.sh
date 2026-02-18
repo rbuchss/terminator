@@ -40,8 +40,10 @@ function terminator::git::__export__ {
   export -f terminator::git::invoke
 }
 
+# KCOV_EXCL_START
 function terminator::git::__recall__ {
   export -fn terminator::git::invoke
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

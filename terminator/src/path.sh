@@ -474,6 +474,7 @@ function terminator::path::__export__ {
   export -f terminator::paths::clear
 }
 
+# KCOV_EXCL_START
 function terminator::path::__recall__ {
   export -fn terminator::path::prepend
   export -fn terminator::path::append
@@ -495,5 +496,6 @@ function terminator::path::__recall__ {
   export -fn terminator::manpath::clear
   export -fn terminator::paths::clear
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

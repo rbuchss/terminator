@@ -97,11 +97,13 @@ function terminator::tmuxinator::__export__ {
   export -f terminator::tmuxinator::completion::remove_alias
 }
 
+# KCOV_EXCL_START
 function terminator::tmuxinator::__recall__ {
   export -fn terminator::tmuxinator::invoke
   export -fn terminator::tmuxinator::completion
   export -fn terminator::tmuxinator::completion::add_alias
   export -fn terminator::tmuxinator::completion::remove_alias
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

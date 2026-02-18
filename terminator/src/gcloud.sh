@@ -43,8 +43,10 @@ function terminator::gcloud::__export__ {
   export -f terminator::gcloud::alias_completion
 }
 
+# KCOV_EXCL_START
 function terminator::gcloud::__recall__ {
   export -fn terminator::gcloud::alias_completion
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

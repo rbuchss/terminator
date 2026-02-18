@@ -12,10 +12,6 @@ bats_require_minimum_version 1.5.0
 
 # bats test_tags=terminator::grep,terminator::grep::invoke
 @test "terminator::grep::invoke matches-pattern" {
-  # BusyBox grep does not support --exclude-dir
-  run command grep --help
-  [[ "${output}" == *'exclude-dir'* ]] || skip 'grep does not support --exclude-dir (BusyBox)'
-
   local temp_file
   temp_file="$(mktemp)"
   echo "hello world" >"${temp_file}"
@@ -31,9 +27,6 @@ bats_require_minimum_version 1.5.0
 
 # bats test_tags=terminator::grep,terminator::grep::invoke
 @test "terminator::grep::invoke no-match" {
-  run command grep --help
-  [[ "${output}" == *'exclude-dir'* ]] || skip 'grep does not support --exclude-dir (BusyBox)'
-
   local temp_file
   temp_file="$(mktemp)"
   echo "hello world" >"${temp_file}"
@@ -47,9 +40,6 @@ bats_require_minimum_version 1.5.0
 
 # bats test_tags=terminator::grep,terminator::grep::invoke
 @test "terminator::grep::invoke excludes-git-directory" {
-  run command grep --help
-  [[ "${output}" == *'exclude-dir'* ]] || skip 'grep does not support --exclude-dir (BusyBox)'
-
   local temp_dir
   temp_dir="$(mktemp -d)"
   mkdir -p "${temp_dir}/.git"
@@ -66,9 +56,6 @@ bats_require_minimum_version 1.5.0
 
 # bats test_tags=terminator::grep,terminator::grep::invoke
 @test "terminator::grep::invoke excludes-svn-directory" {
-  run command grep --help
-  [[ "${output}" == *'exclude-dir'* ]] || skip 'grep does not support --exclude-dir (BusyBox)'
-
   local temp_dir
   temp_dir="$(mktemp -d)"
   mkdir -p "${temp_dir}/.svn"
@@ -85,9 +72,6 @@ bats_require_minimum_version 1.5.0
 
 # bats test_tags=terminator::grep,terminator::grep::invoke
 @test "terminator::grep::invoke direct-call" {
-  run command grep --help
-  [[ "${output}" == *'exclude-dir'* ]] || skip 'grep does not support --exclude-dir (BusyBox)'
-
   local temp_file result
   temp_file="$(mktemp)"
   echo "test line" >"${temp_file}"
@@ -109,4 +93,28 @@ bats_require_minimum_version 1.5.0
 
   assert_success
   assert_output 'function'
+}
+
+################################################################################
+# terminator::grep::__enable__
+################################################################################
+
+# bats test_tags=terminator::grep,terminator::grep::__enable__
+@test "terminator::grep::__enable__ when-grep-not-available" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 1; }
+
+  run terminator::grep::__enable__
+
+  assert_failure
+}
+
+# bats test_tags=terminator::grep,terminator::grep::__enable__
+@test "terminator::grep::__enable__ when-grep-available" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  run terminator::grep::__enable__
+
+  assert_success
 }

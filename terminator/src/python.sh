@@ -47,10 +47,7 @@ function terminator::python::invoke::with_uv {
     major_version="${1:?}" \
     full_path
 
-  if ! command -v uv >/dev/null 2>&1; then
-    terminator::logger::debug 'Cannot find uv'
-    return 1
-  fi
+  terminator::command::exists -v -l debug uv || return 1
 
   if ! full_path="$(uv python find --managed-python "${major_version}" 2>/dev/null)"; then
     terminator::logger::warning "uv installed but no installed python versions match major version: '${major_version}'"
@@ -66,10 +63,7 @@ function terminator::python::invoke::with_pyenv {
     full_version \
     full_path
 
-  if ! command -v pyenv >/dev/null 2>&1; then
-    terminator::logger::debug 'Cannot find pyenv'
-    return 1
-  fi
+  terminator::command::exists -v -l debug pyenv || return 1
 
   if ! full_version="$(pyenv latest "${major_version}" 2>/dev/null)"; then
     terminator::logger::warning "pyenv installed but no installed python versions match major version: '${major_version}'"
@@ -98,10 +92,7 @@ function terminator::python::invoke::with_homebrew {
     prefix_path \
     full_path
 
-  if ! command -v brew >/dev/null 2>&1; then
-    terminator::logger::debug 'Cannot find homebrew'
-    return 1
-  fi
+  terminator::command::exists -v -l debug brew || return 1
 
   if ! prefix_path="$(brew --prefix "python@${major_version}" 2>/dev/null)"; then
     terminator::logger::warning "homebrew installed but no installed python versions match major version: '${major_version}'"
@@ -148,6 +139,7 @@ function terminator::python::__export__ {
   export -f terminator::python::invoke::with_system
 }
 
+# KCOV_EXCL_START
 function terminator::python::__recall__ {
   export -fn terminator::python::invoke
   export -fn terminator::python::invoke::error
@@ -156,5 +148,6 @@ function terminator::python::__recall__ {
   export -fn terminator::python::invoke::with_homebrew
   export -fn terminator::python::invoke::with_system
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

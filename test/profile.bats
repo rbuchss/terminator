@@ -69,3 +69,40 @@ bats_require_minimum_version 1.5.0
   assert_success
   assert_output 'function'
 }
+
+################################################################################
+# terminator::profile::os::{darwin,linux,windows}
+################################################################################
+
+# bats test_tags=terminator::profile,terminator::profile::os::darwin
+@test "terminator::profile::os::darwin calls-config-load" {
+  local config_loaded=''
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::config::load { config_loaded="$1"; }
+
+  terminator::profile::os::darwin
+
+  assert_equal "${config_loaded}" 'os/darwin.sh'
+}
+
+# bats test_tags=terminator::profile,terminator::profile::os::linux
+@test "terminator::profile::os::linux calls-config-load" {
+  local config_loaded=''
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::config::load { config_loaded="$1"; }
+
+  terminator::profile::os::linux
+
+  assert_equal "${config_loaded}" 'os/linux.sh'
+}
+
+# bats test_tags=terminator::profile,terminator::profile::os::windows
+@test "terminator::profile::os::windows calls-config-load" {
+  local config_loaded=''
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::config::load { config_loaded="$1"; }
+
+  terminator::profile::os::windows
+
+  assert_equal "${config_loaded}" 'os/windows.sh'
+}

@@ -12,8 +12,10 @@ function terminator::user::__export__ {
   export -f terminator::user::is_root
 }
 
+# KCOV_EXCL_START
 function terminator::user::__recall__ {
   export -fn terminator::user::is_root
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

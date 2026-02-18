@@ -5,6 +5,15 @@ setup_suite() {
 
   root_dir="$(repo_root)"
 
+  # Override inherited TERMINATOR_MODULE_HOME_DIR to ensure correct module name
+  # derivation. When the user's shell sources terminator via homesick symlinks
+  # (~/.terminator/src/), TERMINATOR_MODULE_HOME_DIR resolves to $HOME instead
+  # of the repo root, producing wrong module names like
+  # 'homesick::repos::terminator::terminator::prompt::git'.
+  # Docker avoids this via explicit ENV in the Dockerfile.
+  export TERMINATOR_MODULE_HOME_DIR="${root_dir}"
+  export TERMINATOR_MODULE_SRC_DIR="${root_dir}/terminator/src"
+
   load "${root_dir}/vendor/test/bats/bats-support/load.bash" # this is required by bats-assert!
   load "${root_dir}/vendor/test/bats/bats-assert/load.bash"
 

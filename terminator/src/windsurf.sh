@@ -77,8 +77,10 @@ function terminator::windsurf::__export__ {
   :
 }
 
+# KCOV_EXCL_START
 function terminator::windsurf::__recall__ {
   :
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

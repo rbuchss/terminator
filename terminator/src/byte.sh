@@ -34,8 +34,10 @@ function terminator::byte::__export__ {
   export -f terminator::byte::reverse_endianness
 }
 
+# KCOV_EXCL_START
 function terminator::byte::__recall__ {
   export -fn terminator::byte::reverse_endianness
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

@@ -16,8 +16,10 @@ function terminator::java::__export__ {
   :
 }
 
+# KCOV_EXCL_START
 function terminator::java::__recall__ {
   :
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

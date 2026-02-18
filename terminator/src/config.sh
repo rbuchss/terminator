@@ -155,6 +155,7 @@ function terminator::config::__export__ {
   export -f terminator::config::hooks::after
 }
 
+# KCOV_EXCL_START
 function terminator::config::__recall__ {
   unset TERMINATOR_CONFIG_DIR
   unset TERMINATOR_HOOKS_DIR
@@ -170,5 +171,6 @@ function terminator::config::__recall__ {
   export -fn terminator::config::hooks::before
   export -fn terminator::config::hooks::after
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

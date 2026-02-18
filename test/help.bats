@@ -77,3 +77,27 @@ bats_require_minimum_version 1.5.0
 
   assert_failure
 }
+
+################################################################################
+# terminator::help
+################################################################################
+
+# bats test_tags=terminator::help,terminator::help::help
+@test "terminator::help with-builtin-command" {
+  # 'cd' is a builtin: man falls through, bash_help succeeds
+  run terminator::help 'cd'
+
+  assert_success
+  assert_output --partial 'cd'
+}
+
+################################################################################
+# terminator::help::command::info
+################################################################################
+
+# bats test_tags=terminator::help,terminator::help::command::info
+@test "terminator::help::command::info with-nonexistent-command" {
+  run terminator::help::command::info 'zzz_nonexistent_command_zzz'
+
+  assert_failure
+}

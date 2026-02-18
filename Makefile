@@ -199,12 +199,12 @@ test-with-coverage:
 		--include-path=./terminator/src/ \
 		--include-pattern=.sh \
 		--exclude-pattern=/test/$(COMMA)/coverage/$(COMMA)/report/ \
+		--exclude-region='KCOV_EXCL_START:KCOV_EXCL_STOP' \
 		--bash-method=DEBUG \
 		--bash-parser="$(COVERAGE_BASH_PARSER)" \
 		--bash-parse-files-in-dir=. \
 		--configure=command-name="$(call test-command)" \
 		coverage \
-		-- \
 		$(call test-command))
 	@$(MAKE) --no-print-directory coverage-pr-report
 

@@ -55,8 +55,10 @@ function terminator::process::__export__ {
   export -f terminator::process::kill
 }
 
+# KCOV_EXCL_START
 function terminator::process::__recall__ {
   export -fn terminator::process::kill
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

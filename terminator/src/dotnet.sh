@@ -36,8 +36,10 @@ function terminator::dotnet::__export__ {
   export -f terminator::dotnet::complete
 }
 
+# KCOV_EXCL_START
 function terminator::dotnet::__recall__ {
   export -fn terminator::dotnet::complete
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

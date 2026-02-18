@@ -97,3 +97,63 @@ bats_require_minimum_version 1.5.0
   assert_output --partial 'Usage:'
   assert_output --partial '--force'
 }
+
+################################################################################
+# terminator::source::__enable__
+################################################################################
+
+# bats test_tags=terminator::source,terminator::source::__enable__
+@test "terminator::source::__enable__ sets-aliases" {
+  terminator::source::__enable__
+
+  alias source_bash_profile
+  alias sbp
+}
+
+################################################################################
+# terminator::source::__disable__
+################################################################################
+
+# bats test_tags=terminator::source,terminator::source::__disable__
+@test "terminator::source::__disable__ removes-aliases" {
+  terminator::source::__enable__
+  terminator::source::__disable__
+
+  local exit_code=0
+
+  exit_code=0
+  alias source_bash_profile 2>/dev/null || exit_code=$?
+  ((exit_code != 0))
+
+  exit_code=0
+  alias sbp 2>/dev/null || exit_code=$?
+  ((exit_code != 0))
+}
+
+################################################################################
+# terminator::source::bash_profile::completion::add_alias
+################################################################################
+
+# bats test_tags=terminator::source,terminator::source::bash_profile::completion::add_alias
+@test "terminator::source::bash_profile::completion::add_alias registers-completion" {
+  terminator::source::bash_profile::completion::add_alias 'test_alias'
+
+  run complete -p test_alias
+
+  assert_success
+  assert_output --partial 'terminator::source::bash_profile::completion'
+}
+
+################################################################################
+# terminator::source::bash_profile::completion::remove_alias
+################################################################################
+
+# bats test_tags=terminator::source,terminator::source::bash_profile::completion::remove_alias
+@test "terminator::source::bash_profile::completion::remove_alias removes-completion" {
+  terminator::source::bash_profile::completion::add_alias 'test_alias'
+  terminator::source::bash_profile::completion::remove_alias 'test_alias'
+
+  run complete -p test_alias
+
+  assert_failure
+}

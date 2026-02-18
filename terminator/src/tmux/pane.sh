@@ -101,6 +101,7 @@ function terminator::tmux::pane::__export__ {
   export -f terminator::tmux::pane::default_log_path
 }
 
+# KCOV_EXCL_START
 function terminator::tmux::pane::__recall__ {
   export -fn terminator::tmux::pane::toggle_pipe_to_log
   export -fn terminator::tmux::pane::save_to_log
@@ -108,5 +109,6 @@ function terminator::tmux::pane::__recall__ {
   export -fn terminator::tmux::pane::default_log_name
   export -fn terminator::tmux::pane::default_log_path
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

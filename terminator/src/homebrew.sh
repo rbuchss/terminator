@@ -1,13 +1,14 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/__module__.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/command.sh"
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/path.sh"
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/source.sh"
 
 terminator::__module__::load || return 0
 
 function terminator::homebrew::is_installed {
-  command -v brew >/dev/null 2>&1
+  terminator::command::exists brew
 }
 
 function terminator::homebrew::package::is_installed {
@@ -97,6 +98,7 @@ function terminator::homebrew::__export__ {
   export -f terminator::homebrew::cask::clean
 }
 
+# KCOV_EXCL_START
 function terminator::homebrew::__recall__ {
   export -fn terminator::homebrew::is_installed
   export -fn terminator::homebrew::package::is_installed
@@ -104,5 +106,6 @@ function terminator::homebrew::__recall__ {
   export -fn terminator::homebrew::clean
   export -fn terminator::homebrew::cask::clean
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

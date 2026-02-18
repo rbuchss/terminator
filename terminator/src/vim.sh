@@ -348,6 +348,7 @@ function terminator::vim::__export__ {
   export -f terminator::vim::open::git_diff
 }
 
+# KCOV_EXCL_START
 function terminator::vim::__recall__ {
   export -fn terminator::vim::get_command
   export -fn terminator::vim::set_editor
@@ -365,5 +366,6 @@ function terminator::vim::__recall__ {
   export -fn terminator::vim::open::content_match::grep
   export -fn terminator::vim::open::git_diff
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

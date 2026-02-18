@@ -36,3 +36,27 @@ bats_require_minimum_version 1.5.0
   assert_stderr --partial 'ERROR: invalid # of args'
   assert_stderr --partial 'Usage:'
 }
+
+################################################################################
+# terminator::mysql::__enable__
+################################################################################
+
+# bats test_tags=terminator::mysql,terminator::mysql::__enable__
+@test "terminator::mysql::__enable__ when-mysql-not-available" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 1; }
+
+  run terminator::mysql::__enable__
+
+  assert_failure
+}
+
+# bats test_tags=terminator::mysql,terminator::mysql::__enable__
+@test "terminator::mysql::__enable__ when-mysql-available" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  run terminator::mysql::__enable__
+
+  assert_success
+}

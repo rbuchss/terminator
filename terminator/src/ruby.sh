@@ -59,10 +59,12 @@ function terminator::ruby::__export__ {
   export -f terminator::ruby::rails::create_clean_database
 }
 
+# KCOV_EXCL_START
 function terminator::ruby::__recall__ {
   export -fn terminator::ruby::bundle_search
   export -fn terminator::ruby::rails::diff
   export -fn terminator::ruby::rails::create_clean_database
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

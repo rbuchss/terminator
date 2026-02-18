@@ -65,6 +65,7 @@ function terminator::tmux::version::__export__ {
   export -f terminator::tmux::version::compare::greater_than_or_equal
 }
 
+# KCOV_EXCL_START
 function terminator::tmux::version::__recall__ {
   export -fn terminator::tmux::version
   export -fn terminator::tmux::version::compare
@@ -74,5 +75,6 @@ function terminator::tmux::version::__recall__ {
   export -fn terminator::tmux::version::compare::greater_than
   export -fn terminator::tmux::version::compare::greater_than_or_equal
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

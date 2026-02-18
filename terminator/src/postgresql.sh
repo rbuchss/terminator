@@ -53,10 +53,12 @@ function terminator::postgresql::__export__ {
   export -f terminator::postgresql::clear_pid
 }
 
+# KCOV_EXCL_START
 function terminator::postgresql::__recall__ {
   export -fn terminator::postgresql::list_config
   export -fn terminator::postgresql::edit_config
   export -fn terminator::postgresql::clear_pid
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

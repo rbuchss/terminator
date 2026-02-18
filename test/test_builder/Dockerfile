@@ -59,6 +59,14 @@ RUN apk add jq
 RUN apk add util-linux-misc
 # Full-featured less to replace BusyBox less (which lacks --tabs, --quit-if-one-screen, etc.)
 RUN apk add less
+# GNU grep to replace BusyBox grep (which lacks --exclude-dir)
+RUN apk add grep
+# ripgrep used by history::search::rg
+RUN apk add ripgrep
+# GNU coreutils for date arithmetic (-d flag), dircolors, etc.
+RUN apk add coreutils
+# Full-featured ps to replace BusyBox ps (which lacks -p flag)
+RUN apk add procps
 
 # Adds kcov from kcov-builder stage since apk does not include kcov
 # Needs to also include kcov runtime dependencies

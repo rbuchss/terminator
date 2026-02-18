@@ -44,8 +44,10 @@ function terminator::tmux::__export__ {
   export -f terminator::tmux::invoke
 }
 
+# KCOV_EXCL_START
 function terminator::tmux::__recall__ {
   export -fn terminator::tmux::invoke
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

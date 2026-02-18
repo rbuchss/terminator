@@ -18,8 +18,10 @@ function terminator::array::__export__ {
   export -f terminator::array::contains
 }
 
+# KCOV_EXCL_START
 function terminator::array::__recall__ {
   export -fn terminator::array::contains
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

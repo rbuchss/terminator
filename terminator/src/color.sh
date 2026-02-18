@@ -56,6 +56,7 @@ function terminator::color::__export__ {
   export -f terminator::color::demo
 }
 
+# KCOV_EXCL_START
 function terminator::color::__recall__ {
   export -fn terminator::color::code
   export -fn terminator::color::code_bare
@@ -64,5 +65,6 @@ function terminator::color::__recall__ {
   export -fn terminator::color::highlight_demo
   export -fn terminator::color::demo
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

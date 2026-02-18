@@ -19,8 +19,10 @@ function terminator::dircolors::__export__ {
   export -f terminator::dircolors::__enable__
 }
 
+# KCOV_EXCL_START
 function terminator::dircolors::__recall__ {
   export -fn terminator::dircolors::__enable__
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

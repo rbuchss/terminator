@@ -20,12 +20,33 @@ bats_require_minimum_version 1.5.0
 
 # bats test_tags=terminator::jenv,terminator::jenv::__enable__
 @test "terminator::jenv::__enable__ when-jenv-not-available" {
-  if command -v jenv >/dev/null 2>&1; then
-    skip 'jenv is installed — cannot test absence'
-  fi
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 1; }
 
   run terminator::jenv::__enable__
 
-  # Returns early with failure when jenv not found
   assert_failure
+}
+
+# bats test_tags=terminator::jenv,terminator::jenv::__enable__
+@test "terminator::jenv::__enable__ when-jenv-available" {
+  local tmp_dir
+  tmp_dir="$(mktemp -d)"
+
+  # Create stub jenv that outputs no-op shell code for 'jenv init -'
+  cat >"${tmp_dir}/jenv" <<'STUB'
+#!/bin/sh
+echo "# jenv init stub"
+STUB
+  chmod +x "${tmp_dir}/jenv"
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  PATH="${tmp_dir}:${PATH}"
+  run terminator::jenv::__enable__
+
+  assert_success
+
+  rm -rf "${tmp_dir}"
 }

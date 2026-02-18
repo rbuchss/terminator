@@ -30,8 +30,10 @@ function terminator::vagrant::__export__ {
   export -f terminator::vagrant::scp
 }
 
+# KCOV_EXCL_START
 function terminator::vagrant::__recall__ {
   export -fn terminator::vagrant::scp
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

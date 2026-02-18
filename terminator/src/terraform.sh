@@ -29,8 +29,10 @@ function terminator::terraform::__export__ {
   :
 }
 
+# KCOV_EXCL_START
 function terminator::terraform::__recall__ {
   :
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

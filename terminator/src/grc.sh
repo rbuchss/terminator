@@ -95,8 +95,10 @@ function terminator::grc::__export__ {
   :
 }
 
+# KCOV_EXCL_START
 function terminator::grc::__recall__ {
   :
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

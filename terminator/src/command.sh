@@ -238,6 +238,7 @@ function terminator::command::__export__ {
   export -f terminator::command::exists::usage
 }
 
+# KCOV_EXCL_START
 function terminator::command::__recall__ {
   export -fn terminator::command::__exists__
   export -fn terminator::command::exists
@@ -246,5 +247,6 @@ function terminator::command::__recall__ {
   export -fn terminator::command::all_exist
   export -fn terminator::command::exists::usage
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

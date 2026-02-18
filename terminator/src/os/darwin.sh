@@ -52,11 +52,13 @@ function terminator::os::darwin::__export__ {
   export -f terminator::os::darwin::screencapture::set_location
 }
 
+# KCOV_EXCL_START
 function terminator::os::darwin::__recall__ {
   export -fn terminator::os::darwin::finder::show_hidden_files
   export -fn terminator::os::darwin::finder::hide_hidden_files
   export -fn terminator::os::darwin::finder::set_show_all_files
   export -fn terminator::os::darwin::screencapture::set_location
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

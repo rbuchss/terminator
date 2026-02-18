@@ -21,8 +21,10 @@ function terminator::jenv::__export__ {
   :
 }
 
+# KCOV_EXCL_START
 function terminator::jenv::__recall__ {
   :
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

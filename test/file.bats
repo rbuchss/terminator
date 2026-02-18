@@ -195,7 +195,7 @@ bats_require_minimum_version 1.5.0
 
   assert_failure 1
   refute_output
-  assert_stderr --partial 'invaild # of args'
+  assert_stderr --partial 'invalid # of args'
 }
 
 # bats test_tags=terminator::file,terminator::file::find_exec
@@ -204,7 +204,7 @@ bats_require_minimum_version 1.5.0
 
   assert_failure 1
   refute_output
-  assert_stderr --partial 'invaild # of args'
+  assert_stderr --partial 'invalid # of args'
 }
 
 ################################################################################

@@ -68,10 +68,12 @@ function terminator::mysql::__export__ {
   export -f terminator::mysql::invoke
 }
 
+# KCOV_EXCL_START
 function terminator::mysql::__recall__ {
   export -fn terminator::mysql::show_process_list
   export -fn terminator::mysql::find_column
   export -fn terminator::mysql::invoke
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

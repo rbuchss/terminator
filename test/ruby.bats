@@ -48,12 +48,20 @@ bats_require_minimum_version 1.5.0
 
 # bats test_tags=terminator::ruby,terminator::ruby::__enable__
 @test "terminator::ruby::__enable__ when-no-ruby-or-rbenv" {
-  if command -v ruby >/dev/null 2>&1 || command -v rbenv >/dev/null 2>&1; then
-    skip 'ruby or rbenv is installed — cannot test absence'
-  fi
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::any_exist { return 1; }
 
   run terminator::ruby::__enable__
 
-  # Returns early with failure when neither ruby nor rbenv found
   assert_failure
+}
+
+# bats test_tags=terminator::ruby,terminator::ruby::__enable__
+@test "terminator::ruby::__enable__ when-ruby-available" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::any_exist { return 0; }
+
+  run terminator::ruby::__enable__
+
+  assert_success
 }

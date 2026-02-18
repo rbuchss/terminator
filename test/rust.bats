@@ -20,12 +20,37 @@ bats_require_minimum_version 1.5.0
 
 # bats test_tags=terminator::rust,terminator::rust::__enable__
 @test "terminator::rust::__enable__ when-rustc-not-available" {
-  if command -v rustc >/dev/null 2>&1; then
-    skip 'rustc is installed — cannot test absence'
-  fi
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 1; }
 
   run terminator::rust::__enable__
 
-  # Returns early with failure when rustc not found
   assert_failure
+}
+
+# bats test_tags=terminator::rust,terminator::rust::__enable__
+@test "terminator::rust::__enable__ when-rustc-available" {
+  local tmp_dir
+  tmp_dir="$(mktemp -d)"
+
+  # Create fake sysroot with cargo completion file
+  mkdir -p "${tmp_dir}/sysroot/etc/bash_completion.d"
+  echo "# cargo completion stub" >"${tmp_dir}/sysroot/etc/bash_completion.d/cargo"
+
+  # Create stub rustc that returns our fake sysroot for '--print sysroot'
+  cat >"${tmp_dir}/rustc" <<STUB
+#!/bin/sh
+echo "${tmp_dir}/sysroot"
+STUB
+  chmod +x "${tmp_dir}/rustc"
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  PATH="${tmp_dir}:${PATH}"
+  run terminator::rust::__enable__
+
+  assert_success
+
+  rm -rf "${tmp_dir}"
 }

@@ -29,3 +29,14 @@ bats_require_minimum_version 1.5.0
   assert_success
   assert_output 'function'
 }
+
+################################################################################
+# terminator::diff::__enable__ / __disable__
+################################################################################
+
+# bats test_tags=terminator::diff,terminator::diff::__enable__
+@test "terminator::diff::__enable__ sets-alias" {
+  run terminator::diff::__enable__
+
+  assert_success
+}

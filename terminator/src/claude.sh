@@ -1,6 +1,7 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/__module__.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/command.sh"
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/path.sh"
 
 terminator::__module__::load || return 0
@@ -13,7 +14,7 @@ function terminator::claude::__enable__ {
     return 1
   fi
 
-  if ! command -v claude >/dev/null 2>&1 \
+  if ! terminator::command::exists claude \
     && [[ ! -x "${local_bin_path}/claude" ]]; then
     terminator::logger::warning 'claude command does not exist'
     return 1
@@ -61,8 +62,10 @@ function terminator::claude::__export__ {
   export -f terminator::claude::mcp::add::context7
 }
 
+# KCOV_EXCL_START
 function terminator::claude::__recall__ {
   export -fn terminator::claude::mcp::add::context7
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

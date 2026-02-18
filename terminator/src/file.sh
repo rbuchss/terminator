@@ -122,7 +122,7 @@ function terminator::file::nuke_spaces {
 # Find a file from pwd with pattern $1 in name and Execute $2 on it
 function terminator::file::find_exec {
   if (($# != 2)); then
-    >&2 echo "ERROR: ${FUNCNAME[0]}: invaild # of args"
+    >&2 echo "ERROR: ${FUNCNAME[0]}: invalid # of args"
     >&2 echo "Usage: ${FUNCNAME[0]} pattern command"
     return 1
   fi
@@ -182,6 +182,7 @@ function terminator::file::__export__ {
   export -f terminator::file::read_first_line
 }
 
+# KCOV_EXCL_START
 function terminator::file::__recall__ {
   export -fn terminator::file::extract
   export -fn terminator::file::mktar
@@ -195,5 +196,6 @@ function terminator::file::__recall__ {
   export -fn terminator::file::mkcd
   export -fn terminator::file::read_first_line
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

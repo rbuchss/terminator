@@ -32,12 +32,21 @@ bats_require_minimum_version 1.5.0
 
 # bats test_tags=terminator::rg,terminator::rg::__enable__
 @test "terminator::rg::__enable__ when-rg-not-available" {
-  if command -v rg >/dev/null 2>&1; then
-    skip 'rg is installed — cannot test absence'
-  fi
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 1; }
 
   run terminator::rg::__enable__
 
   # Returns early with failure when rg not found
   assert_failure
+}
+
+# bats test_tags=terminator::rg,terminator::rg::__enable__
+@test "terminator::rg::__enable__ when-rg-available" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  run terminator::rg::__enable__
+
+  assert_success
 }

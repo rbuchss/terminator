@@ -31,8 +31,10 @@ function terminator::pyenv::__export__ {
   :
 }
 
+# KCOV_EXCL_START
 function terminator::pyenv::__recall__ {
   :
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

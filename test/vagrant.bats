@@ -24,12 +24,20 @@ bats_require_minimum_version 1.5.0
 
 # bats test_tags=terminator::vagrant,terminator::vagrant::__enable__
 @test "terminator::vagrant::__enable__ when-vagrant-not-available" {
-  if command -v vagrant >/dev/null 2>&1; then
-    skip 'vagrant is installed — cannot test absence'
-  fi
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 1; }
 
   run terminator::vagrant::__enable__
 
-  # Returns early with failure when vagrant not found
   assert_failure
+}
+
+# bats test_tags=terminator::vagrant,terminator::vagrant::__enable__
+@test "terminator::vagrant::__enable__ when-vagrant-available" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  run terminator::vagrant::__enable__
+
+  assert_success
 }

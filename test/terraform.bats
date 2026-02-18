@@ -20,12 +20,22 @@ bats_require_minimum_version 1.5.0
 
 # bats test_tags=terminator::terraform,terminator::terraform::__enable__
 @test "terminator::terraform::__enable__ when-terraform-not-available" {
-  if command -v terraform >/dev/null 2>&1; then
-    skip 'terraform is installed — cannot test absence'
-  fi
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 1; }
 
   run terminator::terraform::__enable__
 
-  # Returns early with failure when terraform not found
   assert_failure
+}
+
+# bats test_tags=terminator::terraform,terminator::terraform::__enable__
+@test "terminator::terraform::__enable__ when-terraform-available" {
+  # Mock command::exists but let homebrew::package::is_installed run normally
+  # (it will return false since brew is not installed, skipping completion setup)
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  run terminator::terraform::__enable__
+
+  assert_success
 }
