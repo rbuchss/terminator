@@ -387,3 +387,107 @@ bats_require_minimum_version 1.5.0
 
   assert_failure
 }
+
+# bats test_tags=terminator::__module__,terminator::__module__::__get_module_name__
+@test "terminator::__module__::__get_module_name__ derives terminator::vim from vim.sh" {
+  local result=''
+  TERMINATOR_MODULE_HOME_DIR='/path/to'
+
+  terminator::__module__::__get_module_name__ result '1 /path/to/.terminator/src/vim.sh'
+
+  assert_equal "${result}" 'terminator::vim'
+}
+
+# bats test_tags=terminator::__module__,terminator::__module__::__get_module_name__
+@test "terminator::__module__::__get_module_name__ derives terminator::logger from logger.sh" {
+  local result=''
+  TERMINATOR_MODULE_HOME_DIR='/path/to'
+
+  terminator::__module__::__get_module_name__ result '1 /path/to/.terminator/src/logger.sh'
+
+  assert_equal "${result}" 'terminator::logger'
+}
+
+# bats test_tags=terminator::__module__,terminator::__module__::__get_module_name__
+@test "terminator::__module__::__get_module_name__ derives terminator::homebrew from homebrew.sh" {
+  local result=''
+  TERMINATOR_MODULE_HOME_DIR='/path/to'
+
+  terminator::__module__::__get_module_name__ result '1 /path/to/.terminator/src/homebrew.sh'
+
+  assert_equal "${result}" 'terminator::homebrew'
+}
+
+# bats test_tags=terminator::__module__,terminator::__module__::__get_module_name__
+@test "terminator::__module__::__get_module_name__ derives terminator::prompt::git from prompt/git.sh" {
+  local result=''
+  TERMINATOR_MODULE_HOME_DIR='/path/to'
+
+  terminator::__module__::__get_module_name__ result '1 /path/to/.terminator/src/prompt/git.sh'
+
+  assert_equal "${result}" 'terminator::prompt::git'
+}
+
+# bats test_tags=terminator::__module__,terminator::__module__::__get_module_name__
+@test "terminator::__module__::__get_module_name__ derives terminator::tmux::bootstrap from tmux/bootstrap.sh" {
+  local result=''
+  TERMINATOR_MODULE_HOME_DIR='/path/to'
+
+  terminator::__module__::__get_module_name__ result '1 /path/to/.terminator/src/tmux/bootstrap.sh'
+
+  assert_equal "${result}" 'terminator::tmux::bootstrap'
+}
+
+# bats test_tags=terminator::__module__,terminator::__module__::__get_module_name__
+@test "terminator::__module__::__get_module_name__ derives terminator::os::darwin from os/darwin.sh" {
+  local result=''
+  TERMINATOR_MODULE_HOME_DIR='/path/to'
+
+  terminator::__module__::__get_module_name__ result '1 /path/to/.terminator/src/os/darwin.sh'
+
+  assert_equal "${result}" 'terminator::os::darwin'
+}
+
+# Edge case: .homesick/repos real path
+# bats test_tags=terminator::__module__,terminator::__module__::__get_module_name__
+@test "terminator::__module__::__get_module_name__ handles .homesick real path" {
+  local result=''
+  TERMINATOR_MODULE_HOME_DIR='/Users/russ/.homesick/repos/terminator'
+
+  terminator::__module__::__get_module_name__ result '1 /Users/russ/.homesick/repos/terminator/.terminator/src/vim.sh'
+
+  assert_equal "${result}" 'terminator::vim'
+}
+
+# Edge case: homesick symlink path (~/.terminator/src/)
+# bats test_tags=terminator::__module__,terminator::__module__::__get_module_name__
+@test "terminator::__module__::__get_module_name__ handles symlink path" {
+  local result=''
+  TERMINATOR_MODULE_HOME_DIR='/Users/russ'
+
+  terminator::__module__::__get_module_name__ result '1 /Users/russ/.terminator/src/vim.sh'
+
+  assert_equal "${result}" 'terminator::vim'
+}
+
+# Edge case: Docker/CI path
+# bats test_tags=terminator::__module__,terminator::__module__::__get_module_name__
+@test "terminator::__module__::__get_module_name__ handles Docker workspace path" {
+  local result=''
+  TERMINATOR_MODULE_HOME_DIR='/workspace'
+
+  terminator::__module__::__get_module_name__ result '1 /workspace/.terminator/src/config.sh'
+
+  assert_equal "${result}" 'terminator::config'
+}
+
+# Edge case: preserves underscores in filenames
+# bats test_tags=terminator::__module__,terminator::__module__::__get_module_name__
+@test "terminator::__module__::__get_module_name__ preserves underscores in filenames" {
+  local result=''
+  TERMINATOR_MODULE_HOME_DIR='/path/to'
+
+  terminator::__module__::__get_module_name__ result '1 /path/to/.terminator/src/tmux/some_feature.sh'
+
+  assert_equal "${result}" 'terminator::tmux::some_feature'
+}
