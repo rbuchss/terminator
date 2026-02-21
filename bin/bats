@@ -1,0 +1,14 @@
+#!/bin/bash
+# Resolve project root from this script's location (bin/ is one level deep)
+project_root="${BASH_SOURCE[0]%/*}/.."
+
+# Default to full test suite if no args given
+if (($# == 0)); then
+  set -- "${project_root}/test/"
+fi
+
+"${project_root}/vendor/test/bats/bats-core/bin/bats" \
+  --setup-suite-file "${project_root}/test/test_suite.bash" \
+  --recursive \
+  --pretty \
+  "$@"

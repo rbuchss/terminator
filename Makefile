@@ -61,9 +61,10 @@ endef
 #
 # :param $(1): Make target to run inside the container
 #
-# Passes through TEST_DIRS and FILTER_TAGS when set on the command line.
+# Passes through TEST_PATH and FILTER_TAGS when set on the command line.
+# Both use comma delimiters: TEST_PATH=test/a.bats,test/b.bats FILTER_TAGS=terminator::logger,terminator::cd
 define compose-make-test
-	$(call compose-run,make $(1) TEST_DIRS=$(TEST_DIRS)$(if $(FILTER_TAGS), FILTER_TAGS=$(FILTER_TAGS)))
+	$(call compose-run,make $(1) TEST_PATH=$(TEST_PATH)$(if $(FILTER_TAGS), FILTER_TAGS=$(FILTER_TAGS)))
 endef
 
 ################################################################################
@@ -75,15 +76,15 @@ endef
 compose-guards:
 	$(call compose-make-test,guards)
 
-## Run tests via Docker Compose
+## Run tests with kcov coverage via Docker Compose
 .PHONY: compose-test
 compose-test:
 	$(call compose-make-test,test)
 
-## Run tests with kcov coverage via Docker Compose
-.PHONY: compose-test-with-coverage
-compose-test-with-coverage:
-	$(call compose-make-test,test-with-coverage)
+## Run tests without coverage via Docker Compose
+.PHONY: compose-test-quick
+compose-test-quick:
+	$(call compose-make-test,test-quick)
 
 ## Run shellcheck linter via Docker Compose
 .PHONY: compose-lint
@@ -124,7 +125,7 @@ act-test:
 # Test defaults
 ################################################################################
 
-TEST_DIRS ?= test/
+TEST_PATH ?= test/
 
 ifeq ($(OS),Windows_NT)
   PATH := $(PATH);$(THIS_DIR)\test\bin
@@ -149,15 +150,17 @@ endif
 # So we only enable --pretty if the TERM env var is set.
 #
 # Override examples:
-#   make test TEST_DIRS=test/logger.bats
+#   make test TEST_PATH=test/logger.bats
+#   make test TEST_PATH=test/logger.bats,test/cd.bats
 #   make test FILTER_TAGS=terminator::logger
+#   make test FILTER_TAGS=terminator::logger,terminator::cd
 define test-command
 $(THIS_DIR)/vendor/test/bats/bats-core/bin/bats \
   --setup-suite-file ./test/test_suite.bash \
   --recursive \
   $(if $(TERM),--pretty) \
   $(if $(FILTER_TAGS),--filter-tags $(FILTER_TAGS)) \
-  $(TEST_DIRS)
+  $(subst $(COMMA), ,$(TEST_PATH))
 endef
 
 ################################################################################
@@ -166,12 +169,39 @@ endef
 
 ## Run all guards: test with coverage, lint, format check, and function exports check
 .PHONY: guards
-guards: test-with-coverage lint format-check function-exports-check
+guards: test lint format-check function-exports-check
 
-## Run bats tests
-## Override: make test TEST_DIRS=test/logger.bats FILTER_TAGS=terminator::logger
+## Run bats tests (with kcov coverage when available, without otherwise)
+## Override: make test TEST_PATH=test/logger.bats FILTER_TAGS=terminator::logger
 .PHONY: test
 test:
+	$(call run-in-bash,if command -v kcov >/dev/null 2>&1; then \
+		kcov \
+			--clean \
+			--include-path=./terminator/src/ \
+			--include-pattern=.sh \
+			--exclude-pattern=/test/$(COMMA)/coverage/$(COMMA)/report/ \
+			--exclude-region='KCOV_EXCL_START:KCOV_EXCL_STOP' \
+			--bash-method=DEBUG \
+			--bash-parser="$(COVERAGE_BASH_PARSER)" \
+			--bash-parse-files-in-dir=. \
+			--configure=command-name="$(call test-command)" \
+			coverage \
+			$(call test-command) \
+		&& $(MAKE) --no-print-directory coverage-pr-report; \
+	else \
+		echo ""; \
+		echo "========================================"; \
+		echo "WARNING: kcov not found"; \
+		echo "Running tests without coverage"; \
+		echo "========================================"; \
+		echo ""; \
+		$(call test-command); \
+	fi)
+
+## Run bats tests without coverage
+.PHONY: test-quick
+test-quick:
 	$(call run-in-bash,$(call test-command))
 
 ################################################################################
@@ -186,27 +216,6 @@ COVERAGE_REPORT_OUTPUT ?= /dev/stdout
 ################################################################################
 # Coverage targets
 ################################################################################
-
-# Wraps bats in kcov for code coverage instrumentation.
-# NOTE: github-action runners use linux/amd64.
-# So the builder image needs to also be build using this platform using buildx.
-#
-## Run bats tests with kcov code coverage instrumentation
-.PHONY: test-with-coverage
-test-with-coverage:
-	$(call run-in-bash,kcov \
-		--clean \
-		--include-path=./terminator/src/ \
-		--include-pattern=.sh \
-		--exclude-pattern=/test/$(COMMA)/coverage/$(COMMA)/report/ \
-		--exclude-region='KCOV_EXCL_START:KCOV_EXCL_STOP' \
-		--bash-method=DEBUG \
-		--bash-parser="$(COVERAGE_BASH_PARSER)" \
-		--bash-parse-files-in-dir=. \
-		--configure=command-name="$(call test-command)" \
-		coverage \
-		$(call test-command))
-	@$(MAKE) --no-print-directory coverage-pr-report
 
 ## Generate a pull request coverage diff report
 .PHONY: coverage-pr-report

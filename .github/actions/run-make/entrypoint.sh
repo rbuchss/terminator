@@ -24,8 +24,10 @@ fi
 chown -R "${TESTER_USER}" "${PWD}"
 
 # Build the make command
+# NOTE: `make test` includes coverage by default.
+# Use `make test-quick` for tests without coverage.
 case "${target}:${with_coverage}" in
-  test:true) make_cmd='make test-with-coverage' ;;
+  test:true) make_cmd='make test' ;;
   *) make_cmd="make '${target}'" ;;
 esac
 
