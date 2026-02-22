@@ -203,7 +203,7 @@ function terminator::test::coverage::summary {
   fi
 
   if [[ -z "${coverage_report_input}" ]]; then
-    >&2 echo "ERROR: coverage.json not found. Run 'make compose-test-with-coverage' first."
+    >&2 echo "ERROR: coverage.json not found. Run 'make compose-test' first."
     return 1
   fi
 
@@ -222,7 +222,7 @@ function terminator::test::coverage::all_files {
   fi
 
   if [[ -z "${coverage_report_input}" ]]; then
-    >&2 echo "ERROR: coverage.json not found. Run 'make compose-test-with-coverage' first."
+    >&2 echo "ERROR: coverage.json not found. Run 'make compose-test' first."
     return 1
   fi
 
@@ -259,7 +259,7 @@ function terminator::test::coverage::generate_pull_request_comment {
   fi
 
   if [[ -z "${coverage_report_input}" ]]; then
-    >&2 echo "ERROR: coverage.json not found. Run 'make compose-test-with-coverage' first."
+    >&2 echo "ERROR: coverage.json not found. Run 'make compose-test' first."
     return 1
   fi
 
