@@ -413,13 +413,26 @@ function terminator::__module__::__get_module_name__ {
     return 1
   fi
 
+  # Strip home directory prefix to get project-relative path
   _relative_filepath="${_source_filepath/${TERMINATOR_MODULE_HOME_DIR}/}"
-  _module="${_relative_filepath//[\/.\- ]/_}"
-  _module="${_module#__}"
-  _module="${_module#_}"
-  _module="${_module//_src/}"
-  _module="${_module%_sh}"
-  _module="${_module//_/::}"
+
+  # Remove .sh extension
+  _module="${_relative_filepath%.sh}"
+
+  # Remove dots (e.g., .terminator → terminator)
+  _module="${_module//./}"
+
+  # Replace hyphens with underscores
+  _module="${_module//-/_}"
+
+  # Replace directory separators with :: (preserves underscores in filenames)
+  _module="${_module//\//::}"
+
+  # Strip leading ::
+  _module="${_module#::}"
+
+  # Remove ::src namespace
+  _module="${_module/::src/}"
 
   terminator::__module__::__invoke_function_if_exists__ \
     'terminator::logger::trace' -c 3 "Using module name: '${_module}' for file: '${_source_filepath}'"
