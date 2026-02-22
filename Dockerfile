@@ -16,8 +16,18 @@ FROM ${BUILDER_IMAGE_NAME} as terminator-tester-base
 
 # We need to export any ARG's we want in each stage to make them available
 ARG IMAGE_BASH_PATH
+ARG USER
+ARG GROUP
 
 ENV BASH_PATH=${IMAGE_BASH_PATH}
+
+RUN addgroup ${GROUP}
+RUN adduser \
+  --disabled-password \
+  --gecos "" \
+  --shell ${BASH_PATH} \
+  --ingroup ${GROUP} \
+  ${USER}
 
 ################################################################################
 # Local docker version
@@ -33,15 +43,6 @@ ARG WORKDIR
 WORKDIR ${WORKDIR}
 
 ENV TERMINATOR_MODULE_SRC_DIR=${WORKDIR}/terminator/src
-
-RUN addgroup ${GROUP}
-
-RUN adduser \
-  --disabled-password \
-  --gecos "" \
-  --shell ${BASH_PATH} \
-  --ingroup ${GROUP} \
-  ${USER}
 
 RUN chown --recursive ${USER}:${GROUP} ${WORKDIR}
 
@@ -59,12 +60,15 @@ CMD exec make guards
 
 FROM terminator-tester-base as terminator-tester-github-actions
 
+ARG USER
+ARG GROUP
+
 # Set working directory for GitHub Actions (even though GH docs recommend not to,
 # we need it to properly locate terminator source files)
 WORKDIR /github/workspace
 
 ENV TERMINATOR_MODULE_SRC_DIR=/github/workspace/terminator/src
 
-COPY . .
+COPY --chown=${USER}:${GROUP} . .
 
 ENTRYPOINT ["./.github/actions/run-make/entrypoint.sh"]
