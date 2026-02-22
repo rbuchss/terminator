@@ -54,6 +54,10 @@ RUN apk add ncurses
 RUN apk add shellcheck
 RUN apk add tmux
 RUN apk add jq
+# column command used by history.sh and help.sh for tabular formatting
+RUN apk add util-linux-misc
+# Full-featured less to replace BusyBox less (which lacks --tabs, --quit-if-one-screen, etc.)
+RUN apk add less
 
 # Adds kcov from kcov-builder stage since apk does not include kcov
 # Needs to also include kcov runtime dependencies
