@@ -13,7 +13,6 @@ terminator::source \
   "${HOME}/.terminator/src/file.sh" \
   "${HOME}/.terminator/src/gcloud.sh" \
   "${HOME}/.terminator/src/ghostty.sh" \
-  "${HOME}/.terminator/src/git.sh" \
   "${HOME}/.terminator/src/go.sh" \
   "${HOME}/.terminator/src/grc.sh" \
   "${HOME}/.terminator/src/grep.sh" \
@@ -56,7 +55,6 @@ __modules__=(
   terminator::file
   terminator::gcloud
   terminator::ghostty
-  terminator::git
   terminator::go
   terminator::grep
   terminator::history
