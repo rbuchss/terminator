@@ -65,7 +65,7 @@ function terminator::tmuxinator::completion {
     local words
     words=("${COMP_WORDS[@]}")
     unset 'words[0]'
-    unset words["${COMP_CWORD}"]
+    unset "words[${COMP_CWORD}]"
     local completions
     completions=$(command tmuxinator completions "${words[@]}")
 
