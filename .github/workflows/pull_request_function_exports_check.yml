@@ -1,0 +1,19 @@
+name: Bash Function Exports Check
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  function_exports_check_job:
+    runs-on: ubuntu-latest
+    name: Run Function Exports Check
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Run Function Exports Check
+        uses: ./.github/actions/run-make
+        with:
+          target: function-exports-check
+          with_coverage: false

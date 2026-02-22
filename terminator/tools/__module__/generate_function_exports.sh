@@ -105,13 +105,13 @@ export -f find_and_format
 repo_root="$(__repo_root__)"
 found_missing_files=0
 
-if [[ "${write_exports_to_file}" != 'true' ]]; then
-  echo '################################################################################'
-  echo '# Missing function exports to add:'
-  echo '################################################################################'
-fi
+file_count=0
 
 for search_dir in "${SEARCH_DIRS[@]}"; do
+  while IFS= read -r -d '' _; do
+    ((file_count++))
+  done < <(find "${repo_root}/${search_dir}" -type f \( -name '*.sh' -or -name '*.bash' \) -print0)
+
   find "${repo_root}/${search_dir}" -type f \( -name '*.sh' -or -name '*.bash' \) -print0 \
     | sort -z \
     | xargs -0 -I {} bash -c "find_and_format_with_function_prefix {} '${write_exports_to_file}' '${DEFAULT_OUTPUT}'" \
@@ -127,4 +127,14 @@ export -fn find_and_format_with_function_prefix
 export -fn find_and_format_without_function_prefix
 export -fn find_and_format
 
-[[ "${write_exports_to_file}" != 'true' ]] && exit "${found_missing_files}"
+if [[ "${write_exports_to_file}" != 'true' ]]; then
+  echo "Function export check: scanned ${file_count} shell files in: ${SEARCH_DIRS[*]}"
+  echo "Verifying every public function has a matching 'export -f' declaration..."
+  if ((found_missing_files != 0)); then
+    echo 'FAIL: Missing function exports found (see above)'
+    echo 'Run "make function-exports" to add them interactively'
+  else
+    echo 'OK: All function exports are present'
+  fi
+  exit "${found_missing_files}"
+fi
