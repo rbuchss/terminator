@@ -12,15 +12,35 @@ FAIL_SYMBOL=🔴
 SCRIPT_PATH="${BASH_SOURCE[0]:-$0}"
 SCRIPT_DIR="${SCRIPT_PATH%/*}"
 
-COVERAGE_FILE=coverage/bats/coverage.json
-
-if ! command -v jq > /dev/null 2>&1; then
+if ! command -v jq >/dev/null 2>&1; then
   >&2 echo 'ERROR: jq not installed - skipping coverage report generation'
   exit 1
 fi
 
 function terminator::test::coverage::repo_root {
   git rev-parse --show-toplevel
+}
+
+# Resolve coverage JSON path, handling broken symlinks from container runs.
+# kcov creates coverage/bats -> /workspace/coverage/bats.HASH (absolute container
+# path). On the host this symlink is broken, so we fall back to the glob pattern.
+function terminator::test::coverage::resolve_coverage_file {
+  local repo_root="${1:?}"
+  local coverage_file="${repo_root}/coverage/bats/coverage.json"
+
+  if [[ -f "${coverage_file}" ]]; then
+    echo "${coverage_file}"
+    return 0
+  fi
+
+  # Symlink broken (absolute container path) — fall back to glob
+  local -a matches=("${repo_root}"/coverage/bats.*/coverage.json)
+  if [[ -f "${matches[0]}" ]]; then
+    echo "${matches[0]}"
+    return 0
+  fi
+
+  return 1
 }
 
 function terminator::test::coverage::get_overall_status {
@@ -33,7 +53,7 @@ function terminator::test::coverage::get_overall_status {
     --arg pass_symbol "${STATUS_OK_SYMBOL}" \
     --arg fail_symbol "${STATUS_NOT_OK_SYMBOL}" \
     -f "${SCRIPT_DIR}/get_overall_status.jq" \
-    < "${coverage_report_input}"
+    <"${coverage_report_input}"
 }
 
 function terminator::test::coverage::get_overall_report {
@@ -51,7 +71,7 @@ EOF
     --arg pass_symbol "${PASS_SYMBOL}" \
     --arg fail_symbol "${FAIL_SYMBOL}" \
     -f "${SCRIPT_DIR}/get_overall_report.jq" \
-    < "${coverage_report_input}"
+    <"${coverage_report_input}"
 }
 
 function terminator::test::coverage::get_files_report {
@@ -83,8 +103,8 @@ function terminator::test::coverage::get_files_report {
     --arg pass_symbol "${PASS_SYMBOL}" \
     --arg fail_symbol "${FAIL_SYMBOL}" \
     -f "${SCRIPT_DIR}/get_files_report.jq" \
-    < "${coverage_report_input}" \
-    > "${coverage_report_output}"
+    <"${coverage_report_input}" \
+    >"${coverage_report_output}"
 
   if [[ -s "${coverage_report_output}" ]]; then
     cat <<EOF
@@ -175,47 +195,92 @@ EOF
 
 }
 
+function terminator::test::coverage::summary {
+  local coverage_report_input="${1:-}"
+
+  if [[ -z "${coverage_report_input}" ]]; then
+    coverage_report_input="$(terminator::test::coverage::resolve_coverage_file "$(terminator::test::coverage::repo_root)")"
+  fi
+
+  if [[ -z "${coverage_report_input}" ]]; then
+    >&2 echo "ERROR: coverage.json not found. Run 'make compose-test-with-coverage' first."
+    return 1
+  fi
+
+  jq -r \
+    -f "${SCRIPT_DIR}/get_summary.jq" \
+    <"${coverage_report_input}"
+}
+
+function terminator::test::coverage::all_files {
+  local coverage_report_input="${1:-}" repo_root
+
+  repo_root="$(terminator::test::coverage::repo_root)"
+
+  if [[ -z "${coverage_report_input}" ]]; then
+    coverage_report_input="$(terminator::test::coverage::resolve_coverage_file "${repo_root}")"
+  fi
+
+  if [[ -z "${coverage_report_input}" ]]; then
+    >&2 echo "ERROR: coverage.json not found. Run 'make compose-test-with-coverage' first."
+    return 1
+  fi
+
+  jq -r \
+    --arg base_path "${repo_root}" \
+    -f "${SCRIPT_DIR}/get_all_files_report.jq" \
+    <"${coverage_report_input}"
+}
+
 function terminator::test::coverage::generate_pull_request_comment {
   local \
     base_sha="${1:?}" \
     head_sha="${2:?}" \
     coverage_report_output="${3:-/dev/stdout}" \
-    coverage_report_input="${4:-${COVERAGE_FILE}}" \
+    coverage_report_input="${4:-}" \
     coverage_report_temp_output \
     current_status \
     overall_report \
     new_files_report \
     modified_files_report
 
-  if ! git rev-parse --verify "${base_sha}" > /dev/null 2>&1; then
+  if ! git rev-parse --verify "${base_sha}" >/dev/null 2>&1; then
     >&2 echo "ERROR: invalid base ref: '${base_sha}'"
     return 1
   fi
 
-  if ! git rev-parse --verify "${head_sha}" > /dev/null 2>&1; then
+  if ! git rev-parse --verify "${head_sha}" >/dev/null 2>&1; then
     >&2 echo "ERROR: invalid head ref: '${head_sha}'"
     return 1
   fi
 
-  coverage_report_input="$(terminator::test::coverage::repo_root)/${coverage_report_input}"
+  if [[ -z "${coverage_report_input}" ]]; then
+    coverage_report_input="$(terminator::test::coverage::resolve_coverage_file "$(terminator::test::coverage::repo_root)")"
+  fi
+
+  if [[ -z "${coverage_report_input}" ]]; then
+    >&2 echo "ERROR: coverage.json not found. Run 'make compose-test-with-coverage' first."
+    return 1
+  fi
+
   current_status="$(terminator::test::coverage::get_overall_status "${coverage_report_input}" "${THRESHOLD_ALL}")"
   overall_report="$(terminator::test::coverage::get_overall_report "${coverage_report_input}" "${THRESHOLD_ALL}")"
 
-  new_files_report="$( \
+  new_files_report="$(
     terminator::test::coverage::get_new_files_report \
       "${base_sha}" \
       "${head_sha}" \
       "${coverage_report_input}" \
-      "${THRESHOLD_NEW}" \
-    )"
+      "${THRESHOLD_NEW}"
+  )"
 
-  modified_files_report="$( \
+  modified_files_report="$(
     terminator::test::coverage::get_modified_files_report \
       "${base_sha}" \
       "${head_sha}" \
       "${coverage_report_input}" \
-      "${THRESHOLD_MODIFIED}" \
-    )"
+      "${THRESHOLD_MODIFIED}"
+  )"
 
   coverage_report_temp_output="$(mktemp /tmp/terminator-coverage-report.XXXXXXXXXX)"
 
@@ -226,7 +291,7 @@ function terminator::test::coverage::generate_pull_request_comment {
     "${overall_report}" \
     "${new_files_report}" \
     "${modified_files_report}" \
-    > "${coverage_report_temp_output}"
+    >"${coverage_report_temp_output}"
 
   if [[ "${coverage_report_output}" == 'GITHUB_OUTPUT' ]]; then
     echo "Using GITHUB_OUTPUT: ${GITHUB_OUTPUT}"
@@ -245,7 +310,7 @@ function terminator::test::coverage::generate_pull_request_comment {
 
     # We use awk to convert linebreaks into \n literals to pass downstream
     # otherwise we run into quoting issues with github-script bodies.
-    cat >> "${GITHUB_OUTPUT}" <<EOF
+    cat >>"${GITHUB_OUTPUT}" <<EOF
 coverage_report<<${github_delimiter}
 $(awk -v ORS='\\n' '1' "${coverage_report_temp_output}")
 ${github_delimiter}
@@ -254,7 +319,25 @@ EOF
     return
   fi
 
-  cat "${coverage_report_temp_output}" > "${coverage_report_output}"
+  cat "${coverage_report_temp_output}" >"${coverage_report_output}"
 }
 
-terminator::test::coverage::generate_pull_request_comment "$@"
+subcommand="${1:?Usage: $0 <summary|files|pull-request> [args...]}"
+shift
+
+case "${subcommand}" in
+  summary)
+    terminator::test::coverage::summary "$@"
+    ;;
+  files)
+    terminator::test::coverage::all_files "$@"
+    ;;
+  pull-request)
+    terminator::test::coverage::generate_pull_request_comment "$@"
+    ;;
+  *)
+    >&2 echo "Unknown subcommand: ${subcommand}"
+    >&2 echo "Usage: $0 <summary|files|pull-request> [args...]"
+    exit 1
+    ;;
+esac

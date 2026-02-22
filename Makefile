@@ -1,15 +1,203 @@
+THIS_DIR := $(patsubst %/,%,$(dir $(realpath $(firstword $(MAKEFILE_LIST)))))
+
+include $(THIS_DIR)/vendor/container-build-tools/modules.mk
+
+.DEFAULT_GOAL := guards
+
 ################################################################################
-# Shared targets and config
+# Platform defaults
 ################################################################################
 
-BASH_PATH ?= /bin/bash
+ifeq ($(OS),Windows_NT)
+  SHELL := pwsh.exe
+  THIS_DIR := $(subst /,\,$(THIS_DIR))
+else
+  SHELL := /bin/bash
+endif
 
+################################################################################
+# Docker defaults
+################################################################################
+
+# The builder base image (FROM ${BUILDER_IMAGE_NAME} in Dockerfile) is resolved
+# by Docker automatically — pulled from registry if not available locally.
+# To build the builder locally instead: make -C test/test_builder docker-build
+DOCKER_IMAGE_NAME := rbuchss/terminator-tester-local
+DOCKER_BUILD_TARGET := terminator-tester-local
+DOCKER_IMAGE_BASH_PATH := /usr/local/bin/bash
+
+DOCKER_USER := kyle-reese
+DOCKER_GROUP := skynet-resistance
+DOCKER_WORKDIR := /cyberdyne
+
+DOCKER_BUILD_FLAGS := \
+  --build-arg USER=$(DOCKER_USER) \
+  --build-arg GROUP=$(DOCKER_GROUP) \
+  --build-arg WORKDIR=$(DOCKER_WORKDIR)
+
+DOCKER_RUN_FLAGS := \
+  -it \
+  --rm \
+  --cap-drop all \
+  --security-opt=no-new-privileges
+
+DOCKER_DEBUG_CMD := $(DOCKER_IMAGE_BASH_PATH)
+
+################################################################################
+# Docker Compose macros
+################################################################################
+
+# Compose runner
+# Usage: $(call compose-run,COMMAND)
+#
+# :param $(1): Command to run inside the container
+define compose-run
+	docker compose run --rm tester $(DOCKER_IMAGE_BASH_PATH) -c \
+		'git config --global --add safe.directory /workspace && $(1)'
+endef
+
+# Compose make runner
+# Usage: $(call compose-make-test,TARGET)
+#
+# :param $(1): Make target to run inside the container
+#
+# Passes through TEST_DIRS and FILTER_TAGS when set on the command line.
+define compose-make-test
+	$(call compose-run,make $(1) TEST_DIRS=$(TEST_DIRS)$(if $(FILTER_TAGS), FILTER_TAGS=$(FILTER_TAGS)))
+endef
+
+################################################################################
+# Docker Compose targets
+################################################################################
+
+.PHONY: compose-test
+compose-test:
+	$(call compose-make-test,test)
+
+.PHONY: compose-test-with-coverage
+compose-test-with-coverage:
+	$(call compose-make-test,test-with-coverage)
+
+.PHONY: compose-debug
+compose-debug:
+	$(call compose-run,exec $(DOCKER_IMAGE_BASH_PATH))
+
+################################################################################
+# GitHub Actions targets
+################################################################################
+
+# Useful to test out github-action workflow with linux/amd64 platform.
+# Since we are doing cross platform builds we need to ensure linux/amd64 is stable.
+# Testing locally with only linux/arm64 can pass while linux/amd64 can be unstable
+# which means that github-action workflows may not run ok due to platform specific issues.
+# WARNING: This does not work with M2 Max chipset which causes a segfault - works ok on M1 Max.
+.PHONY: act-test
+act-test:
+	act --container-architecture linux/amd64 workflow_dispatch
+
+################################################################################
+# Test defaults
+################################################################################
+
+TEST_DIRS ?= test/
+
+ifeq ($(OS),Windows_NT)
+  PATH := $(PATH);$(THIS_DIR)\test\bin
+else
+  PATH := $(PATH):$(THIS_DIR)/test/bin
+endif
+
+################################################################################
+# Test macros
+################################################################################
+
+# Bats test command builder
+# Usage: $(call test-command)
+#
+# Evaluated at expansion time — supports runtime overrides.
+#
+# NOTE: We cannot use --pretty in github-action runners since they cause the following error:
+#   /github/workspace/vendor/test/bats/bats-core/bin/bats --setup-suite-file ./test/test_suite.bash --pretty --recursive test/
+#   tput: No value for $TERM and no -T specified
+#   /github/workspace/vendor/test/bats/bats-core/lib/bats-core/validator.bash: line 8: printf: write error: Broken pipe
+# This is due to the runner terminal settings or lack thereof - re the $TERM -T part.
+# So we only enable --pretty if the TERM env var is set.
+#
+# Override examples:
+#   make test TEST_DIRS=test/logger.bats
+#   make test FILTER_TAGS=terminator::logger
+define test-command
+$(THIS_DIR)/vendor/test/bats/bats-core/bin/bats \
+  --setup-suite-file ./test/test_suite.bash \
+  --recursive \
+  $(if $(TERM),--pretty) \
+  $(if $(FILTER_TAGS),--filter-tags $(FILTER_TAGS)) \
+  $(TEST_DIRS)
+endef
+
+################################################################################
+# Test targets
+################################################################################
+
+.PHONY: guards
+guards: test-with-coverage lint
+
+.PHONY: test
+test:
+	$(call run-in-bash,$(call test-command))
+
+################################################################################
+# Coverage defaults
+################################################################################
+
+COVERAGE_BASH_PARSER ?= /bin/bash
 COVERAGE_REPORT_BASE_SHA ?= origin/main
 COVERAGE_REPORT_HEAD_SHA ?= HEAD
 COVERAGE_REPORT_OUTPUT ?= /dev/stdout
 
-THIS_DIR := $(patsubst %/,%,$(dir $(realpath $(firstword $(MAKEFILE_LIST)))))
-TEST_DIRS := test/
+################################################################################
+# Coverage targets
+################################################################################
+
+# Wraps bats in kcov for code coverage instrumentation.
+# NOTE: github-action runners use linux/amd64.
+# So the builder image needs to also be build using this platform using buildx.
+.PHONY: test-with-coverage
+test-with-coverage:
+	$(call run-in-bash,kcov \
+		--clean \
+		--include-path=./terminator/src/ \
+		--include-pattern=.sh \
+		--exclude-pattern=/test/$(COMMA)/coverage/$(COMMA)/report/ \
+		--bash-method=DEBUG \
+		--bash-parser="$(COVERAGE_BASH_PARSER)" \
+		--bash-parse-files-in-dir=. \
+		--configure=command-name="$(call test-command)" \
+		coverage \
+		-- \
+		$(call test-command))
+	@$(MAKE) --no-print-directory coverage-pr-report
+
+.PHONY: coverage-pr-report
+coverage-pr-report:
+	[[ -n "$(COVERAGE_REPORT_BASE_SHA)" && -n "$(COVERAGE_REPORT_HEAD_SHA)" ]] \
+		&& $(THIS_DIR)/test/test_coverage/generate_report.sh \
+			pull-request \
+			"$(COVERAGE_REPORT_BASE_SHA)" \
+			"$(COVERAGE_REPORT_HEAD_SHA)" \
+			"$(COVERAGE_REPORT_OUTPUT)"
+
+.PHONY: coverage-summary
+coverage-summary:
+	@$(THIS_DIR)/test/test_coverage/generate_report.sh summary
+
+.PHONY: coverage-files
+coverage-files:
+	@$(THIS_DIR)/test/test_coverage/generate_report.sh files
+
+################################################################################
+# Lint defaults
+################################################################################
 
 LINTED_SOURCE_FILES := \
   ':(top,attr:category=source language=bash)'
@@ -20,57 +208,9 @@ LINTED_TEST_FILES := \
 
 LINTED_FILES := $(LINTED_SOURCE_FILES) $(LINTED_TEST_FILES)
 
-TEST_COMMAND_FLAGS := \
-  --setup-suite-file ./test/test_suite.bash \
-  --recursive
-
-# NOTE: We cannot use --pretty in github-action runners since they cause the following error:
-#   /github/workspace/vendor/test/bats/bats-core/bin/bats --setup-suite-file ./test/test_suite.bash --pretty --recursive test/
-#   tput: No value for $TERM and no -T specified
-#   /github/workspace/vendor/test/bats/bats-core/lib/bats-core/validator.bash: line 8: printf: write error: Broken pipe
-# This is due to the runner terminal settings or lack thereof - re the $TERM -T part.
-# So we only enable --pretty if the TERM env var is set.
-ifneq ($(TERM),)
-TEST_COMMAND_FLAGS += --pretty
-endif
-
-TEST_COMMAND := $(THIS_DIR)/vendor/test/bats/bats-core/bin/bats \
-  $(TEST_COMMAND_FLAGS) \
-  $(TEST_DIRS)
-
-.DEFAULT_GOAL := guards
-.PHONY: guards
-guards: test-with-coverage lint
-
-# NOTE: github-action runners use linux/amd64.
-# So the builder image needs to also be build using this platform using buildx.
-.PHONY: test
-test:
-	$(TEST_COMMAND)
-
-.PHONY: test-with-coverage
-test-with-coverage:
-	kcov \
-		--clean \
-		--include-path=./terminator/src/ \
-		--include-pattern=.sh \
-		--exclude-pattern=/test/,/coverage/,/report/ \
-		--bash-method=DEBUG \
-		--bash-parser="$(BASH_PATH)" \
-		--bash-parse-files-in-dir=. \
-		--configure=command-name="$(TEST_COMMAND)" \
-		coverage \
-		-- \
-		$(TEST_COMMAND)
-	@$(MAKE) --no-print-directory coverage-report
-
-.PHONY: coverage-report
-coverage-report:
-	[[ -n "$(COVERAGE_REPORT_BASE_SHA)" && -n "$(COVERAGE_REPORT_HEAD_SHA)" ]] \
-		&& $(THIS_DIR)/test/test_coverage/generate_report.sh \
-			"$(COVERAGE_REPORT_BASE_SHA)" \
-			"$(COVERAGE_REPORT_HEAD_SHA)" \
-			"$(COVERAGE_REPORT_OUTPUT)"
+################################################################################
+# Lint targets
+################################################################################
 
 .PHONY: lint
 lint:
@@ -88,6 +228,10 @@ linted-source-files:
 linted-test-files:
 	git ls-files -- $(LINTED_TEST_FILES)
 
+################################################################################
+# Function exports
+################################################################################
+
 .PHONY: function-exports
 function-exports:
 	@if ! $(THIS_DIR)/terminator/tools/__module__/generate_function_exports.sh false; then \
@@ -101,162 +245,3 @@ function-exports:
 	else \
 		echo 'No missing function exports found!'; \
 	fi
-
-################################################################################
-# Docker targets and config
-################################################################################
-
-FORCE ?= false
-USE_PREBUILT_BUILDER ?= true
-
-DOCKER_IMAGE_BASH_VERSION := 3.2.57
-DOCKER_IMAGE_BASH_PATH := /usr/local/bin/bash
-DOCKER_IMAGE_KCOV_VERSION := v42
-
-DOCKER_USER := kyle-reese
-DOCKER_GROUP := skynet-resistance
-DOCKER_WORKDIR := /cyberdyne
-DOCKER_BUILDX_NAME := doctor-miles-bennett-dyson
-DOCKER_BUILDX_PLATFORMS := linux/amd64,linux/arm64
-
-DOCKER_HUB_USER := rbuchss
-DOCKER_TESTER_BUILD_TARGET := terminator-tester-local
-DOCKER_TESTER_IMAGE_NAME := $(DOCKER_HUB_USER)/$(DOCKER_TESTER_BUILD_TARGET)
-DOCKER_BUILDER_BUILD_TARGET := terminator-tester-builder
-DOCKER_BUILDER_IMAGE_NAME := $(DOCKER_HUB_USER)/$(DOCKER_BUILDER_BUILD_TARGET)
-
-DOCKER_TESTER_BUILD_FLAGS := \
-  --target "$(DOCKER_TESTER_BUILD_TARGET)" \
-  --tag "$(DOCKER_TESTER_IMAGE_NAME)" \
-  --build-arg BUILDER_IMAGE_NAME=$(DOCKER_BUILDER_IMAGE_NAME) \
-  --build-arg USER=$(DOCKER_USER) \
-  --build-arg GROUP=$(DOCKER_GROUP) \
-  --build-arg WORKDIR=$(DOCKER_WORKDIR)
-
-DOCKER_BUILDER_BUILD_FLAGS := \
-  --target "$(DOCKER_BUILDER_BUILD_TARGET)" \
-  --tag "$(DOCKER_BUILDER_IMAGE_NAME)" \
-  --build-arg IMAGE_BASH_VERSION=$(DOCKER_IMAGE_BASH_VERSION) \
-  --build-arg IMAGE_BASH_PATH=$(DOCKER_IMAGE_BASH_PATH) \
-  --build-arg IMAGE_KCOV_VERSION=$(DOCKER_IMAGE_KCOV_VERSION)
-
-ifeq ($(FORCE),true)
-DOCKER_TESTER_BUILD_FLAGS += --no-cache
-DOCKER_BUILDER_BUILD_FLAGS += --no-cache
-endif
-
-DOCKER_BUILDER_BUILDX_FLAGS := \
-  $(DOCKER_BUILDER_BUILD_FLAGS) \
-  --platform $(DOCKER_BUILDX_PLATFORMS) \
-  --builder $(DOCKER_BUILDX_NAME)
-
-DOCKER_TESTER_RUN_FLAGS := \
-  -it \
-  --rm \
-  --cap-drop all \
-  --security-opt=no-new-privileges \
-  "$(DOCKER_TESTER_IMAGE_NAME)"
-
-DOCKER_BUILDER_RUN_FLAGS := \
-  -it \
-  --rm \
-  "$(DOCKER_BUILDER_IMAGE_NAME)"
-
-.PHONY: docker-clean
-docker-clean: docker-tester-clean docker-builder-clean docker-image-prune
-
-.PHONY: docker-tester-build
-docker-tester-build: docker-builder-get
-	docker build . $(DOCKER_TESTER_BUILD_FLAGS)
-
-.PHONY: docker-tester-run
-docker-tester-run: docker-tester-build
-	docker run $(DOCKER_TESTER_RUN_FLAGS)
-
-.PHONY: docker-tester-debug
-docker-tester-debug:
-	docker run $(DOCKER_TESTER_RUN_FLAGS) $(DOCKER_IMAGE_BASH_PATH)
-
-.PHONY: docker-tester-clean
-docker-tester-clean:
-	@if docker image inspect "$(DOCKER_TESTER_IMAGE_NAME)" >/dev/null 2>&1; then \
-		docker image remove "$(DOCKER_TESTER_IMAGE_NAME)"; \
-	else \
-		echo "Skipping - $(DOCKER_TESTER_IMAGE_NAME): No such image"; \
-	fi
-
-ifeq ($(USE_PREBUILT_BUILDER),true)
-.PHONY: docker-builder-get
-docker-builder-get: docker-builder-pull
-else
-.PHONY: docker-builder-get
-docker-builder-get: docker-builder-buildx-build
-endif
-
-.PHONY: docker-builder-debug
-docker-builder-debug:
-	docker run $(DOCKER_BUILDER_RUN_FLAGS) $(DOCKER_IMAGE_BASH_PATH)
-
-.PHONY: docker-builder-clean
-docker-builder-clean:
-	@if docker image inspect "$(DOCKER_BUILDER_IMAGE_NAME)" >/dev/null 2>&1; then \
-		docker image remove "$(DOCKER_BUILDER_IMAGE_NAME)"; \
-	else \
-		echo "Skipping - $(DOCKER_BUILDER_IMAGE_NAME): No such image"; \
-	fi
-
-# Useful to test out github-action workflow with linux/amd64 platform.
-# Since we are doing cross platform builds we need to ensure linux/amd64 is stable.
-# Testing locally with only linux/arm64 can pass while linux/amd64 can be unstable
-# which means that github-action workflows may not run ok due to platform specific issues.
-# WARNING: This does not work with M2 Max chipset which causes a segfault - works ok on M1 Max.
-.PHONY: act-test
-act-test:
-	act --container-architecture linux/amd64 workflow_dispatch
-
-.PHONY: docker-builder-pull
-docker-builder-pull:
-	docker image pull $(DOCKER_BUILDER_IMAGE_NAME)
-
-# Using QEMU to do cross platform builds
-# https://docs.docker.com/build/building/multi-platform/#qemu
-.PHONY: docker-builder-buildx-install
-docker-builder-buildx-install:
-	docker run --privileged --rm tonistiigi/binfmt --install all
-
-# Creating a builder for cross platform builds
-# https://docs.docker.com/build/building/multi-platform/#qemu
-.PHONY: docker-builder-buildx-bootstrap
-docker-builder-buildx-bootstrap: docker-builder-buildx-install
-	@if docker buildx inspect "$(DOCKER_BUILDX_NAME)" >/dev/null 2>&1; then \
-		echo "Skipping - $(DOCKER_BUILDX_NAME): buildx container is already running"; \
-	else \
-		docker buildx create --bootstrap --name $(DOCKER_BUILDX_NAME); \
-	fi
-
-.PHONY: docker-builder-buildx-build
-docker-builder-buildx-build: docker-builder-buildx-bootstrap
-	docker buildx build $(DOCKER_BUILDER_BUILDX_FLAGS) ./test/test_builder
-
-.PHONY: docker-builder-buildx-push
-docker-builder-buildx-push: docker-builder-buildx-bootstrap
-	docker buildx build --push $(DOCKER_BUILDER_BUILDX_FLAGS) ./test/test_builder
-
-.PHONY: docker-builder-buildx-clean
-docker-builder-buildx-clean:
-	@if docker buildx inspect "$(DOCKER_BUILDX_NAME)" >/dev/null 2>&1; then \
-		docker buildx rm $(DOCKER_BUILDX_NAME); \
-	else \
-		echo "Skipping - $(DOCKER_BUILDX_NAME): buildx container not found"; \
-	fi
-	@for image in moby/buildkit:buildx-stable-1 tonistiigi/binfmt; do \
-	if docker image inspect "$${image}" >/dev/null 2>&1; then \
-		docker image remove "$${image}"; \
-	else \
-		echo "Skipping - $${image}: No such image"; \
-	fi; \
-	done
-
-.PHONY: docker-image-prune
-docker-image-prune:
-	docker image prune
