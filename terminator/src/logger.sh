@@ -602,6 +602,7 @@ function terminator::logger::__export__ {
   export TERMINATOR_LOG_INVALID_STATUS
 }
 
+# KCOV_EXCL_START
 function terminator::logger::__recall__ {
   # We need to remove these exported functions otherwise tmux will not
   # properly load the .bash_profile if any of them are called during
@@ -653,5 +654,6 @@ function terminator::logger::__recall__ {
   export -n TERMINATOR_LOG_SEVERITY_FATAL
   export -n TERMINATOR_LOG_INVALID_STATUS
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

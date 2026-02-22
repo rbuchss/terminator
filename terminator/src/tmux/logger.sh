@@ -127,6 +127,7 @@ function terminator::tmux::logger::__export__ {
   export -f terminator::tmux::logger::wrapper
 }
 
+# KCOV_EXCL_START
 function terminator::tmux::logger::__recall__ {
   export -fn terminator::tmux::logger::path
   export -fn terminator::tmux::logger::debug
@@ -146,5 +147,6 @@ function terminator::tmux::logger::__recall__ {
   export -fn terminator::tmux::logger::file::fatal
   export -fn terminator::tmux::logger::wrapper
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

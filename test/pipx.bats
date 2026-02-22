@@ -24,9 +24,8 @@ bats_require_minimum_version 1.5.0
 
 # bats test_tags=terminator::pipx,terminator::pipx::__enable__
 @test "terminator::pipx::__enable__ when-pipx-not-installed" {
-  if command -v pipx >/dev/null 2>&1; then
-    skip 'pipx is installed — cannot test absence'
-  fi
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 1; }
 
   local temp_home
   temp_home="$(mktemp -d)"

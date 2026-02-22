@@ -12,13 +12,22 @@ bats_require_minimum_version 1.5.0
 
 # bats test_tags=terminator::homebrew,terminator::homebrew::is_installed
 @test "terminator::homebrew::is_installed when-brew-not-available" {
-  if command -v brew >/dev/null 2>&1; then
-    skip 'brew is installed — cannot test absence'
-  fi
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 1; }
 
   run terminator::homebrew::is_installed
 
   assert_failure
+}
+
+# bats test_tags=terminator::homebrew,terminator::homebrew::is_installed
+@test "terminator::homebrew::is_installed when-brew-available" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  run terminator::homebrew::is_installed
+
+  assert_success
 }
 
 # bats test_tags=terminator::homebrew,terminator::homebrew::is_installed
@@ -37,13 +46,53 @@ bats_require_minimum_version 1.5.0
 
 # bats test_tags=terminator::homebrew,terminator::homebrew::package::is_installed
 @test "terminator::homebrew::package::is_installed when-brew-not-available" {
-  if command -v brew >/dev/null 2>&1; then
-    skip 'brew is installed — cannot test absence'
-  fi
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 1; }
 
   run terminator::homebrew::package::is_installed 'nonexistent'
 
   assert_failure
+}
+
+# bats test_tags=terminator::homebrew,terminator::homebrew::package::is_installed
+@test "terminator::homebrew::package::is_installed when-package-exists" {
+  local temp_dir
+  temp_dir="$(mktemp -d)"
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+  # shellcheck disable=SC2317 # invoked indirectly
+  function brew { echo "${temp_dir}"; }
+
+  run terminator::homebrew::package::is_installed 'some-package'
+
+  assert_success
+
+  rm -rf "${temp_dir}"
+}
+
+# bats test_tags=terminator::homebrew,terminator::homebrew::package::is_installed
+@test "terminator::homebrew::package::is_installed when-package-not-exists" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+  # shellcheck disable=SC2317 # invoked indirectly
+  function brew { echo "/nonexistent/path"; }
+
+  run terminator::homebrew::package::is_installed 'some-package'
+
+  assert_failure
+}
+
+################################################################################
+# terminator::homebrew::__enable__
+################################################################################
+
+# bats test_tags=terminator::homebrew,terminator::homebrew::__enable__
+@test "terminator::homebrew::__enable__ when-no-brew-paths-exist" {
+  run --separate-stderr terminator::homebrew::__enable__
+
+  # Returns success (bare return) with warning logged
+  assert_success
 }
 
 ################################################################################

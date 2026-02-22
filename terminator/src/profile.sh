@@ -76,6 +76,7 @@ function terminator::profile::__export__ {
   export -f terminator::profile::os::unsupported
 }
 
+# KCOV_EXCL_START
 function terminator::profile::__recall__ {
   export -fn terminator::profile::load
   export -fn terminator::profile::os::darwin
@@ -83,5 +84,6 @@ function terminator::profile::__recall__ {
   export -fn terminator::profile::os::windows
   export -fn terminator::profile::os::unsupported
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

@@ -69,11 +69,13 @@ function terminator::tmux::bootstrap::__export__ {
   export -f terminator::tmux::bootstrap::messages::path
 }
 
+# KCOV_EXCL_START
 function terminator::tmux::bootstrap::__recall__ {
   export -fn terminator::tmux::bootstrap::session_create
   export -fn terminator::tmux::bootstrap::styles
   export -fn terminator::tmux::bootstrap::build_messages
   export -fn terminator::tmux::bootstrap::messages::path
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

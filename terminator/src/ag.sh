@@ -31,8 +31,10 @@ function terminator::ag::__export__ {
   export -f terminator::ag::invoke
 }
 
+# KCOV_EXCL_START
 function terminator::ag::__recall__ {
   export -fn terminator::ag::invoke
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

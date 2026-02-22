@@ -117,6 +117,7 @@ function terminator::source::__export__ {
   export -f terminator::source::bash_profile::completion::remove_alias
 }
 
+# KCOV_EXCL_START
 function terminator::source::__recall__ {
   export -fn terminator::source
   export -fn terminator::source::bash_profile
@@ -125,5 +126,6 @@ function terminator::source::__recall__ {
   export -fn terminator::source::bash_profile::completion::add_alias
   export -fn terminator::source::bash_profile::completion::remove_alias
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

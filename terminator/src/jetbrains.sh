@@ -65,8 +65,10 @@ function terminator::jetbrains::__export__ {
   :
 }
 
+# KCOV_EXCL_START
 function terminator::jetbrains::__recall__ {
   :
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

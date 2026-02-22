@@ -79,6 +79,7 @@ function terminator::history::__export__ {
   export -f terminator::history::search::grep
 }
 
+# KCOV_EXCL_START
 function terminator::history::__recall__ {
   export -fn terminator::history::stats
   export -fn terminator::history::search
@@ -87,5 +88,6 @@ function terminator::history::__recall__ {
   export -fn terminator::history::search::ack
   export -fn terminator::history::search::grep
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

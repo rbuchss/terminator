@@ -120,12 +120,6 @@ bats_require_minimum_version 1.5.0
 
 # bats test_tags=terminator::myjournal,terminator::myjournal::convert_keyword_to_date
 @test "terminator::myjournal::convert_keyword_to_date tomorrow" {
-  # BusyBox date does not support GNU -d or BSD -v date arithmetic
-  if ! date -d '+1 day' +'%Y/%m/%d' 2>/dev/null \
-    && ! date -v+1d +'%Y/%m/%d' 2>/dev/null; then
-    skip 'date arithmetic not supported (BusyBox)'
-  fi
-
   run terminator::myjournal::convert_keyword_to_date 'tomorrow'
 
   assert_success
@@ -135,12 +129,6 @@ bats_require_minimum_version 1.5.0
 
 # bats test_tags=terminator::myjournal,terminator::myjournal::convert_keyword_to_date
 @test "terminator::myjournal::convert_keyword_to_date yesterday" {
-  # BusyBox date does not support GNU -d or BSD -v date arithmetic
-  if ! date -d '-1 day' +'%Y/%m/%d' 2>/dev/null \
-    && ! date -v-1d +'%Y/%m/%d' 2>/dev/null; then
-    skip 'date arithmetic not supported (BusyBox)'
-  fi
-
   run terminator::myjournal::convert_keyword_to_date 'yesterday'
 
   assert_success

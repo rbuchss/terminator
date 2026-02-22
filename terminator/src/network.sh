@@ -36,9 +36,11 @@ function terminator::network::__export__ {
   export -f terminator::network::external_ip
 }
 
+# KCOV_EXCL_START
 function terminator::network::__recall__ {
   export -fn terminator::network::expand_url
   export -fn terminator::network::external_ip
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

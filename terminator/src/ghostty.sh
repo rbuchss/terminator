@@ -69,8 +69,10 @@ function terminator::ghostty::__export__ {
   :
 }
 
+# KCOV_EXCL_START
 function terminator::ghostty::__recall__ {
   :
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

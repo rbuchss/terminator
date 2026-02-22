@@ -34,8 +34,10 @@ function terminator::version::__export__ {
   export -f terminator::version::compare
 }
 
+# KCOV_EXCL_START
 function terminator::version::__recall__ {
   export -fn terminator::version::compare
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

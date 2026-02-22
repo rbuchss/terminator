@@ -1,13 +1,14 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*/*}}/__module__.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*/*}}/command.sh"
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*/*}}/styles.sh"
 
 terminator::__module__::load || return 0
 
 function terminator::prompt::svn {
   if ! stat .svn >/dev/null 2>&1 \
-    || ! command -v svn >/dev/null 2>&1; then
+    || ! terminator::command::exists svn; then
     echo ''
     return 0
   fi
@@ -41,8 +42,10 @@ function terminator::prompt::svn::__export__ {
   export -f terminator::prompt::svn
 }
 
+# KCOV_EXCL_START
 function terminator::prompt::svn::__recall__ {
   export -fn terminator::prompt::svn
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

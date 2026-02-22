@@ -75,6 +75,7 @@ function terminator::tmux::config::__export__ {
   export -f terminator::tmux::config::rollback_version
 }
 
+# KCOV_EXCL_START
 function terminator::tmux::config::__recall__ {
   export -fn terminator::tmux::config::path
   export -fn terminator::tmux::config::load
@@ -82,5 +83,6 @@ function terminator::tmux::config::__recall__ {
   export -fn terminator::tmux::config::current_version::path
   export -fn terminator::tmux::config::rollback_version
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

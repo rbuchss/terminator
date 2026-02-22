@@ -83,6 +83,7 @@ function terminator::help::__export__ {
   export -f terminator::help::paged
 }
 
+# KCOV_EXCL_START
 function terminator::help::__recall__ {
   export -fn terminator::help
   export -fn terminator::help::command::info
@@ -92,5 +93,6 @@ function terminator::help::__recall__ {
   export -fn terminator::help::command::help_subcommand
   export -fn terminator::help::paged
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

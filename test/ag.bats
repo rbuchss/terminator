@@ -32,12 +32,20 @@ bats_require_minimum_version 1.5.0
 
 # bats test_tags=terminator::ag,terminator::ag::__enable__
 @test "terminator::ag::__enable__ when-ag-not-available" {
-  if command -v ag >/dev/null 2>&1; then
-    skip 'ag is installed — cannot test absence'
-  fi
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 1; }
 
   run terminator::ag::__enable__
 
-  # Returns early with failure when ag not found
   assert_failure
+}
+
+# bats test_tags=terminator::ag,terminator::ag::__enable__
+@test "terminator::ag::__enable__ when-ag-available" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  run terminator::ag::__enable__
+
+  assert_success
 }

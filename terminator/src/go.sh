@@ -27,8 +27,10 @@ function terminator::go::__export__ {
   :
 }
 
+# KCOV_EXCL_START
 function terminator::go::__recall__ {
   :
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

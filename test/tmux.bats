@@ -48,10 +48,6 @@ bats_require_minimum_version 1.5.0
 
 # bats test_tags=terminator::tmux,terminator::tmux::invoke
 @test "terminator::tmux::invoke with-args-passes-through" {
-  if ! command -v tmux >/dev/null 2>&1; then
-    skip 'tmux not installed'
-  fi
-
   run terminator::tmux::invoke -V
 
   assert_success

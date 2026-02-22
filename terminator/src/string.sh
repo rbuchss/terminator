@@ -10,7 +10,7 @@ function terminator::string::bytes_to_length_offset {
     length \
     offset \
     output \
-    help_command=terminator::string::byte_to_length::usage
+    help_command=terminator::string::bytes_to_length_offset::usage
 
   while (($# != 0)); do
     case "$1" in
@@ -215,6 +215,7 @@ function terminator::string::__export__ {
   export -f terminator::string::strip_colors::usage
 }
 
+# KCOV_EXCL_START
 function terminator::string::__recall__ {
   export -fn terminator::string::bytes_to_length_offset
   export -fn terminator::string::bytes_to_length_offset::usage
@@ -223,5 +224,6 @@ function terminator::string::__recall__ {
   export -fn terminator::string::strip_colors
   export -fn terminator::string::strip_colors::usage
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

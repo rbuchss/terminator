@@ -339,16 +339,10 @@ bats_require_minimum_version 1.5.0
 
 # bats test_tags=terminator::prompt,terminator::prompt::ssh
 @test "terminator::prompt::ssh when-not-in-ssh" {
-  # BusyBox ps does not support -p flag, which ssh::ppinfo uses.
-  # The ssh detection fallback may produce unexpected results on BusyBox.
-  if ! ps -p $$ -o args= 2>/dev/null; then
-    skip 'ps -p not supported (BusyBox)'
-  fi
-
   local original_client="${SSH_CLIENT}"
   local original_tty="${SSH_TTY}"
   unset SSH_CLIENT SSH_TTY
-  TERMINATOR_SSH_SESSION_CACHED=''
+  TERMINATOR_SSH_IS_SSH_SESSION=''
 
   local result=''
   terminator::prompt::ssh result

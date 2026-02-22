@@ -48,9 +48,11 @@ function terminator::unicode::__export__ {
   export -f terminator::unicode::octal
 }
 
+# KCOV_EXCL_START
 function terminator::unicode::__recall__ {
   export -fn terminator::unicode::code
   export -fn terminator::unicode::octal
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

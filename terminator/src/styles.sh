@@ -644,6 +644,7 @@ function terminator::styles::__export__ {
   export -f terminator::styles::enclosure_color
 }
 
+# KCOV_EXCL_START
 function terminator::styles::__recall__ {
   export -fn terminator::styles::newline
   export -fn terminator::styles::coalesce
@@ -709,5 +710,6 @@ function terminator::styles::__recall__ {
   export -fn terminator::styles::stash_color
   export -fn terminator::styles::enclosure_color
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

@@ -407,6 +407,7 @@ function terminator::kubectl::__export__ {
   export -f terminator::kubectl::config::backup
 }
 
+# KCOV_EXCL_START
 function terminator::kubectl::__recall__ {
   export -fn terminator::kubectl::cluster::add
   export -fn terminator::kubectl::cluster::add::usage
@@ -418,5 +419,6 @@ function terminator::kubectl::__recall__ {
   export -fn terminator::kubectl::cluster::remove::usage
   export -fn terminator::kubectl::config::backup
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

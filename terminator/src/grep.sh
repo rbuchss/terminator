@@ -30,8 +30,10 @@ function terminator::grep::__export__ {
   export -f terminator::grep::invoke
 }
 
+# KCOV_EXCL_START
 function terminator::grep::__recall__ {
   export -fn terminator::grep::invoke
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

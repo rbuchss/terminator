@@ -48,12 +48,20 @@ bats_require_minimum_version 1.5.0
 
 # bats test_tags=terminator::postgresql,terminator::postgresql::__enable__
 @test "terminator::postgresql::__enable__ when-psql-not-available" {
-  if command -v psql >/dev/null 2>&1; then
-    skip 'psql is installed — cannot test absence'
-  fi
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 1; }
 
   run terminator::postgresql::__enable__
 
-  # Returns early with failure when psql not found
   assert_failure
+}
+
+# bats test_tags=terminator::postgresql,terminator::postgresql::__enable__
+@test "terminator::postgresql::__enable__ when-psql-available" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  run terminator::postgresql::__enable__
+
+  assert_success
 }

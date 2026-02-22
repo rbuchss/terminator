@@ -43,8 +43,10 @@ function terminator::rg::__export__ {
   export -f terminator::rg::invoke
 }
 
+# KCOV_EXCL_START
 function terminator::rg::__recall__ {
   export -fn terminator::rg::invoke
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

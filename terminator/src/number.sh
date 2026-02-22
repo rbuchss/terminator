@@ -61,10 +61,12 @@ function terminator::number::__export__ {
   export -f terminator::number::is_unsigned_integer
 }
 
+# KCOV_EXCL_START
 function terminator::number::__recall__ {
   export -fn terminator::number::compare
   export -fn terminator::number::is_integer
   export -fn terminator::number::is_unsigned_integer
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

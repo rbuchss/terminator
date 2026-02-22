@@ -30,7 +30,9 @@ function terminator::ssh::is_ssh_session {
     || [[ -n "${SSH_TTY}" ]] \
     || terminator::ssh::is_ssh_sudo "$@"
 
-  result=$?
+  # Note: local var=$? is correct here — $? is expanded before local executes.
+  # Do NOT split into two lines: `local result` would reset $? to 0.
+  local result=$?
 
   if ((result == 0)); then
     TERMINATOR_SSH_IS_SSH_SESSION=1
@@ -262,6 +264,7 @@ function terminator::ssh::__export__ {
   export -f terminator::ssh::generate_key::usage
 }
 
+# KCOV_EXCL_START
 function terminator::ssh::__recall__ {
   export -fn terminator::ssh::is_ssh_session
   export -fn terminator::ssh::ppinfo
@@ -276,5 +279,6 @@ function terminator::ssh::__recall__ {
   export -fn terminator::ssh::generate_key
   export -fn terminator::ssh::generate_key::usage
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

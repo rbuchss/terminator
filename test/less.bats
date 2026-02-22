@@ -12,10 +12,6 @@ bats_require_minimum_version 1.5.0
 
 # bats test_tags=terminator::less,terminator::less::__enable__
 @test "terminator::less::__enable__ sets-LESS_TERMCAP-variables" {
-  if ! command -v less >/dev/null 2>&1; then
-    skip 'less not installed'
-  fi
-
   # Clear any existing values
   unset LESS_TERMCAP_mb LESS_TERMCAP_md LESS_TERMCAP_me
   unset LESS_TERMCAP_se LESS_TERMCAP_so LESS_TERMCAP_ue LESS_TERMCAP_us

@@ -270,6 +270,7 @@ function terminator::myjournal::__export__ {
   export -f terminator::myjournal::completion::remove_alias
 }
 
+# KCOV_EXCL_START
 function terminator::myjournal::__recall__ {
   export -fn terminator::myjournal::invoke
   export -fn terminator::myjournal::root_dir
@@ -281,5 +282,6 @@ function terminator::myjournal::__recall__ {
   export -fn terminator::myjournal::completion::add_alias
   export -fn terminator::myjournal::completion::remove_alias
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

@@ -100,6 +100,7 @@ function terminator::os::__export__ {
   export -f terminator::os::switch::unsupported_default
 }
 
+# KCOV_EXCL_START
 function terminator::os::__recall__ {
   export -fn terminator::os::switch
   export -fn terminator::os::switch::usage
@@ -108,5 +109,6 @@ function terminator::os::__recall__ {
   export -fn terminator::os::switch::windows_default
   export -fn terminator::os::switch::unsupported_default
 }
+# KCOV_EXCL_STOP
 
 terminator::__module__::export

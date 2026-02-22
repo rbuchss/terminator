@@ -126,6 +126,54 @@ bats_require_minimum_version 1.5.0
   rm -rf "${temp_dir}"
 }
 
+################################################################################
+# terminator::kubectl::__enable__
+################################################################################
+
+# bats test_tags=terminator::kubectl,terminator::kubectl::__enable__
+@test "terminator::kubectl::__enable__ when-kubectl-not-available" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 1; }
+
+  run terminator::kubectl::__enable__
+
+  assert_failure
+}
+
+################################################################################
+# terminator::kubectl::cluster::add with valid provider
+################################################################################
+
+# bats test_tags=terminator::kubectl,terminator::kubectl::cluster::add
+@test "terminator::kubectl::cluster::add with-aws-provider" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::kubectl::config::backup { return 0; }
+
+  run --separate-stderr terminator::kubectl::cluster::add --provider aws
+
+  assert_failure 1
+  assert_stderr --partial 'ERROR - aws not implemented'
+}
+
+################################################################################
+# terminator::kubectl::cluster::remove
+################################################################################
+
+# bats test_tags=terminator::kubectl,terminator::kubectl::cluster::remove
+@test "terminator::kubectl::cluster::remove when-no-fzf-available" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 1; }
+
+  # No --cluster flag forces interactive mode which requires fzf
+  run --separate-stderr terminator::kubectl::cluster::remove
+
+  assert_failure 1
+}
+
+################################################################################
+# terminator::kubectl::config::backup
+################################################################################
+
 # bats test_tags=terminator::kubectl,terminator::kubectl::config::backup
 @test "terminator::kubectl::config::backup with-no-config-file" {
   local temp_dir
