@@ -70,30 +70,37 @@ endef
 # Docker Compose targets
 ################################################################################
 
+## Run all guards (test with coverage, lint, format check) via Docker Compose
 .PHONY: compose-guards
 compose-guards:
 	$(call compose-make-test,guards)
 
+## Run tests via Docker Compose
 .PHONY: compose-test
 compose-test:
 	$(call compose-make-test,test)
 
+## Run tests with kcov coverage via Docker Compose
 .PHONY: compose-test-with-coverage
 compose-test-with-coverage:
 	$(call compose-make-test,test-with-coverage)
 
+## Run shellcheck linter via Docker Compose
 .PHONY: compose-lint
 compose-lint:
 	$(call compose-run,make lint)
 
+## Run shfmt formatter via Docker Compose
 .PHONY: compose-format
 compose-format:
 	$(call compose-run,make format)
 
+## Run shfmt format check via Docker Compose
 .PHONY: compose-format-check
 compose-format-check:
 	$(call compose-run,make format-check)
 
+## Open an interactive bash shell via Docker Compose
 .PHONY: compose-debug
 compose-debug:
 	$(call compose-run,exec $(DOCKER_IMAGE_BASH_PATH))
@@ -107,6 +114,8 @@ compose-debug:
 # Testing locally with only linux/arm64 can pass while linux/amd64 can be unstable
 # which means that github-action workflows may not run ok due to platform specific issues.
 # WARNING: This does not work with M2 Max chipset which causes a segfault - works ok on M1 Max.
+#
+## Run GitHub Actions workflow locally via act (linux/amd64)
 .PHONY: act-test
 act-test:
 	act --container-architecture linux/amd64 workflow_dispatch
@@ -155,9 +164,12 @@ endef
 # Test targets
 ################################################################################
 
+## Run all guards: test with coverage, lint, and format check
 .PHONY: guards
 guards: test-with-coverage lint format-check
 
+## Run bats tests
+## Override: make test TEST_DIRS=test/logger.bats FILTER_TAGS=terminator::logger
 .PHONY: test
 test:
 	$(call run-in-bash,$(call test-command))
@@ -178,6 +190,8 @@ COVERAGE_REPORT_OUTPUT ?= /dev/stdout
 # Wraps bats in kcov for code coverage instrumentation.
 # NOTE: github-action runners use linux/amd64.
 # So the builder image needs to also be build using this platform using buildx.
+#
+## Run bats tests with kcov code coverage instrumentation
 .PHONY: test-with-coverage
 test-with-coverage:
 	$(call run-in-bash,kcov \
@@ -194,6 +208,7 @@ test-with-coverage:
 		$(call test-command))
 	@$(MAKE) --no-print-directory coverage-pr-report
 
+## Generate a pull request coverage diff report
 .PHONY: coverage-pr-report
 coverage-pr-report:
 	[[ -n "$(COVERAGE_REPORT_BASE_SHA)" && -n "$(COVERAGE_REPORT_HEAD_SHA)" ]] \
@@ -203,10 +218,12 @@ coverage-pr-report:
 			"$(COVERAGE_REPORT_HEAD_SHA)" \
 			"$(COVERAGE_REPORT_OUTPUT)"
 
+## Print coverage summary
 .PHONY: coverage-summary
 coverage-summary:
 	@$(THIS_DIR)/test/test_coverage/generate_report.sh summary
 
+## Print per-file coverage breakdown
 .PHONY: coverage-files
 coverage-files:
 	@$(THIS_DIR)/test/test_coverage/generate_report.sh files
@@ -228,18 +245,22 @@ LINTED_FILES := $(LINTED_SOURCE_FILES) $(LINTED_TEST_FILES)
 # Lint targets
 ################################################################################
 
+## Run shellcheck on all source and test files
 .PHONY: lint
 lint:
 	shellcheck $$(git ls-files -- $(LINTED_FILES))
 
+## List all linted files (source and test)
 .PHONY: linted-files
 linted-files:
 	git ls-files -- $(LINTED_FILES)
 
+## List linted source files only
 .PHONY: linted-source-files
 linted-source-files:
 	git ls-files -- $(LINTED_SOURCE_FILES)
 
+## List linted test files only
 .PHONY: linted-test-files
 linted-test-files:
 	git ls-files -- $(LINTED_TEST_FILES)
@@ -248,10 +269,12 @@ linted-test-files:
 # Format targets
 ################################################################################
 
+## Format all source and test files with shfmt
 .PHONY: format
 format:
 	shfmt -w $$(git ls-files -- $(LINTED_FILES))
 
+## Check formatting of all source and test files (no changes)
 .PHONY: format-check
 format-check:
 	shfmt -d $$(git ls-files -- $(LINTED_FILES))
@@ -260,6 +283,7 @@ format-check:
 # Function exports
 ################################################################################
 
+## Check and optionally add missing function exports
 .PHONY: function-exports
 function-exports:
 	@if ! $(THIS_DIR)/terminator/tools/__module__/generate_function_exports.sh false; then \
