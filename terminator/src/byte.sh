@@ -13,7 +13,7 @@ function terminator::byte::__disable__ {
 }
 
 function terminator::byte::reverse_endianness {
-  if (( $# != 1 )); then
+  if (($# != 1)); then
     >&2 echo 'ERROR: invalid # of args: expected 1 argument'
     >&2 echo "Usage: ${FUNCNAME[0]} hex-value"
     return 1
@@ -22,7 +22,7 @@ function terminator::byte::reverse_endianness {
   local value="$1"
   local index="${#value}"
 
-  while (( index > 0 )); do
+  while ((index > 0)); do
     index=$((index - 2))
     echo -n "${value:$index:2}"
   done

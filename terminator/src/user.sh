@@ -5,7 +5,7 @@ source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/__module__.sh"
 terminator::__module__::load || return 0
 
 function terminator::user::is_root {
-  (( EUID == 0 ))
+  ((EUID == 0))
 }
 
 function terminator::user::__export__ {

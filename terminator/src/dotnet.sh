@@ -24,7 +24,7 @@ function terminator::dotnet::complete {
 
   if ! completions="$(dotnet complete \
     --position "${COMP_POINT}" "${COMP_LINE}" 2>/dev/null)"; then
-      completions=""
+    completions=""
   fi
 
   while IFS='' read -r completion; do

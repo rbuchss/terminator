@@ -22,8 +22,8 @@ function terminator::ssh::__disable__ {
 
 function terminator::ssh::is_ssh_session {
   if [[ -n "${TERMINATOR_SSH_IS_SSH_SESSION}" ]]; then
-    (( TERMINATOR_SSH_IS_SSH_SESSION == 0 )) && return 1
-    (( TERMINATOR_SSH_IS_SSH_SESSION == 1 )) && return 0
+    ((TERMINATOR_SSH_IS_SSH_SESSION == 0)) && return 1
+    ((TERMINATOR_SSH_IS_SSH_SESSION == 1)) && return 0
   fi
 
   [[ -n "${SSH_CLIENT}" ]] \
@@ -32,7 +32,7 @@ function terminator::ssh::is_ssh_session {
 
   result=$?
 
-  if (( result == 0 )); then
+  if ((result == 0)); then
     TERMINATOR_SSH_IS_SSH_SESSION=1
   else
     TERMINATOR_SSH_IS_SSH_SESSION=0
@@ -63,7 +63,7 @@ function terminator::ssh::is_ssh_sudo {
 
     if [[ -n "${ssh_user}" ]]; then
       return 0
-    elif [[ -z "${ppid}" ]] || (( ppid == 0 )); then
+    elif [[ -z "${ppid}" ]] || ((ppid == 0)); then
       return 1
     fi
 
@@ -97,7 +97,7 @@ function terminator::ssh::find_and_add_keys {
     ssh_key_paths+=("${ssh_key_path}")
   done < <(terminator::ssh::find_keys | fzf --multi --header='Select ssh keys to add')
 
-  if (( ${#ssh_key_paths[@]} == 0 )); then
+  if ((${#ssh_key_paths[@]} == 0)); then
     terminator::logger::warning 'No ssh keys found - Exiting'
     return 1
   fi
@@ -182,7 +182,7 @@ function terminator::ssh::generate_key {
   host="$(hostname -s)"
   timestamp="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 
-  while (( $# != 0 )); do
+  while (($# != 0)); do
     case "$1" in
       -h | --help)
         >&2 terminator::ssh::generate_key::usage

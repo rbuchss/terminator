@@ -10,7 +10,7 @@ function terminator::tmux::version {
 }
 
 function terminator::tmux::version::compare {
-  if (( $# != 2 )); then
+  if (($# != 2)); then
     >&2 echo "ERROR: ${FUNCNAME[0]}: invalid number of arguments"
     >&2 echo "usage: ${FUNCNAME[0]} comparison value"
     return 1
@@ -31,13 +31,13 @@ function terminator::tmux::version::compare {
 
 function terminator::tmux::version::compare::less_than {
   terminator::version::compare "$(terminator::tmux::version)" "$1"
-  (( $? == 2 ))
+  (($? == 2))
 }
 
 function terminator::tmux::version::compare::less_than_or_equal {
   terminator::version::compare "$(terminator::tmux::version)" "$1" \
     && return 0
-  (( $? == 2 ))
+  (($? == 2))
 }
 
 function terminator::tmux::version::compare::equals {
@@ -46,13 +46,13 @@ function terminator::tmux::version::compare::equals {
 
 function terminator::tmux::version::compare::greater_than {
   terminator::version::compare "$(terminator::tmux::version)" "$1"
-  (( $? == 1 ))
+  (($? == 1))
 }
 
 function terminator::tmux::version::compare::greater_than_or_equal {
   terminator::version::compare "$(terminator::tmux::version)" "$1" \
     && return 0
-  (( $? == 1 ))
+  (($? == 1))
 }
 
 function terminator::tmux::version::__export__ {

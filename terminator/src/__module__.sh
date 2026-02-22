@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Bash source guard - prevents sourcing this file multiple times
-[[ -n "${TERMINATOR__MODULE__LOADED}" ]] && return; readonly TERMINATOR__MODULE__LOADED=1
+[[ -n "${TERMINATOR__MODULE__LOADED}" ]] && return
+readonly TERMINATOR__MODULE__LOADED=1
 
 # BASH_SOURCE[0] is not always available (e.g., in Claude Code or other limited bash environments)
 # where the array may be empty or set to "/". In these cases, fall back to the known symlink path.
@@ -60,15 +61,15 @@ function terminator::__module__::load {
   if terminator::__module__::__action__ \
     "${module}" \
     "${TERMINATOR_MODULE_LOAD_ACTION}"; then
-        TERMINATOR_MODULES_LOADED+=("${module}")
+    TERMINATOR_MODULES_LOADED+=("${module}")
 
-        if terminator::__module__::__function_exists__ 'terminator::logger::trace'; then
-          local trace_message
-          printf -v trace_message '  %s\n' "${TERMINATOR_MODULES_LOADED[@]}"
-          terminator::logger::trace -- "-> TERMINATOR_MODULES_LOADED: [\n${trace_message}]"
-        fi
+    if terminator::__module__::__function_exists__ 'terminator::logger::trace'; then
+      local trace_message
+      printf -v trace_message '  %s\n' "${TERMINATOR_MODULES_LOADED[@]}"
+      terminator::logger::trace -- "-> TERMINATOR_MODULES_LOADED: [\n${trace_message}]"
+    fi
 
-        return "${should_source_status}"
+    return "${should_source_status}"
   else
     return "${should_not_source_status}"
   fi
@@ -88,7 +89,7 @@ function terminator::__module__::unload {
     modules=("$@")
 
   # Generates module based on filename if none specified
-  if (( ${#modules[@]} == 0 )); then
+  if ((${#modules[@]} == 0)); then
     # Fail-safe to source file if BASH_SOURCE stack only points to this file
     if ! terminator::__module__::__get_module_name__ module "$(caller)"; then
       return 1
@@ -101,12 +102,12 @@ function terminator::__module__::unload {
     if terminator::__module__::__action__ \
       "${module}" \
       "${TERMINATOR_MODULE_UNLOAD_ACTION}"; then
-          for index in "${!TERMINATOR_MODULES_LOADED[@]}"; do
-            if [[ "${TERMINATOR_MODULES_LOADED[index]}" == "${module}" ]]; then
-              unset 'TERMINATOR_MODULES_LOADED[index]'
-              break # no duplicates should exist so exit early is fine
-            fi
-          done
+      for index in "${!TERMINATOR_MODULES_LOADED[@]}"; do
+        if [[ "${TERMINATOR_MODULES_LOADED[index]}" == "${module}" ]]; then
+          unset 'TERMINATOR_MODULES_LOADED[index]'
+          break # no duplicates should exist so exit early is fine
+        fi
+      done
     fi
   done
 }
@@ -129,7 +130,7 @@ function terminator::__module__::export {
     modules=("$@")
 
   # Generates module based on filename if none specified
-  if (( ${#modules[@]} == 0 )); then
+  if ((${#modules[@]} == 0)); then
     if ! terminator::__module__::__get_module_name__ module "$(caller)"; then
       return 1
     fi
@@ -142,13 +143,13 @@ function terminator::__module__::export {
       "${module}" \
       "${TERMINATOR_MODULE_EXPORT_ACTION}" \
       'terminator::__module__::__action__::__module_action_handler__'; then
-          TERMINATOR_MODULES_EXPORTED+=("${module}")
+      TERMINATOR_MODULES_EXPORTED+=("${module}")
 
-          if terminator::__module__::__function_exists__ 'terminator::logger::trace'; then
-            local trace_message
-            printf -v trace_message '  %s\n' "${TERMINATOR_MODULES_EXPORTED[@]}"
-            terminator::logger::trace -- "-> TERMINATOR_MODULES_EXPORTED: [\n${trace_message}]"
-          fi
+      if terminator::__module__::__function_exists__ 'terminator::logger::trace'; then
+        local trace_message
+        printf -v trace_message '  %s\n' "${TERMINATOR_MODULES_EXPORTED[@]}"
+        terminator::logger::trace -- "-> TERMINATOR_MODULES_EXPORTED: [\n${trace_message}]"
+      fi
     fi
   done
 }
@@ -167,7 +168,7 @@ function terminator::__module__::recall {
     modules=("$@")
 
   # Generates module based on filename if none specified
-  if (( ${#modules[@]} == 0 )); then
+  if ((${#modules[@]} == 0)); then
     if ! terminator::__module__::__get_module_name__ module "$(caller)"; then
       return 1
     fi
@@ -180,12 +181,12 @@ function terminator::__module__::recall {
       "${module}" \
       "${TERMINATOR_MODULE_RECALL_ACTION}" \
       'terminator::__module__::__action__::__module_action_handler__'; then
-          for index in "${!TERMINATOR_MODULES_EXPORTED[@]}"; do
-            if [[ "${TERMINATOR_MODULES_EXPORTED[index]}" == "${module}" ]]; then
-              unset 'TERMINATOR_MODULES_EXPORTED[index]'
-              break # no duplicates should exist so exit early is fine
-            fi
-          done
+      for index in "${!TERMINATOR_MODULES_EXPORTED[@]}"; do
+        if [[ "${TERMINATOR_MODULES_EXPORTED[index]}" == "${module}" ]]; then
+          unset 'TERMINATOR_MODULES_EXPORTED[index]'
+          break # no duplicates should exist so exit early is fine
+        fi
+      done
     fi
   done
 }
@@ -208,7 +209,7 @@ function terminator::__module__::enable {
     modules=("$@")
 
   # Generates module based on filename if none specified
-  if (( ${#modules[@]} == 0 )); then
+  if ((${#modules[@]} == 0)); then
     if ! terminator::__module__::__get_module_name__ module "$(caller)"; then
       return 1
     fi
@@ -221,13 +222,13 @@ function terminator::__module__::enable {
       "${module}" \
       "${TERMINATOR_MODULE_ENABLE_ACTION}" \
       'terminator::__module__::__action__::__module_action_handler__'; then
-          TERMINATOR_MODULES_ENABLED+=("${module}")
+      TERMINATOR_MODULES_ENABLED+=("${module}")
 
-          if terminator::__module__::__function_exists__ 'terminator::logger::trace'; then
-            local trace_message
-            printf -v trace_message '  %s\n' "${TERMINATOR_MODULES_ENABLED[@]}"
-            terminator::logger::trace -- "-> TERMINATOR_MODULES_ENABLED: [\n${trace_message}]"
-          fi
+      if terminator::__module__::__function_exists__ 'terminator::logger::trace'; then
+        local trace_message
+        printf -v trace_message '  %s\n' "${TERMINATOR_MODULES_ENABLED[@]}"
+        terminator::logger::trace -- "-> TERMINATOR_MODULES_ENABLED: [\n${trace_message}]"
+      fi
     fi
   done
 }
@@ -246,7 +247,7 @@ function terminator::__module__::disable {
     modules=("$@")
 
   # Generates module based on filename if none specified
-  if (( ${#modules[@]} == 0 )); then
+  if ((${#modules[@]} == 0)); then
     if ! terminator::__module__::__get_module_name__ module "$(caller)"; then
       return 1
     fi
@@ -259,12 +260,12 @@ function terminator::__module__::disable {
       "${module}" \
       "${TERMINATOR_MODULE_DISABLE_ACTION}" \
       'terminator::__module__::__action__::__module_action_handler__'; then
-          for index in "${!TERMINATOR_MODULES_ENABLED[@]}"; do
-            if [[ "${TERMINATOR_MODULES_ENABLED[index]}" == "${module}" ]]; then
-              unset 'TERMINATOR_MODULES_ENABLED[index]'
-              break # no duplicates should exist so exit early is fine
-            fi
-          done
+      for index in "${!TERMINATOR_MODULES_ENABLED[@]}"; do
+        if [[ "${TERMINATOR_MODULES_ENABLED[index]}" == "${module}" ]]; then
+          unset 'TERMINATOR_MODULES_ENABLED[index]'
+          break # no duplicates should exist so exit early is fine
+        fi
+      done
     fi
   done
 }
@@ -390,7 +391,7 @@ function terminator::__module__::__is_in_state__ {
 }
 
 function terminator::__module__::__function_exists__ {
-  declare -F "$1" > /dev/null 2>&1
+  declare -F "$1" >/dev/null 2>&1
 }
 
 function terminator::__module__::__invoke_function_if_exists__ {

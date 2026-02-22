@@ -15,7 +15,7 @@ function terminator::tmux::pane::toggle_pipe_to_log {
   # Check active pipe status
   pipe_status="$(tmux display-message -p "#{pane_pipe}")"
 
-  if (( pipe_status > 0 )); then
+  if ((pipe_status > 0)); then
     # Logging is ON; turn it off by removing the pipe
     session_window_pane_pattern="$(
       terminator::tmux::pane::session_window_pane_pattern

@@ -51,7 +51,7 @@ find_and_format_without_function_prefix() {
     output="${3:-/dev/stdout}"
 
   find_and_format \
-   "${file}" \
+    "${file}" \
     '^([^(){} =]+) *\(\) *\{?$' \
     's/^([^(){} =]+) *\(\) *\{?$/export -f \1/' \
     "${write_exports_to_file}" \
@@ -75,13 +75,13 @@ find_and_format() {
   grep -E "${find_pattern}" "${file}" \
     | grep -v '__' \
     | sed -E "${replace_pattern}" \
-    >> "${all_functions_output}"
+      >>"${all_functions_output}"
 
   while IFS= read -r line; do
-    if ! grep "^ *${line} *$" "${file}" > /dev/null 2>&1; then
-      echo "# ${line}" >> "${missing_functions_output}"
+    if ! grep "^ *${line} *$" "${file}" >/dev/null 2>&1; then
+      echo "# ${line}" >>"${missing_functions_output}"
     fi
-  done < "${all_functions_output}"
+  done <"${all_functions_output}"
 
   if [[ "${write_exports_to_file}" == 'true' ]]; then
     output="${file}"
@@ -89,7 +89,7 @@ find_and_format() {
     echo "==> ${file} <=="
   fi
 
-  cat "${missing_functions_output}" >> "${output}"
+  cat "${missing_functions_output}" >>"${output}"
 
   if [[ -s "${missing_functions_output}" ]]; then
     return 1

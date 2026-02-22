@@ -37,11 +37,11 @@ function terminator::color::highlight_demo {
 }
 
 function terminator::color::demo {
-  for index in {0..255} ; do
+  for index in {0..255}; do
     printf '%s%11s' \
       "$(terminator::color::code_bare "38;5;${index}m")" \
       "color${index}"
-    (( ((index + 1) % 8) == 0 )) && { echo ''; }
+    ((((index + 1) % 8) == 0)) && { echo ''; }
   done
   # shellcheck disable=SC2119
   terminator::color::off_bare

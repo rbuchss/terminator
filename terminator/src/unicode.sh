@@ -13,7 +13,7 @@ function terminator::unicode::code {
   local output=''
   local reply
 
-  (( code_point < 0x80 )) && {
+  ((code_point < 0x80)) && {
     terminator::unicode::octal "${code_point}" reply
     case "$#" in
       # TODO should this be read -r ?
@@ -23,13 +23,13 @@ function terminator::unicode::code {
     return
   }
 
-  while (( code_point > ceiling )); do
-    terminator::unicode::octal "$(( 0x80 | code_point & 0x3f ))" reply
+  while ((code_point > ceiling)); do
+    terminator::unicode::octal "$((0x80 | code_point & 0x3f))" reply
     output="${reply}${output}"
-    (( code_point >>= 6, bits += ceiling + 1, ceiling >>= 1 ))
+    ((code_point >>= 6, bits += ceiling + 1, ceiling >>= 1))
   done
 
-  terminator::unicode::octal "$(( bits | code_point ))" reply
+  terminator::unicode::octal "$((bits | code_point))" reply
 
   case "$#" in
     2) printf -v "$2" '%s%s' "${reply}" "${output}" ;;

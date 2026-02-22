@@ -6,8 +6,8 @@ source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*/*}}/styles.sh"
 terminator::__module__::load || return 0
 
 function terminator::prompt::svn {
-  if ! stat .svn > /dev/null 2>&1 \
-    || ! command -v svn > /dev/null 2>&1; then
+  if ! stat .svn >/dev/null 2>&1 \
+    || ! command -v svn >/dev/null 2>&1; then
     echo ''
     return 0
   fi
@@ -16,7 +16,7 @@ function terminator::prompt::svn {
 
   url="$(svn info | grep 'URL' | head -1 | perl -pe 's/URL: (.*)/\1/')"
 
-  if grep -q -E 'branches|tags' <<< "${url}"; then
+  if grep -q -E 'branches|tags' <<<"${url}"; then
     version="$(echo "${url}" \
       | perl -pe 's{.*/(branches|tags)/(.*)}{\1/\2}' \
       | cut -d/ -f1-2)"

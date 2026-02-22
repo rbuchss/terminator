@@ -20,7 +20,7 @@ function terminator::styles::newline {
   esac
 
   case "$#" in
-    1) IFS='' read -r "$1" <<< "${symbol}" ;;
+    1) IFS='' read -r "$1" <<<"${symbol}" ;;
     *) echo "${symbol}" ;;
   esac
 }
@@ -33,7 +33,7 @@ function terminator::styles::coalesce {
 
   if [[ -n "${environment_value}" ]]; then
     case "$#" in
-      5) IFS='' read -r "$5" <<< "${environment_value}" ;;
+      5) IFS='' read -r "$5" <<<"${environment_value}" ;;
       *) echo "${environment_value}" ;;
     esac
     return
@@ -61,17 +61,17 @@ function terminator::styles::char_coalesce {
   local symbol="${environment_value:-$default}"
 
   case "$#" in
-    3) IFS='' read -r "$3" <<< "${symbol}" ;;
+    3) IFS='' read -r "$3" <<<"${symbol}" ;;
     *) echo "${symbol}" ;;
   esac
 }
 
 function terminator::styles::command_coalesce {
   local commands=() \
-    invalid_commands=() \
-    arguments=()
+  invalid_commands=() \
+  arguments=()
 
-  while (( $# != 0 )); do
+  while (($# != 0)); do
     case "$1" in
       -h | --help)
         terminator::styles::command_coalesce::usage
@@ -93,18 +93,18 @@ function terminator::styles::command_coalesce {
     shift
   done
 
-  until (( ${#commands[@]} == 0 )) \
-    || command -v "${commands[0]}" > /dev/null 2>&1; do
+  until ((${#commands[@]} == 0)) \
+    || command -v "${commands[0]}" >/dev/null 2>&1; do
     invalid_commands+=("${commands[0]}")
     commands=("${commands[@]:1}")
   done
 
-  if (( ${#commands[@]} == 0 )); then
-      >&2 printf 'ERROR: %s no valid commands specified. Invalid commands: [%s]\n' \
-        "${FUNCNAME[0]}" \
-        "${invalid_commands[*]}"
-      terminator::styles::command_coalesce::usage >&2
-      return 1
+  if ((${#commands[@]} == 0)); then
+    >&2 printf 'ERROR: %s no valid commands specified. Invalid commands: [%s]\n' \
+      "${FUNCNAME[0]}" \
+      "${invalid_commands[*]}"
+    terminator::styles::command_coalesce::usage >&2
+    return 1
   fi
 
   "${commands[0]}" "${arguments[@]}"

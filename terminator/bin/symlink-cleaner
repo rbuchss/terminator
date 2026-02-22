@@ -36,7 +36,7 @@ find . -maxdepth 1 -exec bash -c '
 
 status=$?
 
-if (( exported_prompt_ask == 1 )); then
+if ((exported_prompt_ask == 1)); then
   export -fn terminator::prompt::ask
 fi
 

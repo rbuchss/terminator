@@ -69,7 +69,7 @@ function terminator::logger::log {
   terminator::logger::level_default event_level
   terminator::logger::output_default output
 
-  while (( $# != 0 )); do
+  while (($# != 0)); do
     case "$1" in
       -h | --help)
         >&2 terminator::logger::log::usage
@@ -121,7 +121,7 @@ function terminator::logger::log {
     return "${TERMINATOR_LOG_INVALID_STATUS}"
   fi
 
-  (( event_severity < logger_severity )) && return
+  ((event_severity < logger_severity)) && return
 
   local \
     datetime \
@@ -129,7 +129,7 @@ function terminator::logger::log {
     caller_info
 
   datetime="$(terminator::logger::datetime)"
-  progname="${FUNCNAME[${caller_level}+1]}"
+  progname="${FUNCNAME[${caller_level} + 1]}"
 
   case "${event_severity}" in
     "${TERMINATOR_LOG_SEVERITY_TRACE}") event_level='TRACE' ;;
@@ -152,7 +152,7 @@ function terminator::logger::log {
       "${progname}" \
       "${message}" \
       "${caller_info}" \
-      >> "${output}"
+      >>"${output}"
   done
 }
 
@@ -183,14 +183,14 @@ function terminator::logger::datetime {
     )
 
   for date_command in "${date_commands[@]}"; do
-    if command -v "${date_command}" > /dev/null 2>&1; then
+    if command -v "${date_command}" >/dev/null 2>&1; then
       found_command=1
       "${date_command}" '+%Y-%m-%dT%H:%M:%S%z'
       break
     fi
   done
 
-  if (( found_command == 0 )); then
+  if ((found_command == 0)); then
     echo ' NO-DATE-COMMAND-FOUND! '
   fi
 }
@@ -383,7 +383,7 @@ function terminator::logger::is_silenced {
 
   case "${___silence___logger__is_silenced}" in
     0) ;;
-    [Tt][Rr][Uu][Ee]|[Yy][Ee][Ss]|[1-9]|[1-9][0-9]*)
+    [Tt][Rr][Uu][Ee] | [Yy][Ee][Ss] | [1-9] | [1-9][0-9]*)
       ___silence___logger__is_silenced=1
       ;;
     *)
@@ -391,7 +391,7 @@ function terminator::logger::is_silenced {
       ;;
   esac
 
-  (( ___silence___logger__is_silenced == 1 ))
+  ((___silence___logger__is_silenced == 1))
 }
 
 function terminator::logger::silence {
@@ -446,7 +446,7 @@ function terminator::logger::stacktrace {
     ___stack___logger__stacktrace=()
 
   # Add extra +1 to account for this function
-  (( ___caller_level___logger__stacktrace++ ))
+  ((___caller_level___logger__stacktrace++))
 
   while true; do
     if ! ___caller_info___logger__stacktrace="$(caller "${___caller_level___logger__stacktrace}")"; then
@@ -459,10 +459,10 @@ function terminator::logger::stacktrace {
 
     ___stack___logger__stacktrace+=("${___frame___logger__stacktrace}")
 
-    (( ___caller_level___logger__stacktrace++ ))
+    ((___caller_level___logger__stacktrace++))
   done
 
-  if (( ${#___stack___logger__stacktrace[@]} > 0 )); then
+  if ((${#___stack___logger__stacktrace[@]} > 0)); then
     printf \
       -v ___message___logger__stacktrace \
       '%s\n' \
@@ -500,7 +500,7 @@ function terminator::logger::caller_formatter {
     ___line___logger__caller_formatter \
     ___func___logger__caller_formatter \
     ___file___logger__caller_formatter \
-    <<< "${___caller_info___logger__caller_formatter}"
+    <<<"${___caller_info___logger__caller_formatter}"
 
   if [[ -z "${___func___logger__caller_formatter}" ]]; then
     ___func___logger__caller_formatter='(top level)'
@@ -529,13 +529,13 @@ function terminator::logger::caller_formatter {
   # Here to keep things simple we just check if the version is greater than
   # 3 vs 3.2.57.
   #
-  if (( ${BASH_VERSINFO[0]:-0} > 3 )) \
-    && (( ${___line___logger__caller_formatter:-0} > 0 )); then
-      printf \
-        -v ___message___logger__caller_formatter \
-        '%s:%s' \
-        "${___message___logger__caller_formatter}" \
-        "${___line___logger__caller_formatter}"
+  if ((${BASH_VERSINFO[0]:-0} > 3)) \
+    && ((${___line___logger__caller_formatter:-0} > 0)); then
+    printf \
+      -v ___message___logger__caller_formatter \
+      '%s:%s' \
+      "${___message___logger__caller_formatter}" \
+      "${___line___logger__caller_formatter}"
   fi
 
   if [[ -n "${___output_var___logger__caller_formatter}" ]]; then

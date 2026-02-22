@@ -9,7 +9,7 @@ terminator::__module__::load || return 0
 function terminator::rbenv::__enable__ {
   terminator::command::exists -v rbenv || return
 
-  eval "$(rbenv init -)" > /dev/null
+  eval "$(rbenv init -)" >/dev/null
 
   if terminator::homebrew::package::is_installed rbenv; then
     # shellcheck source=/dev/null

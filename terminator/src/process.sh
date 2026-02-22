@@ -14,7 +14,7 @@ function terminator::process::__disable__ {
 }
 
 function terminator::process::kill {
-  if (( $# < 1 )) || (( $# > 2 )); then
+  if (($# < 1)) || (($# > 2)); then
     >&2 echo "ERROR: ${FUNCNAME[0]} invalid number of arguments"
     >&2 echo "Usage: ${FUNCNAME[0]} [-SIGNAL] pattern"
     return 1
@@ -24,7 +24,7 @@ function terminator::process::kill {
   local pids=()
   local pid name signal='-TERM'
 
-  if (( $# == 2 )); then
+  if (($# == 2)); then
     signal="$1"
   fi
 
@@ -36,7 +36,7 @@ function terminator::process::kill {
     "${#pids}" \
     "${pattern}"
 
-  (( ${#pids} == 0 )) && return
+  ((${#pids} == 0)) && return
 
   ps -o 'pid,ppid,user,%cpu,%mem,tty,start,time,command' -p "${pids[@]}"
 

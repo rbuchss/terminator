@@ -54,7 +54,7 @@ function terminator::kubectl::cluster::add {
     provider_command \
     arguments=()
 
-  while (( $# != 0 )); do
+  while (($# != 0)); do
     case "$1" in
       -h | --help)
         >&2 terminator::kubectl::cluster::add::usage
@@ -113,7 +113,7 @@ function terminator::kubectl::cluster::add::gcloud {
     cluster \
     region
 
-  while (( $# != 0 )); do
+  while (($# != 0)); do
     case "$1" in
       --project)
         shift
@@ -147,9 +147,9 @@ function terminator::kubectl::cluster::add::gcloud {
       gcloud projects list \
         --format='value(projectId)' \
         --sort-by=~projectId
-      )
+    )
 
-    if (( ${#projects[@]} == 0 )); then
+    if ((${#projects[@]} == 0)); then
       >&2 echo 'ERROR: No gcloud projects found - Exiting'
       return 1
     fi
@@ -160,7 +160,7 @@ function terminator::kubectl::cluster::add::gcloud {
           --header='Select gcloud project to use' \
           --preview 'gcloud projects describe {1}' \
           --preview-window=up:40%
-      )"
+    )"
 
     if [[ -z "${project}" ]]; then
       >&2 echo 'ERROR: No gcloud project selected - Exiting'
@@ -178,9 +178,9 @@ function terminator::kubectl::cluster::add::gcloud {
         --format='value(name, location)' \
         --sort-by=~name,~location \
         --project "${project}"
-      )
+    )
 
-    if (( ${#clusters[@]} == 0 )); then
+    if ((${#clusters[@]} == 0)); then
       >&2 echo 'ERROR: No gcloud clusters found - Exiting'
       return 1
     fi
@@ -191,7 +191,7 @@ function terminator::kubectl::cluster::add::gcloud {
           --header='Select gcloud container cluster and region to use' \
           --preview "gcloud container clusters describe {1} --region {2} --project ${project}" \
           --preview-window=up:80%
-      )
+    )
 
     if [[ -z "${cluster}" ]] || [[ -z "${region}" ]]; then
       >&2 echo 'ERROR: No gcloud container cluster or region selected - Exiting'
@@ -232,7 +232,7 @@ function terminator::kubectl::cluster::remove {
     context \
     user
 
-  while (( $# != 0 )); do
+  while (($# != 0)); do
     case "$1" in
       -c | --cluster)
         shift
@@ -242,7 +242,7 @@ function terminator::kubectl::cluster::remove {
     shift
   done
 
-  if (( ${#clusters[@]} == 0 )); then
+  if ((${#clusters[@]} == 0)); then
     if ! terminator::command::exists fzf; then
       terminator::logger::error 'Requires fzf which was not found - Exiting'
       return 1
@@ -254,7 +254,7 @@ function terminator::kubectl::cluster::remove {
     fi
   fi
 
-  if (( ${#clusters[@]} == 0 )); then
+  if ((${#clusters[@]} == 0)); then
     local _clusters=()
 
     while IFS= read -r result; do
@@ -262,9 +262,9 @@ function terminator::kubectl::cluster::remove {
     done < <(
       kubectl config view \
         -o jsonpath='{range .clusters[*]}{.name}{"\n"}{end}'
-      )
+    )
 
-    if (( ${#_clusters[@]} == 0 )); then
+    if ((${#_clusters[@]} == 0)); then
       >&2 echo 'ERROR: No clusters found - Exiting'
       return 1
     fi
@@ -285,9 +285,9 @@ function terminator::kubectl::cluster::remove {
           --header='Select clusters to remove' \
           --preview "${preview_command}" \
           --preview-window=up:80%
-      )
+    )
 
-    if (( ${#clusters[@]} == 0 )); then
+    if ((${#clusters[@]} == 0)); then
       >&2 echo 'ERROR: No clusters selected - Exiting'
       return 1
     fi
@@ -298,19 +298,19 @@ function terminator::kubectl::cluster::remove {
 
   for cluster in "${clusters[@]}"; do
     while IFS= read -r result; do
-      read -r context user <<< "${result}"
+      read -r context user <<<"${result}"
       linked_contexts+=("${cluster}:${context}")
       linked_users+=("${cluster}:${user}")
     done < <(
       kubectl config view \
         -o jsonpath="{range .contexts[?(@.context.cluster=='${cluster}')]}{.name}{'\t'}{.context.user}{'\n'}{end}"
-      )
+    )
   done
 
   terminator::logger::info 'Removing cluster contexts'
 
   for linked_context in "${linked_contexts[@]}"; do
-    IFS=':' read -r cluster context <<< "${linked_context}"
+    IFS=':' read -r cluster context <<<"${linked_context}"
 
     terminator::logger::info "Removing context: '${context}' for cluster: '${cluster}'"
 
@@ -339,17 +339,17 @@ function terminator::kubectl::cluster::remove {
   done < <(
     kubectl config view \
       -o jsonpath='{range .contexts[*]}{.name}{"\t"}{.context.user}{"\n"}{end}'
-    )
+  )
 
   # Check each linked user to see if it's still referenced
   for linked_user in "${linked_users[@]}"; do
-    IFS=':' read -r cluster user_to_remove <<< "${linked_user}"
+    IFS=':' read -r cluster user_to_remove <<<"${linked_user}"
     user_in_use=0
     contexts_using_user=()
 
     # Check if this user is still referenced in any remaining context
     for remaining_context in "${remaining_contexts[@]}"; do
-      read -r context_name context_user <<< "${remaining_context}"
+      read -r context_name context_user <<<"${remaining_context}"
 
       if [[ "${user_to_remove}" == "${context_user}" ]]; then
         user_in_use=1
@@ -357,7 +357,7 @@ function terminator::kubectl::cluster::remove {
       fi
     done
 
-    if (( user_in_use == 1 )); then
+    if ((user_in_use == 1)); then
       terminator::logger::warning \
         "User: '${user_to_remove}' still referenced in contexts: [${contexts_using_user[*]}] - not removing"
     else

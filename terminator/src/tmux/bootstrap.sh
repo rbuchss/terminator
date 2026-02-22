@@ -40,17 +40,17 @@ function terminator::tmux::bootstrap::build_messages {
   # skip if log is empty
   [[ -s "${input}" ]] || return 0
 
-  cat > "${output}" <<-EOM
+  cat >"${output}" <<-EOM
 TMUX_BOOTSTRAP_MESSAGES='display-message -p "==================================================" ; \\
   display-message -p "tmux session-created messages:" ; \\
   display-message -p "=================================================="; \\
 EOM
 
   while IFS='' read -r line; do
-    echo "  display-message -p \"${line}\" ; \\" >> "${output}"
-  done < "${input}"
+    echo "  display-message -p \"${line}\" ; \\" >>"${output}"
+  done <"${input}"
 
-  cat >> "${output}" <<-EOM
+  cat >>"${output}" <<-EOM
   set-hook -gu session-created ;'
 set-hook -g session-created \${TMUX_BOOTSTRAP_MESSAGES}
 EOM

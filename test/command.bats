@@ -33,7 +33,6 @@ bats_require_minimum_version 1.5.0
   assert_stderr
 }
 
-
 @test "terminator::command::exists invalid with-many-arguments" {
   local arguments=(ls cat)
 
@@ -146,7 +145,6 @@ bats_require_minimum_version 1.5.0
   refute_output
   assert_stderr
 }
-
 
 @test "terminator::command::any_exist invalid with-help-flag" {
   local arguments=('ls')
@@ -332,7 +330,6 @@ bats_require_minimum_version 1.5.0
   assert_stderr
 }
 
-
 @test "terminator::command::none_exist invalid with-help-flag" {
   local arguments=('ls')
 
@@ -516,7 +513,6 @@ bats_require_minimum_version 1.5.0
   refute_output
   assert_stderr
 }
-
 
 @test "terminator::command::all_exist invalid with-help-flag" {
   local arguments=('ls')

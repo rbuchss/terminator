@@ -5,7 +5,7 @@ source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/__module__.sh"
 terminator::__module__::load || return 0
 
 function terminator::help {
-  if ! command -v "$1" > /dev/null 2>&1; then
+  if ! command -v "$1" >/dev/null 2>&1; then
     >&2 echo "ERROR: ${FUNCNAME[0]}: command '$1' not found"
     return 1
   fi
@@ -21,7 +21,7 @@ function terminator::help {
 }
 
 function terminator::help::command::info {
-  if info --where "$@" > /dev/null 2>&1; then
+  if info --where "$@" >/dev/null 2>&1; then
     info "$@"
     return
   fi
@@ -47,7 +47,7 @@ function terminator::help::command::bash_help {
 function terminator::help::command::help_flag {
   local cmd="$1"
 
-  if (( $# > 1 )); then
+  if (($# > 1)); then
     local subcommands=("${@:2}")
     command "${cmd}" "${subcommands[@]}" --help
     return
@@ -59,7 +59,7 @@ function terminator::help::command::help_flag {
 function terminator::help::command::help_subcommand {
   local cmd="$1"
 
-  if (( $# > 1 )); then
+  if (($# > 1)); then
     local subcommands=("${@:2:$#-2}")
     local subcommand="${*:$#}"
     command "${cmd}" "${subcommands[@]}" help "${subcommand}"

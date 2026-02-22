@@ -7,7 +7,7 @@ if [[ -n "${PS1}" ]]; then
   # Check if display is available
   if [[ -n "${DISPLAY+x}" ]]; then
     # make caps lock actually useful (in linux)
-    if command -v xmodmap > /dev/null 2>&1; then
+    if command -v xmodmap >/dev/null 2>&1; then
       xmodmap -e 'clear Lock' -e 'keycode 0x42 = Escape'
     fi
   fi

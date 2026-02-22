@@ -12,7 +12,7 @@ function terminator::os::switch {
     unsupported_block=terminator::os::switch::unsupported_default \
     arguments=()
 
-  while (( $# != 0 )); do
+  while (($# != 0)); do
     case "$1" in
       -h | --help)
         terminator::os::switch::usage

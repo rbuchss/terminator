@@ -52,6 +52,7 @@ RUN apk add make
 # ncurses required for tput - bats pretty print
 RUN apk add ncurses
 RUN apk add shellcheck
+RUN apk add shfmt
 RUN apk add tmux
 RUN apk add jq
 # column command used by history.sh and help.sh for tabular formatting
