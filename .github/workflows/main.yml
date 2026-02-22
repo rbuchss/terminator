@@ -1,4 +1,4 @@
-name: Run Make
+name: Bash Run Make
 on:
   workflow_dispatch:
     inputs:
@@ -10,6 +10,7 @@ on:
         options:
         - test
         - lint
+        - format-check
         - guards
       with_coverage:
         type: boolean
