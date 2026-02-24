@@ -40,7 +40,7 @@ function terminator::claude::__disable__ {
 
 function terminator::claude::mcp::add::context7 {
   local \
-    desired_version='1.0.26' \
+    desired_version='2.1.2' \
     current_version
 
   current_version="$(
