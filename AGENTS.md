@@ -1,11 +1,11 @@
-# Terminator — AI Agent Project Instructions
+# Terminator - AI Agent Project Instructions
 
 See [README.md](README.md) for project structure, development commands, the module system, and the [Adding a New Module](README.md#adding-a-new-module) workflow.
 
 ## Quick Reference
 
-- `make` — runs all checks (default target: `compose-guards`)
-- `make compose-test TEST_PATH=test/foo.bats FILTER_TAGS=terminator::foo` — targeted tests
+- `make` - runs all checks (default target: `compose-guards`)
+- `make compose-test TEST_PATH=test/foo.bats FILTER_TAGS=terminator::foo` - targeted tests
 - All `compose-*` targets run in Docker. Tests, lint, and format **must** run via Docker (Alpine/BusyBox environment).
 
 ## Output Variable Pattern
