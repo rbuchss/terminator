@@ -94,8 +94,7 @@ function terminator::tmux::logger::file::fatal {
 
 function terminator::tmux::logger::wrapper {
   if (($# < 1)); then
-    >&2 echo "ERROR: ${FUNCNAME[0]}: invalid number of arguments"
-    >&2 echo "usage: ${FUNCNAME[0]}: log_command log_arguments"
+    terminator::logger::error "invalid number of arguments" "usage: ${FUNCNAME[0]}: log_command log_arguments"
     return 1
   fi
 

@@ -1,6 +1,7 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/__module__.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/logger.sh"
 
 terminator::__module__::load || return 0
 
@@ -8,7 +9,7 @@ function terminator::color::code {
   case "$#" in
     2) printf -v "$2" '\[\x1b[%s\]' "$1" ;;
     1) printf '\[\x1b[%s\]' "$1" ;;
-    *) >&2 echo 'ERROR: invalid # of args' ;;
+    *) terminator::logger::error 'invalid # of args' ;;
   esac
 }
 
@@ -16,7 +17,7 @@ function terminator::color::code_bare {
   case "$#" in
     2) printf -v "$2" '\x1b[%s' "$1" ;;
     1) printf '\x1b[%s' "$1" ;;
-    *) >&2 echo 'ERROR: invalid # of args' ;;
+    *) terminator::logger::error 'invalid # of args' ;;
   esac
 }
 

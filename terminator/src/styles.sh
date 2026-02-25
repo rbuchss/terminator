@@ -2,6 +2,7 @@
 # shellcheck source=/dev/null
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/__module__.sh"
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/color.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/logger.sh"
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/unicode.sh"
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/user.sh"
 
@@ -82,7 +83,7 @@ function terminator::styles::command_coalesce {
         commands+=("$1")
         ;;
       -*)
-        >&2 echo "ERROR: ${FUNCNAME[0]} invalid option: '$1'"
+        terminator::logger::error "invalid option: '$1'"
         terminator::styles::command_coalesce::usage >&2
         return 1
         ;;
@@ -100,9 +101,7 @@ function terminator::styles::command_coalesce {
   done
 
   if ((${#commands[@]} == 0)); then
-    >&2 printf 'ERROR: %s no valid commands specified. Invalid commands: [%s]\n' \
-      "${FUNCNAME[0]}" \
-      "${invalid_commands[*]}"
+    terminator::logger::error "no valid commands specified. Invalid commands: [${invalid_commands[*]}]"
     terminator::styles::command_coalesce::usage >&2
     return 1
   fi

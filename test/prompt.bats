@@ -92,7 +92,7 @@ bats_require_minimum_version 1.5.0
   run --separate-stderr terminator::prompt::print_if_exists --invalid
 
   assert_failure 1
-  assert_stderr --partial 'ERROR:'
+  assert_stderr --partial 'ERROR --'
   assert_stderr --partial 'invalid option'
 }
 
@@ -101,7 +101,7 @@ bats_require_minimum_version 1.5.0
   run --separate-stderr terminator::prompt::print_if_exists --content 'test' --left 'abc'
 
   assert_failure 1
-  assert_stderr --partial 'ERROR:'
+  assert_stderr --partial 'ERROR --'
   assert_stderr --partial 'left_padding'
 }
 
@@ -110,7 +110,7 @@ bats_require_minimum_version 1.5.0
   run --separate-stderr terminator::prompt::print_if_exists --content 'test' --right 'abc'
 
   assert_failure 1
-  assert_stderr --partial 'ERROR:'
+  assert_stderr --partial 'ERROR --'
   assert_stderr --partial 'right_padding'
 }
 

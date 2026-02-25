@@ -2,6 +2,7 @@
 # shellcheck source=/dev/null
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/__module__.sh"
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/command.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/logger.sh"
 
 terminator::__module__::load || return 0
 
@@ -25,12 +26,11 @@ function terminator::mysql::show_process_list {
 
 function terminator::mysql::find_column {
   if (($# != 2)); then
-    >&2 echo "ERROR: invalid # of args"
-    >&2 echo "Usage: ${FUNCNAME[0]}: database column"
+    terminator::logger::error "invalid # of args" "Usage: ${FUNCNAME[0]} database column"
     return 65
   fi
 
-  echo "${FUNCNAME[0]}: searching database: '$1' for column: '$2'"
+  terminator::logger::info "searching database: '$1' for column: '$2'"
 
   command mysql -e "SELECT TABLE_SCHEMA, TABLE_NAME, \
     group_concat(COLUMN_NAME) MATCHING_COLUMNS \

@@ -15,7 +15,7 @@ bats_require_minimum_version 1.5.0
   run --separate-stderr terminator::process::kill
 
   assert_failure 1
-  assert_stderr --partial 'ERROR:'
+  assert_stderr --partial 'ERROR --'
   assert_stderr --partial 'invalid number of arguments'
   assert_stderr --partial 'Usage:'
 }
@@ -25,7 +25,7 @@ bats_require_minimum_version 1.5.0
   run --separate-stderr terminator::process::kill '-TERM' 'pattern' 'extra'
 
   assert_failure 1
-  assert_stderr --partial 'ERROR:'
+  assert_stderr --partial 'ERROR --'
   assert_stderr --partial 'invalid number of arguments'
   assert_stderr --partial 'Usage:'
 }

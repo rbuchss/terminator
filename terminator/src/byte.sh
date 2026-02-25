@@ -1,6 +1,7 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/__module__.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/logger.sh"
 
 terminator::__module__::load || return 0
 
@@ -14,8 +15,7 @@ function terminator::byte::__disable__ {
 
 function terminator::byte::reverse_endianness {
   if (($# != 1)); then
-    >&2 echo 'ERROR: invalid # of args: expected 1 argument'
-    >&2 echo "Usage: ${FUNCNAME[0]} hex-value"
+    terminator::logger::error "invalid # of args: expected 1 argument" "Usage: ${FUNCNAME[0]} hex-value"
     return 1
   fi
 

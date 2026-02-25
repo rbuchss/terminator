@@ -42,7 +42,7 @@ bats_require_minimum_version 1.5.0
   run --separate-stderr terminator::kubectl::cluster::add --provider invalid
 
   assert_failure 1
-  assert_stderr --partial 'ERROR:'
+  assert_stderr --partial 'ERROR --'
   assert_stderr --partial 'invalid provider option'
 }
 
@@ -51,7 +51,7 @@ bats_require_minimum_version 1.5.0
   run --separate-stderr terminator::kubectl::cluster::add
 
   assert_failure 1
-  assert_stderr --partial 'ERROR:'
+  assert_stderr --partial 'ERROR --'
   assert_stderr --partial 'invalid provider option'
 }
 
@@ -64,7 +64,8 @@ bats_require_minimum_version 1.5.0
   run --separate-stderr terminator::kubectl::cluster::add::aws
 
   assert_failure 1
-  assert_stderr --partial 'ERROR - aws not implemented'
+  assert_stderr --partial 'ERROR --'
+  assert_stderr --partial 'aws not implemented'
 }
 
 # bats test_tags=terminator::kubectl,terminator::kubectl::cluster::add::azure
@@ -72,7 +73,8 @@ bats_require_minimum_version 1.5.0
   run --separate-stderr terminator::kubectl::cluster::add::azure
 
   assert_failure 1
-  assert_stderr --partial 'ERROR - azure not implemented'
+  assert_stderr --partial 'ERROR --'
+  assert_stderr --partial 'azure not implemented'
 }
 
 # bats test_tags=terminator::kubectl,terminator::kubectl::cluster::add::hosted
@@ -80,7 +82,8 @@ bats_require_minimum_version 1.5.0
   run --separate-stderr terminator::kubectl::cluster::add::hosted
 
   assert_failure 1
-  assert_stderr --partial 'ERROR - hosted not implemented'
+  assert_stderr --partial 'ERROR --'
+  assert_stderr --partial 'hosted not implemented'
 }
 
 ################################################################################
@@ -152,7 +155,8 @@ bats_require_minimum_version 1.5.0
   run --separate-stderr terminator::kubectl::cluster::add --provider aws
 
   assert_failure 1
-  assert_stderr --partial 'ERROR - aws not implemented'
+  assert_stderr --partial 'ERROR --'
+  assert_stderr --partial 'aws not implemented'
 }
 
 ################################################################################

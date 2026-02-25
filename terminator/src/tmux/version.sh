@@ -1,6 +1,7 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*/*}}/__module__.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*/*}}/logger.sh"
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*/*}}/version.sh"
 
 terminator::__module__::load || return 0
@@ -11,8 +12,7 @@ function terminator::tmux::version {
 
 function terminator::tmux::version::compare {
   if (($# != 2)); then
-    >&2 echo "ERROR: ${FUNCNAME[0]}: invalid number of arguments"
-    >&2 echo "usage: ${FUNCNAME[0]} comparison value"
+    terminator::logger::error "invalid number of arguments" "usage: ${FUNCNAME[0]} comparison value"
     return 1
   fi
 
@@ -23,7 +23,7 @@ function terminator::tmux::version::compare {
     greater_than) terminator::tmux::version::compare::greater_than "$2" ;;
     greater_than_or_equal) terminator::tmux::version::compare::greater_than_or_equal "$2" ;;
     *)
-      >&2 echo "ERROR: ${FUNCNAME[0]}: invalid comparison: '$1'"
+      terminator::logger::error "invalid comparison: '$1'"
       return 1
       ;;
   esac

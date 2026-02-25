@@ -202,7 +202,7 @@ function terminator::ssh::generate_key {
         verbose_flag="$1"
         ;;
       *)
-        >&2 echo "ERROR: ${FUNCNAME[0]} invalid option: '$1'"
+        terminator::logger::error "invalid option: '$1'"
         >&2 terminator::ssh::generate_key::usage
         return "${TERMINATOR_SSH_INVALID_STATUS}"
         ;;
