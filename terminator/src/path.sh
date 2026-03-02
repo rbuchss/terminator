@@ -1,6 +1,7 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/__module__.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/logger.sh"
 
 terminator::__module__::load || return 0
 
@@ -169,7 +170,7 @@ function terminator::path::__prepend__ {
         ;;
       -p | --path)
         if ((_path_used == 1)); then
-          >&2 echo "ERROR: ${FUNCNAME[0]} $1 specified more than once"
+          terminator::logger::error "$1 specified more than once"
           >&2 terminator::path::__prepend__::usage
           return "${_invalid_status}"
         fi
@@ -180,7 +181,7 @@ function terminator::path::__prepend__ {
         ;;
       -o | --output)
         if ((_output_var_used == 1)); then
-          >&2 echo "ERROR: ${FUNCNAME[0]} $1 specified more than once"
+          terminator::logger::error "$1 specified more than once"
           >&2 terminator::path::__prepend__::usage
           return "${_invalid_status}"
         fi
@@ -190,7 +191,7 @@ function terminator::path::__prepend__ {
         _output_var_used=1
         ;;
       -*)
-        >&2 echo "ERROR: ${FUNCNAME[0]} invalid option: '$1'"
+        terminator::logger::error "invalid option: '$1'"
         >&2 terminator::path::__prepend__::usage
         return "${_invalid_status}"
         ;;
@@ -273,7 +274,7 @@ function terminator::path::__append__ {
         ;;
       -p | --path)
         if ((_path_used == 1)); then
-          >&2 echo "ERROR: ${FUNCNAME[0]} $1 specified more than once"
+          terminator::logger::error "$1 specified more than once"
           >&2 terminator::path::__append__::usage
           return "${_invalid_status}"
         fi
@@ -284,7 +285,7 @@ function terminator::path::__append__ {
         ;;
       -o | --output)
         if ((_output_var_used == 1)); then
-          >&2 echo "ERROR: ${FUNCNAME[0]} $1 specified more than once"
+          terminator::logger::error "$1 specified more than once"
           >&2 terminator::path::__append__::usage
           return "${_invalid_status}"
         fi
@@ -294,7 +295,7 @@ function terminator::path::__append__ {
         _output_var_used=1
         ;;
       -*)
-        >&2 echo "ERROR: ${FUNCNAME[0]} invalid option: '$1'"
+        terminator::logger::error "invalid option: '$1'"
         >&2 terminator::path::__append__::usage
         return "${_invalid_status}"
         ;;
@@ -371,7 +372,7 @@ function terminator::path::__remove__ {
         ;;
       -p | --path)
         if ((_path_used == 1)); then
-          >&2 echo "ERROR: ${FUNCNAME[0]} $1 specified more than once"
+          terminator::logger::error "$1 specified more than once"
           >&2 terminator::path::__remove__::usage
           return "${_invalid_status}"
         fi
@@ -382,7 +383,7 @@ function terminator::path::__remove__ {
         ;;
       -o | --output)
         if ((_output_var_used == 1)); then
-          >&2 echo "ERROR: ${FUNCNAME[0]} $1 specified more than once"
+          terminator::logger::error "$1 specified more than once"
           >&2 terminator::path::__remove__::usage
           return "${_invalid_status}"
         fi
@@ -392,7 +393,7 @@ function terminator::path::__remove__ {
         _output_var_used=1
         ;;
       -*)
-        >&2 echo "ERROR: ${FUNCNAME[0]} invalid option: '$1'"
+        terminator::logger::error "invalid option: '$1'"
         >&2 terminator::path::__remove__::usage
         return "${_invalid_status}"
         ;;

@@ -1,6 +1,7 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/__module__.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/logger.sh"
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/number.sh"
 
 terminator::__module__::load || return 0
@@ -27,7 +28,7 @@ function terminator::string::bytes_to_length_offset {
         output="$1"
         ;;
       -*)
-        >&2 echo "ERROR: ${FUNCNAME[0]} invalid option: '$1'"
+        terminator::logger::error "invalid option: '$1'"
         "${help_command}"
         return 1
         ;;
@@ -95,7 +96,7 @@ function terminator::string::repeat {
         output="$1"
         ;;
       -*)
-        >&2 echo "ERROR: ${FUNCNAME[0]} invalid option: '$1'"
+        terminator::logger::error "invalid option: '$1'"
         "${help_command}"
         return 1
         ;;
@@ -109,9 +110,7 @@ function terminator::string::repeat {
   done
 
   if ! terminator::number::is_unsigned_integer "${count}"; then
-    >&2 printf "ERROR: %s invalid count: '%s' is not an unsigned integer\n" \
-      "${FUNCNAME[0]}" \
-      "${count}"
+    terminator::logger::error "invalid count: '${count}' is not an unsigned integer"
     "${help_command}"
     return 1
   fi
@@ -167,7 +166,7 @@ function terminator::string::strip_colors {
         output="$1"
         ;;
       -*)
-        >&2 echo "ERROR: ${FUNCNAME[0]} invalid option: '$1'"
+        terminator::logger::error "invalid option: '$1'"
         "${help_command}"
         return 1
         ;;

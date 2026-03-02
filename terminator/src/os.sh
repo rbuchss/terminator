@@ -35,7 +35,7 @@ function terminator::os::switch {
         unsupported_block="$1"
         ;;
       -*)
-        >&2 echo "ERROR: ${FUNCNAME[0]} invalid option: '$1'"
+        terminator::logger::error "invalid option: '$1'"
         terminator::os::switch::usage >&2
         return 1
         ;;

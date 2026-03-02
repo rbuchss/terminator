@@ -1,6 +1,7 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/__module__.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/logger.sh"
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/number.sh"
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/prompt/git.sh"
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/prompt/svn.sh"
@@ -549,7 +550,7 @@ function terminator::prompt::print_if_exists {
         output="$1"
         ;;
       -*)
-        >&2 echo "ERROR: ${FUNCNAME[0]} invalid option: '$1'"
+        terminator::logger::error "invalid option: '$1'"
         "${help_command}"
         return 1
         ;;
@@ -563,17 +564,13 @@ function terminator::prompt::print_if_exists {
   done
 
   if ! terminator::number::is_unsigned_integer "${left_padding}"; then
-    >&2 printf "ERROR: %s invalid value left_padding: '%s' is not an unsigned integer\n" \
-      "${FUNCNAME[0]}" \
-      "${left_padding}"
+    terminator::logger::error "invalid value left_padding: '${left_padding}' is not an unsigned integer"
     "${help_command}"
     return 1
   fi
 
   if ! terminator::number::is_unsigned_integer "${right_padding}"; then
-    >&2 printf "ERROR: %s invalid value right_padding: '%s' is not an unsigned integer\n" \
-      "${FUNCNAME[0]}" \
-      "${right_padding}"
+    terminator::logger::error "invalid value right_padding: '${right_padding}' is not an unsigned integer"
     "${help_command}"
     return 1
   fi

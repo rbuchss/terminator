@@ -1,6 +1,7 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/__module__.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/logger.sh"
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/prompt.sh"
 
 terminator::__module__::load || return 0
@@ -15,8 +16,7 @@ function terminator::process::__disable__ {
 
 function terminator::process::kill {
   if (($# < 1)) || (($# > 2)); then
-    >&2 echo "ERROR: ${FUNCNAME[0]} invalid number of arguments"
-    >&2 echo "Usage: ${FUNCNAME[0]} [-SIGNAL] pattern"
+    terminator::logger::error "invalid number of arguments" "Usage: ${FUNCNAME[0]} [-SIGNAL] pattern"
     return 1
   fi
 

@@ -1,12 +1,13 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/__module__.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/logger.sh"
 
 terminator::__module__::load || return 0
 
 function terminator::help {
   if ! command -v "$1" >/dev/null 2>&1; then
-    >&2 echo "ERROR: ${FUNCNAME[0]}: command '$1' not found"
+    terminator::logger::error "command '$1' not found"
     return 1
   fi
 
@@ -15,7 +16,7 @@ function terminator::help {
     || terminator::help::command::bash_help "$@" \
     || terminator::help::command::help_flag "$@" \
     || {
-      >&2 echo "ERROR: ${FUNCNAME[0]}: help for '$1' command not found"
+      terminator::logger::error "help for '$1' command not found"
       return 1
     }
 }

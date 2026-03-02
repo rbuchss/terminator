@@ -85,7 +85,7 @@ function terminator::kubectl::cluster::add {
       provider_command='terminator::kubectl::cluster::add::hoster'
       ;;
     *)
-      >&2 echo "ERROR: ${FUNCNAME[0]} invalid provider option: '${provider}'"
+      terminator::logger::error "invalid provider option: '${provider}'"
       >&2 terminator::kubectl::cluster::add::usage
       return 1
       ;;
@@ -98,12 +98,12 @@ function terminator::kubectl::cluster::add {
 }
 
 function terminator::kubectl::cluster::add::aws {
-  >&2 echo 'ERROR - aws not implemented'
+  terminator::logger::error 'aws not implemented'
   return 1
 }
 
 function terminator::kubectl::cluster::add::azure {
-  >&2 echo 'ERROR - azure not implemented'
+  terminator::logger::error 'azure not implemented'
   return 1
 }
 
@@ -150,7 +150,7 @@ function terminator::kubectl::cluster::add::gcloud {
     )
 
     if ((${#projects[@]} == 0)); then
-      >&2 echo 'ERROR: No gcloud projects found - Exiting'
+      terminator::logger::error 'No gcloud projects found - Exiting'
       return 1
     fi
 
@@ -163,7 +163,7 @@ function terminator::kubectl::cluster::add::gcloud {
     )"
 
     if [[ -z "${project}" ]]; then
-      >&2 echo 'ERROR: No gcloud project selected - Exiting'
+      terminator::logger::error 'No gcloud project selected - Exiting'
       return 1
     fi
   fi
@@ -181,7 +181,7 @@ function terminator::kubectl::cluster::add::gcloud {
     )
 
     if ((${#clusters[@]} == 0)); then
-      >&2 echo 'ERROR: No gcloud clusters found - Exiting'
+      terminator::logger::error 'No gcloud clusters found - Exiting'
       return 1
     fi
 
@@ -194,7 +194,7 @@ function terminator::kubectl::cluster::add::gcloud {
     )
 
     if [[ -z "${cluster}" ]] || [[ -z "${region}" ]]; then
-      >&2 echo 'ERROR: No gcloud container cluster or region selected - Exiting'
+      terminator::logger::error 'No gcloud container cluster or region selected - Exiting'
       return 1
     fi
   fi
@@ -209,7 +209,7 @@ function terminator::kubectl::cluster::add::gcloud {
 }
 
 function terminator::kubectl::cluster::add::hosted {
-  >&2 echo 'ERROR - hosted not implemented'
+  terminator::logger::error 'hosted not implemented'
   return 1
 }
 
@@ -265,7 +265,7 @@ function terminator::kubectl::cluster::remove {
     )
 
     if ((${#_clusters[@]} == 0)); then
-      >&2 echo 'ERROR: No clusters found - Exiting'
+      terminator::logger::error 'No clusters found - Exiting'
       return 1
     fi
 
@@ -288,7 +288,7 @@ function terminator::kubectl::cluster::remove {
     )
 
     if ((${#clusters[@]} == 0)); then
-      >&2 echo 'ERROR: No clusters selected - Exiting'
+      terminator::logger::error 'No clusters selected - Exiting'
       return 1
     fi
   fi

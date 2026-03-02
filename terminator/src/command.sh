@@ -30,7 +30,7 @@ function terminator::command::exists {
         log_output="${TERMINATOR_COMMAND_LOG_OUTPUT_STREAM}"
         ;;
       -*)
-        >&2 echo "ERROR: ${FUNCNAME[0]} invalid option: '$1'"
+        terminator::logger::error "invalid option: '$1'"
         >&2 terminator::command::exists::usage
         return "${TERMINATOR_COMMAND_INVALID_STATUS}"
         ;;
@@ -42,7 +42,7 @@ function terminator::command::exists {
   done
 
   if ((${#arguments[@]} != 1)); then
-    >&2 echo "ERROR: ${FUNCNAME[0]} invalid number of arguments: ${#arguments[@]} - must be 1"
+    terminator::logger::error "invalid number of arguments: ${#arguments[@]} - must be 1"
     >&2 terminator::command::exists::usage
     return "${TERMINATOR_COMMAND_INVALID_STATUS}"
   fi
@@ -81,7 +81,7 @@ function terminator::command::any_exist {
         log_output="${TERMINATOR_COMMAND_LOG_OUTPUT_STREAM}"
         ;;
       -*)
-        >&2 echo "ERROR: ${FUNCNAME[0]} invalid option: '$1'"
+        terminator::logger::error "invalid option: '$1'"
         >&2 terminator::command::exists::usage
         return "${TERMINATOR_COMMAND_INVALID_STATUS}"
         ;;
@@ -93,7 +93,7 @@ function terminator::command::any_exist {
   done
 
   if ((${#arguments[@]} == 0)); then
-    >&2 echo "ERROR: ${FUNCNAME[0]} invalid number of arguments: ${#arguments[@]} - must be > 0"
+    terminator::logger::error "invalid number of arguments: ${#arguments[@]} - must be > 0"
     >&2 terminator::command::exists::usage
     return "${TERMINATOR_COMMAND_INVALID_STATUS}"
   fi
@@ -130,7 +130,7 @@ function terminator::command::none_exist {
         log_output="${TERMINATOR_COMMAND_LOG_OUTPUT_STREAM}"
         ;;
       -*)
-        >&2 echo "ERROR: ${FUNCNAME[0]} invalid option: '$1'"
+        terminator::logger::error "invalid option: '$1'"
         >&2 terminator::command::exists::usage
         return "${TERMINATOR_COMMAND_INVALID_STATUS}"
         ;;
@@ -142,7 +142,7 @@ function terminator::command::none_exist {
   done
 
   if ((${#arguments[@]} == 0)); then
-    >&2 echo "ERROR: ${FUNCNAME[0]} invalid number of arguments: ${#arguments[@]} - must be > 0"
+    terminator::logger::error "invalid number of arguments: ${#arguments[@]} - must be > 0"
     >&2 terminator::command::exists::usage
     return "${TERMINATOR_COMMAND_INVALID_STATUS}"
   fi
@@ -181,7 +181,7 @@ function terminator::command::all_exist {
         log_output="${TERMINATOR_COMMAND_LOG_OUTPUT_STREAM}"
         ;;
       -*)
-        >&2 echo "ERROR: ${FUNCNAME[0]} invalid option: '$1'"
+        terminator::logger::error "invalid option: '$1'"
         >&2 terminator::command::exists::usage
         return "${TERMINATOR_COMMAND_INVALID_STATUS}"
         ;;
@@ -193,7 +193,7 @@ function terminator::command::all_exist {
   done
 
   if ((${#arguments[@]} == 0)); then
-    >&2 echo "ERROR: ${FUNCNAME[0]} invalid number of arguments: ${#arguments[@]} - must be > 0"
+    terminator::logger::error "invalid number of arguments: ${#arguments[@]} - must be > 0"
     >&2 terminator::command::exists::usage
     return "${TERMINATOR_COMMAND_INVALID_STATUS}"
   fi

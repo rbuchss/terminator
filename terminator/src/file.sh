@@ -1,6 +1,7 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/__module__.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/logger.sh"
 
 terminator::__module__::load || return 0
 
@@ -50,7 +51,7 @@ function terminator::file::__disable__ {
 function terminator::file::extract {
   for file in "$@"; do
     if [[ ! -f "${file}" ]]; then
-      >&2 echo "ERROR: ${FUNCNAME[0]}: '${file}' is not a valid file"
+      terminator::logger::error "'${file}' is not a valid file"
       return 1
     fi
 
@@ -67,8 +68,7 @@ function terminator::file::extract {
       *.Z) uncompress "${file}" ;;
       *.7z) 7z x "${file}" ;;
       *)
-        >&2 echo "ERROR: ${FUNCNAME[0]} '${file}' cannot be extracted"
-        >&2 echo "'${file##*.}' is an unsupported format"
+        terminator::logger::error "'${file}' cannot be extracted" "'${file##*.}' is an unsupported format"
         return 1
         ;;
     esac
@@ -90,15 +90,15 @@ function terminator::file::mktbz {
 
 function terminator::file::swap {
   if (($# != 2)); then
-    >&2 echo "ERROR: ${FUNCNAME[0]}: 2 arguments required"
+    terminator::logger::error "2 arguments required"
     return 1
   fi
   if [[ ! -e "$1" ]]; then
-    >&2 echo "ERROR: ${FUNCNAME[0]}: '$1' does not exist"
+    terminator::logger::error "'$1' does not exist"
     return 1
   fi
   if [[ ! -e "$2" ]]; then
-    >&2 echo "ERROR: ${FUNCNAME[0]}: '$2' does not exist"
+    terminator::logger::error "'$2' does not exist"
     return 1
   fi
 
@@ -122,8 +122,7 @@ function terminator::file::nuke_spaces {
 # Find a file from pwd with pattern $1 in name and Execute $2 on it
 function terminator::file::find_exec {
   if (($# != 2)); then
-    >&2 echo "ERROR: ${FUNCNAME[0]}: invalid # of args"
-    >&2 echo "Usage: ${FUNCNAME[0]} pattern command"
+    terminator::logger::error "invalid # of args" "Usage: ${FUNCNAME[0]} pattern command"
     return 1
   fi
 

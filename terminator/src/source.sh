@@ -50,7 +50,7 @@ function terminator::source::bash_profile {
         refresh_all_modules=1
         ;;
       -*)
-        >&2 echo "ERROR: ${FUNCNAME[0]} invalid option: '$1'"
+        terminator::logger::error "invalid option: '$1'"
         terminator::source::bash_profile::usage >&2
         return 1
         ;;

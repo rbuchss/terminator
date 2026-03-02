@@ -15,7 +15,8 @@ bats_require_minimum_version 1.5.0
   run --separate-stderr terminator::mysql::find_column
 
   assert_failure 65
-  assert_stderr --partial 'ERROR: invalid # of args'
+  assert_stderr --partial 'ERROR --'
+  assert_stderr --partial 'invalid # of args'
   assert_stderr --partial 'Usage:'
 }
 
@@ -24,7 +25,8 @@ bats_require_minimum_version 1.5.0
   run --separate-stderr terminator::mysql::find_column 'mydb'
 
   assert_failure 65
-  assert_stderr --partial 'ERROR: invalid # of args'
+  assert_stderr --partial 'ERROR --'
+  assert_stderr --partial 'invalid # of args'
   assert_stderr --partial 'Usage:'
 }
 
@@ -33,7 +35,8 @@ bats_require_minimum_version 1.5.0
   run --separate-stderr terminator::mysql::find_column 'mydb' 'col' 'extra'
 
   assert_failure 65
-  assert_stderr --partial 'ERROR: invalid # of args'
+  assert_stderr --partial 'ERROR --'
+  assert_stderr --partial 'invalid # of args'
   assert_stderr --partial 'Usage:'
 }
 
