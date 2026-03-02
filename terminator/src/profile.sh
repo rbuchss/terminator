@@ -22,10 +22,6 @@ function terminator::profile::load {
 
   terminator::source /etc/profile
 
-  terminator::path::prepend \
-    "${HOME}/.terminator/bin" \
-    "${HOME}/bin"
-
   terminator::cdpath::prepend \
     '/opt' \
     "${HOME}"
@@ -35,6 +31,11 @@ function terminator::profile::load {
     --linux terminator::profile::os::linux \
     --windows terminator::profile::os::windows \
     --unsupported terminator::profile::os::unsupported
+
+  terminator::path::prepend \
+    "${HOME}/.terminator/bin" \
+    "${HOME}/.local/bin" \
+    "${HOME}/bin"
 
   terminator::config::load \
     "__modules__.sh" \
