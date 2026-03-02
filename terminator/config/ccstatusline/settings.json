@@ -12,18 +12,9 @@
         "type": "separator"
       },
       {
-        "id": "0684db0e-df3e-4ae3-a538-f2a6d64ec07c",
-        "type": "version",
-        "color": "brightMagenta"
-      },
-      {
-        "id": "7a36f20d-3e97-4cac-94e6-ec346c309322",
-        "type": "separator"
-      },
-      {
         "id": "513a088a-8c15-4893-9118-7ee76ea8236d",
         "type": "session-clock",
-        "color": "cyan"
+        "color": "brightMagenta"
       },
       {
         "id": "b82ce2b4-c7c1-4220-baf4-ad77a18d1e35",
@@ -32,7 +23,32 @@
       {
         "id": "189fcf7b-62a1-4560-90b0-b2e422aa85b5",
         "type": "block-timer",
-        "color": "brightBlack"
+        "color": "cyan"
+      }
+    ],
+    [
+      {
+        "id": "519cde7d-0187-485c-bfb8-0dcd431bb469",
+        "type": "context-percentage",
+        "color": "brightBlue"
+      },
+      {
+        "id": "76cb16be-a2e1-4b6b-92b1-144da4f2efe0",
+        "type": "separator"
+      },
+      {
+        "id": "b6d3e4d8-e2ec-4b8d-ae16-81defb2f5451",
+        "type": "context-percentage-usable",
+        "color": "brightMagenta"
+      },
+      {
+        "id": "f9d1721e-a5df-499c-a3f5-c4d723f516d3",
+        "type": "separator"
+      },
+      {
+        "id": "a0c9d525-e6d0-4cd6-9c04-856f1253682c",
+        "type": "context-length",
+        "color": "cyan"
       }
     ],
     [
@@ -58,45 +74,9 @@
         "id": "30aed8a8-c5f8-404b-9e3a-6922fddfe4bc",
         "type": "tokens-cached",
         "color": "cyan"
-      },
-      {
-        "id": "0f30338f-23f3-4e84-9b24-52f2dedc591b",
-        "type": "separator"
-      },
-      {
-        "id": "67dbfbbb-360f-49a7-9a02-7127af8a0c15",
-        "type": "tokens-total",
-        "color": "brightBlack"
       }
     ],
     [
-      {
-        "id": "a0c9d525-e6d0-4cd6-9c04-856f1253682c",
-        "type": "context-length",
-        "color": "brightBlue"
-      },
-      {
-        "id": "f9d1721e-a5df-499c-a3f5-c4d723f516d3",
-        "type": "separator"
-      },
-      {
-        "id": "519cde7d-0187-485c-bfb8-0dcd431bb469",
-        "type": "context-percentage",
-        "color": "brightMagenta"
-      },
-      {
-        "id": "76cb16be-a2e1-4b6b-92b1-144da4f2efe0",
-        "type": "separator"
-      },
-      {
-        "id": "b6d3e4d8-e2ec-4b8d-ae16-81defb2f5451",
-        "type": "context-percentage-usable",
-        "color": "cyan"
-      },
-      {
-        "id": "bc588916-17ef-4460-adb0-9819d84e4093",
-        "type": "separator"
-      },
       {
         "id": "6a50739f-0683-47dc-bd5c-cfea34ead749",
         "type": "claude-session-id",
@@ -104,7 +84,7 @@
       }
     ]
   ],
-  "flexMode": "full-minus-40",
+  "flexMode": "full-until-compact",
   "compactThreshold": 60,
   "colorLevel": 3,
   "inheritSeparatorColors": false,
@@ -112,7 +92,7 @@
   "powerline": {
     "enabled": false,
     "separators": [
-      ""
+      ""
     ],
     "separatorInvertBackground": [
       false
