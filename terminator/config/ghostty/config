@@ -56,7 +56,7 @@ alpha-blending = linear
 
 theme = Catppuccin Mocha
 
-background-opacity = 0.95
+background-opacity = 1
 
 # Optional: disable background blur if you want a sharper comparison
 background-blur = false
