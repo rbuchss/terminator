@@ -17,6 +17,10 @@ Always use context7 when I need code generation, setup or configuration steps, o
 library/API documentation. This means you should automatically use the Context7 MCP
 tools to resolve library id and get library docs without me having to explicitly ask.
 
+### Bash stdout fallback
+If a Bash command returns empty stdout when output is expected, redirect to a tmp file and read it back:
+`command > /tmp/cmd-output.txt 2>&1` then use the Read tool on `/tmp/cmd-output.txt`.
+
 ## Security and Privacy
 - Never store or repeat secrets present in code or environment files.
 
