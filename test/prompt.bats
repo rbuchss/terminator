@@ -7,6 +7,251 @@ setup_with_coverage 'terminator/src/prompt.sh'
 bats_require_minimum_version 1.5.0
 
 ################################################################################
+# terminator::prompt::get
+################################################################################
+
+# bats test_tags=terminator::prompt,terminator::prompt::get
+@test "terminator::prompt::get returns default when unset" {
+  unset TERMINATOR_PROMPT_COMMAND
+
+  run terminator::prompt::get
+
+  assert_success
+  assert_output "${TERMINATOR_PROMPT_COMMAND_DEFAULT}"
+}
+
+# bats test_tags=terminator::prompt,terminator::prompt::get
+@test "terminator::prompt::get returns TERMINATOR_PROMPT_COMMAND when set" {
+  TERMINATOR_PROMPT_COMMAND='terminator::prompt::minimal'
+
+  run terminator::prompt::get
+
+  assert_success
+  assert_output 'terminator::prompt::minimal'
+}
+
+# bats test_tags=terminator::prompt,terminator::prompt::get
+@test "terminator::prompt::get with output variable" {
+  TERMINATOR_PROMPT_COMMAND='terminator::prompt::minimal'
+  local result=''
+
+  terminator::prompt::get result
+
+  assert_equal "${result}" 'terminator::prompt::minimal'
+}
+
+################################################################################
+# terminator::prompt::set
+################################################################################
+
+# bats test_tags=terminator::prompt,terminator::prompt::set
+@test "terminator::prompt::set with valid command" {
+  TERMINATOR_PROMPT_COMMAND="${TERMINATOR_PROMPT_COMMAND_DEFAULT}"
+  unset TERMINATOR_PROMPT_COMMAND_PREVIOUS
+
+  terminator::prompt::set terminator::prompt::minimal
+
+  assert_equal "${TERMINATOR_PROMPT_COMMAND}" 'terminator::prompt::minimal'
+  assert_equal "${TERMINATOR_PROMPT_COMMAND_PREVIOUS}" "${TERMINATOR_PROMPT_COMMAND_DEFAULT}"
+}
+
+# bats test_tags=terminator::prompt,terminator::prompt::set
+@test "terminator::prompt::set with invalid command" {
+  TERMINATOR_PROMPT_COMMAND="${TERMINATOR_PROMPT_COMMAND_DEFAULT}"
+
+  run --separate-stderr terminator::prompt::set 'nonexistent::command'
+
+  assert_failure
+  assert_stderr --partial 'not found'
+}
+
+# bats test_tags=terminator::prompt,terminator::prompt::set
+@test "terminator::prompt::set with no arguments" {
+  run --separate-stderr terminator::prompt::set
+
+  assert_failure
+  assert_stderr --partial 'usage'
+}
+
+# bats test_tags=terminator::prompt,terminator::prompt::set
+@test "terminator::prompt::set toggle with -" {
+  TERMINATOR_PROMPT_COMMAND='terminator::prompt::minimal'
+  TERMINATOR_PROMPT_COMMAND_PREVIOUS="${TERMINATOR_PROMPT_COMMAND_DEFAULT}"
+
+  terminator::prompt::set -
+
+  assert_equal "${TERMINATOR_PROMPT_COMMAND}" "${TERMINATOR_PROMPT_COMMAND_DEFAULT}"
+  assert_equal "${TERMINATOR_PROMPT_COMMAND_PREVIOUS}" 'terminator::prompt::minimal'
+}
+
+# bats test_tags=terminator::prompt,terminator::prompt::set
+@test "terminator::prompt::set double toggle returns to original" {
+  TERMINATOR_PROMPT_COMMAND="${TERMINATOR_PROMPT_COMMAND_DEFAULT}"
+  unset TERMINATOR_PROMPT_COMMAND_PREVIOUS
+
+  terminator::prompt::set terminator::prompt::minimal
+  terminator::prompt::set -
+
+  assert_equal "${TERMINATOR_PROMPT_COMMAND}" "${TERMINATOR_PROMPT_COMMAND_DEFAULT}"
+  assert_equal "${TERMINATOR_PROMPT_COMMAND_PREVIOUS}" 'terminator::prompt::minimal'
+}
+
+# bats test_tags=terminator::prompt,terminator::prompt::set
+@test "terminator::prompt::set toggle with - when no previous" {
+  unset TERMINATOR_PROMPT_COMMAND_PREVIOUS
+
+  run --separate-stderr terminator::prompt::set -
+
+  assert_failure
+  assert_stderr --partial 'no previous'
+}
+
+################################################################################
+# terminator::prompt
+################################################################################
+
+# bats test_tags=terminator::prompt,terminator::prompt::dispatch
+@test "terminator::prompt dispatches to configured command" {
+  COLUMNS=80
+  TERMINATOR_PROMPT_COMMAND='terminator::prompt::minimal'
+
+  terminator::prompt
+
+  [[ -n "${PS1}" ]]
+}
+
+# bats test_tags=terminator::prompt,terminator::prompt::dispatch
+@test "terminator::prompt dispatches to default when unset" {
+  COLUMNS=80
+  unset TERMINATOR_PROMPT_COMMAND
+
+  terminator::prompt
+
+  [[ -n "${PS1}" ]]
+}
+
+# bats test_tags=terminator::prompt,terminator::prompt::dispatch
+@test "terminator::prompt falls back to default for invalid command" {
+  COLUMNS=80
+  TERMINATOR_PROMPT_COMMAND='nonexistent::command'
+
+  terminator::prompt
+
+  [[ -n "${PS1}" ]]
+}
+
+################################################################################
+# terminator::prompt::minimal
+################################################################################
+
+# bats test_tags=terminator::prompt,terminator::prompt::minimal
+@test "terminator::prompt::minimal sets PS1 with command symbol" {
+  local expected_symbol
+  terminator::styles::command_symbol expected_symbol
+
+  terminator::prompt::minimal
+
+  [[ -n "${PS1}" ]]
+  [[ "${PS1}" == "${expected_symbol} " ]]
+}
+
+################################################################################
+# terminator::prompt::register
+################################################################################
+
+# bats test_tags=terminator::prompt,terminator::prompt::register
+@test "terminator::prompt::register adds commands" {
+  TERMINATOR_PROMPT_COMMANDS=()
+
+  terminator::prompt::register terminator::prompt::minimal terminator::prompt::full
+
+  assert_equal "${#TERMINATOR_PROMPT_COMMANDS[@]}" 2
+  assert_equal "${TERMINATOR_PROMPT_COMMANDS[0]}" 'terminator::prompt::minimal'
+  assert_equal "${TERMINATOR_PROMPT_COMMANDS[1]}" 'terminator::prompt::full'
+}
+
+# bats test_tags=terminator::prompt,terminator::prompt::register
+@test "terminator::prompt::register skips duplicates" {
+  TERMINATOR_PROMPT_COMMANDS=()
+
+  terminator::prompt::register terminator::prompt::minimal
+  terminator::prompt::register terminator::prompt::minimal
+
+  assert_equal "${#TERMINATOR_PROMPT_COMMANDS[@]}" 1
+}
+
+# bats test_tags=terminator::prompt,terminator::prompt::register
+@test "terminator::prompt::register bulk with duplicates" {
+  TERMINATOR_PROMPT_COMMANDS=()
+
+  terminator::prompt::register terminator::prompt::minimal terminator::prompt::full
+  terminator::prompt::register terminator::prompt::full terminator::prompt::ask
+
+  assert_equal "${#TERMINATOR_PROMPT_COMMANDS[@]}" 3
+  assert_equal "${TERMINATOR_PROMPT_COMMANDS[2]}" 'terminator::prompt::ask'
+}
+
+# bats test_tags=terminator::prompt,terminator::prompt::register
+@test "terminator::prompt::register warns on invalid command" {
+  TERMINATOR_PROMPT_COMMANDS=()
+
+  run --separate-stderr terminator::prompt::register 'nonexistent::command'
+
+  assert_success
+  assert_stderr --partial 'not found'
+  assert_equal "${#TERMINATOR_PROMPT_COMMANDS[@]}" 0
+}
+
+################################################################################
+# terminator::prompt::completion
+################################################################################
+
+# bats test_tags=terminator::prompt,terminator::prompt::completion
+@test "terminator::prompt::completion returns matching commands" {
+  TERMINATOR_PROMPT_COMMANDS=('terminator::prompt::minimal' 'terminator::prompt::full')
+  COMP_WORDS=('terminator::prompt::set' 'terminator::prompt::m')
+  COMP_CWORD=1
+
+  terminator::prompt::completion
+
+  assert_equal "${#COMPREPLY[@]}" 1
+  assert_equal "${COMPREPLY[0]}" 'terminator::prompt::minimal'
+}
+
+# bats test_tags=terminator::prompt,terminator::prompt::completion
+@test "terminator::prompt::completion returns all on empty input" {
+  TERMINATOR_PROMPT_COMMANDS=('terminator::prompt::minimal' 'terminator::prompt::full')
+  COMP_WORDS=('terminator::prompt::set' '')
+  COMP_CWORD=1
+
+  terminator::prompt::completion
+
+  assert_equal "${#COMPREPLY[@]}" 2
+}
+
+# bats test_tags=terminator::prompt,terminator::prompt::completion
+@test "terminator::prompt::completion stops after first argument" {
+  TERMINATOR_PROMPT_COMMANDS=('terminator::prompt::minimal' 'terminator::prompt::full')
+  COMP_WORDS=('prompt-set' 'terminator::prompt::full' '')
+  COMP_CWORD=2
+
+  terminator::prompt::completion
+
+  assert_equal "${#COMPREPLY[@]}" 0
+}
+
+# bats test_tags=terminator::prompt,terminator::prompt::completion
+@test "terminator::prompt::completion returns empty for no match" {
+  TERMINATOR_PROMPT_COMMANDS=('terminator::prompt::minimal' 'terminator::prompt::full')
+  COMP_WORDS=('terminator::prompt::set' 'nonexistent')
+  COMP_CWORD=1
+
+  terminator::prompt::completion
+
+  assert_equal "${#COMPREPLY[@]}" 0
+}
+
+################################################################################
 # terminator::prompt::print_if_exists::usage
 ################################################################################
 
