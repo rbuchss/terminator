@@ -41,7 +41,7 @@ if [[ -n "${PS1}" ]]; then
   export HSR="${HOME}/.homesick/repos"
   terminator::cdpath::prepend "${HSR}"
 
-  export TERMINATOR_PROMPT_COMMAND="${TERMINATOR_PROMPT_COMMAND:-terminator::prompt::full}"
+  export TERMINATOR_PROMPT_COMMAND="${TERMINATOR_PROMPT_COMMAND:-${TERMINATOR_PROMPT_COMMAND_DEFAULT}}"
   export TERMINATOR_GIT_STATUS_STASH_ENABLED=1
 
   # jenv uses PROMPT_COMMAND as a hook

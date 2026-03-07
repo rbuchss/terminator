@@ -1,6 +1,7 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/__module__.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/array.sh"
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/command.sh"
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/logger.sh"
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/number.sh"
@@ -12,15 +13,123 @@ source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/styles.sh"
 
 terminator::__module__::load || return 0
 
+TERMINATOR_PROMPT_COMMAND_DEFAULT='terminator::prompt::full'
+TERMINATOR_PROMPT_COMMANDS=(
+  'terminator::prompt::minimal'
+  'terminator::prompt::full'
+)
+
 # Dispatches to the prompt command set via TERMINATOR_PROMPT_COMMAND.
-# Defaults to terminator::prompt::full if unset or command not found.
+# Falls back to TERMINATOR_PROMPT_COMMAND_DEFAULT if command not found.
 function terminator::prompt {
-  local cmd="${TERMINATOR_PROMPT_COMMAND:-terminator::prompt::full}"
+  local \
+    last_command_exit=$? \
+    cmd
+
+  terminator::prompt::get cmd
 
   if terminator::command::exists "${cmd}"; then
-    "${cmd}"
+    "${cmd}" "${last_command_exit}"
   else
-    terminator::prompt::full
+    "${TERMINATOR_PROMPT_COMMAND_DEFAULT}" "${last_command_exit}"
+  fi
+}
+
+# Returns the current prompt command, falling back to the default.
+# Internal var uses __ prefix to avoid colliding with the caller's
+# variable name when using printf -v to write to it.
+function terminator::prompt::get {
+  local __prompt_get_cmd__="${TERMINATOR_PROMPT_COMMAND:-${TERMINATOR_PROMPT_COMMAND_DEFAULT}}"
+
+  case "$#" in
+    1) printf -v "$1" '%s' "${__prompt_get_cmd__}" ;;
+    *) echo "${__prompt_get_cmd__}" ;;
+  esac
+}
+
+# Sets the prompt command with validation.
+# Supports '-' to toggle to the previous prompt command (like cd -).
+function terminator::prompt::set {
+  local \
+    new_cmd="$1" \
+    current_cmd
+
+  if [[ "${new_cmd}" == "-" ]]; then
+    if [[ -z "${TERMINATOR_PROMPT_COMMAND_PREVIOUS}" ]]; then
+      terminator::logger::warning 'no previous prompt command to toggle to'
+      return 1
+    fi
+    new_cmd="${TERMINATOR_PROMPT_COMMAND_PREVIOUS}"
+  fi
+
+  if [[ -z "${new_cmd}" ]]; then
+    terminator::logger::warning 'usage: terminator::prompt::set <command>'
+    return 1
+  fi
+
+  if ! terminator::command::exists "${new_cmd}"; then
+    terminator::logger::warning "'${new_cmd}' not found, keeping current prompt"
+    return 1
+  fi
+
+  terminator::prompt::get current_cmd
+
+  export TERMINATOR_PROMPT_COMMAND_PREVIOUS="${current_cmd}"
+  export TERMINATOR_PROMPT_COMMAND="${new_cmd}"
+}
+
+# Registers prompt commands for tab completion.
+# Accepts one or more command names. Skips duplicates.
+# Warns and skips commands that do not exist.
+function terminator::prompt::register {
+  local cmd
+
+  for cmd in "$@"; do
+    if ! terminator::command::exists "${cmd}"; then
+      terminator::logger::warning "'${cmd}' not found, skipping registration"
+      continue
+    fi
+
+    if ! terminator::array::contains "${cmd}" "${TERMINATOR_PROMPT_COMMANDS[@]}"; then
+      TERMINATOR_PROMPT_COMMANDS+=("${cmd}")
+    fi
+  done
+}
+
+# Tab completion for terminator::prompt::set and prompt-set.
+#
+# Bash treats ':' as a word break by default (via COMP_WORDBREAKS), so
+# completing "terminator::prompt::" splits into multiple words and causes
+# the prefix to be doubled.
+#
+# _get_comp_words_by_ref -n : rebuilds the full word ignoring colon splits,
+# and __ltrim_colon_completions strips the already-typed colon prefix from
+# each COMPREPLY entry.
+#
+# Both helpers come from the bash-completion package. If unavailable, falls
+# back to basic completion without colon handling.
+function terminator::prompt::completion {
+  # Only complete the first argument.
+  if ((COMP_CWORD > 1)); then
+    return
+  fi
+
+  local cur
+
+  if terminator::command::exists _get_comp_words_by_ref; then
+    _get_comp_words_by_ref -n : cur
+  else
+    cur="${COMP_WORDS[COMP_CWORD]}"
+  fi
+
+  COMPREPLY=()
+
+  while IFS='' read -r completion; do
+    COMPREPLY+=("${completion}")
+  done < <(compgen -W "${TERMINATOR_PROMPT_COMMANDS[*]}" -- "${cur}")
+
+  if terminator::command::exists __ltrim_colon_completions; then
+    __ltrim_colon_completions "${cur}"
   fi
 }
 
@@ -38,7 +147,7 @@ function terminator::prompt::minimal {
 # Full BASH PS1 prompt showing current GIT or SVN repository and branch
 # with colorization to show status (red dirty/green clean).
 function terminator::prompt::full {
-  local last_command_exit=$? \
+  local last_command_exit="${1:-$?}" \
     left_prompt \
     right_prompt
 
@@ -656,6 +765,10 @@ USAGE_TEXT
 
 function terminator::prompt::__export__ {
   export -f terminator::prompt
+  export -f terminator::prompt::get
+  export -f terminator::prompt::set
+  export -f terminator::prompt::register
+  export -f terminator::prompt::completion
   export -f terminator::prompt::minimal
   export -f terminator::prompt::full
   export -f terminator::prompt::ask
@@ -695,11 +808,19 @@ function terminator::prompt::__export__ {
   export -f terminator::prompt::static::right_prompt_suffix
   export -f terminator::prompt::print_if_exists
   export -f terminator::prompt::print_if_exists::usage
+
+  alias prompt-set='terminator::prompt::set'
+
+  complete -F terminator::prompt::completion prompt-set
 }
 
 # KCOV_EXCL_START
 function terminator::prompt::__recall__ {
   export -fn terminator::prompt
+  export -fn terminator::prompt::get
+  export -fn terminator::prompt::set
+  export -fn terminator::prompt::register
+  export -fn terminator::prompt::completion
   export -fn terminator::prompt::minimal
   export -fn terminator::prompt::full
   export -fn terminator::prompt::ask
@@ -739,6 +860,10 @@ function terminator::prompt::__recall__ {
   export -fn terminator::prompt::static::right_prompt_suffix
   export -fn terminator::prompt::print_if_exists
   export -fn terminator::prompt::print_if_exists::usage
+
+  unalias prompt-set
+
+  complete -r prompt-set 2>/dev/null
 }
 # KCOV_EXCL_STOP
 
