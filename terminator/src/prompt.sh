@@ -1,6 +1,7 @@
 #!/bin/bash
 # shellcheck source=/dev/null
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/__module__.sh"
+source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/command.sh"
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/logger.sh"
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/number.sh"
 source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/prompt/git.sh"
@@ -11,11 +12,32 @@ source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/styles.sh"
 
 terminator::__module__::load || return 0
 
-# Customize BASH PS1 prompt to show current
-# GIT or SVN repository and branch
-# along with colorization to show status
-# (red dirty/green clean)
+# Dispatches to the prompt command set via TERMINATOR_PROMPT_COMMAND.
+# Defaults to terminator::prompt::full if unset or command not found.
 function terminator::prompt {
+  local cmd="${TERMINATOR_PROMPT_COMMAND:-terminator::prompt::full}"
+
+  if terminator::command::exists "${cmd}"; then
+    "${cmd}"
+  else
+    terminator::prompt::full
+  fi
+}
+
+# Minimal prompt with just the command symbol.
+function terminator::prompt::minimal {
+  local symbol
+
+  terminator::styles::command_symbol symbol
+
+  PS1="${symbol} "
+
+  export PS1
+}
+
+# Full BASH PS1 prompt showing current GIT or SVN repository and branch
+# with colorization to show status (red dirty/green clean).
+function terminator::prompt::full {
   local last_command_exit=$? \
     left_prompt \
     right_prompt
@@ -634,6 +656,8 @@ USAGE_TEXT
 
 function terminator::prompt::__export__ {
   export -f terminator::prompt
+  export -f terminator::prompt::minimal
+  export -f terminator::prompt::full
   export -f terminator::prompt::ask
   export -f terminator::prompt::enable_env_tracing
   export -f terminator::prompt::left
@@ -676,6 +700,8 @@ function terminator::prompt::__export__ {
 # KCOV_EXCL_START
 function terminator::prompt::__recall__ {
   export -fn terminator::prompt
+  export -fn terminator::prompt::minimal
+  export -fn terminator::prompt::full
   export -fn terminator::prompt::ask
   export -fn terminator::prompt::enable_env_tracing
   export -fn terminator::prompt::left
