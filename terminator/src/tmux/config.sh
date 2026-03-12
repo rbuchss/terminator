@@ -50,7 +50,7 @@ function terminator::tmux::config::rollback_version {
 
   while IFS='' read -r version; do
     versions+=("${version}")
-  done < <(find "${path}" -depth 1 -type d -exec basename {} \; | sort -rV)
+  done < <(find "${path}" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | sort -rV)
 
   terminator::tmux::logger::debug "available versions: ${versions[*]}"
 
