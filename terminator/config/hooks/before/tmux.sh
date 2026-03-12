@@ -6,6 +6,8 @@
 if [[ -n "${TMUX}" ]] && [[ -z "${TMUX_PATH_INITIALIZED}" ]]; then
   terminator::logger::debug 'Initializing tmux - resetting PATHs and PROMPT_COMMAND'
   terminator::paths::clear
+  # Set a minimal PATH so /etc/profile can find basic utilities like 'id'
+  PATH='/usr/bin:/bin:/usr/sbin:/sbin'
   PROMPT_COMMAND=''
   export TMUX_PATH_INITIALIZED=1
 fi
