@@ -5,6 +5,7 @@ source "${HOME}/.terminator/src/source.sh"
 
 terminator::source \
   "${HOME}/.terminator/src/ag.sh" \
+  "${HOME}/.terminator/src/bun.sh" \
   "${HOME}/.terminator/src/byte.sh" \
   "${HOME}/.terminator/src/claude.sh" \
   "${HOME}/.terminator/src/config.sh" \
@@ -47,6 +48,7 @@ terminator::source \
 
 __modules__=(
   terminator::ag
+  terminator::bun
   terminator::byte
   terminator::claude
   terminator::config
