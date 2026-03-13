@@ -4,21 +4,36 @@ source "${HOME}/.terminator/src/unicode.sh"
 
 # NOTE: to add scripts use this format #(~/.terminator/bin/foobar.sh)
 
+# Remote sessions get different accent colors so nested local/remote tmux
+# sessions are visually distinct at a glance. SSH_CONNECTION is set by sshd.
+# All accent colors are overridable per host via env vars exported before
+# the tmux bootstrap runs (e.g. in a host-specific shell profile).
+if [[ -n "${SSH_CONNECTION}" ]]; then
+  # Remote: rose (identity) + gold (interactive)
+  : "${TMUX_STYLES_HOST_COLOR_NUM:=174}"
+  : "${TMUX_STYLES_SESSION_COLOR:=colour174}"
+  : "${TMUX_STYLES_MENU_COLOR:=colour220}"
+  : "${TMUX_STYLES_PREFIX_COLOR:=colour174}"
+else
+  # Local: green (identity) + blue (interactive)
+  : "${TMUX_STYLES_HOST_COLOR_NUM:=10}"
+  : "${TMUX_STYLES_SESSION_COLOR:=colour10}"
+  : "${TMUX_STYLES_MENU_COLOR:=colour39}"
+  : "${TMUX_STYLES_PREFIX_COLOR:=colour10}"
+fi
+
 # Common colors (reusable base values)
-TMUX_STYLES_HOST_COLOR="colour${TMUX_STYLES_HOST_COLOR_NUM:-10}"
-TMUX_STYLES_FG_COLOR="white"
-TMUX_STYLES_BG_COLOR="colour234"
-TMUX_STYLES_SESSION_COLOR="colour10"
-TMUX_STYLES_MESSAGE_COLOR="colour16"
-TMUX_STYLES_MENU_COLOR="colour39"
-TMUX_STYLES_COPY_COLOR="colour237"
-TMUX_STYLES_PREFIX_COLOR="colour10"
+TMUX_STYLES_HOST_COLOR="colour${TMUX_STYLES_HOST_COLOR_NUM}"
+TMUX_STYLES_FG_COLOR="${TMUX_STYLES_FG_COLOR:-white}"
+TMUX_STYLES_BG_COLOR="${TMUX_STYLES_BG_COLOR:-colour234}"
+TMUX_STYLES_MESSAGE_COLOR="${TMUX_STYLES_MESSAGE_COLOR:-colour16}"
+TMUX_STYLES_COPY_COLOR="${TMUX_STYLES_COPY_COLOR:-colour237}"
 
 # Setting-specific variables (mapped to tmux option names)
-TMUX_STYLES_PANE_BORDER_FG="${TMUX_STYLES_COPY_COLOR}"
-TMUX_STYLES_PANE_BORDER_BG=default
-TMUX_STYLES_PANE_ACTIVE_BORDER_FG="${TMUX_STYLES_MENU_COLOR}"
-TMUX_STYLES_PANE_ACTIVE_BORDER_BG=default
+TMUX_STYLES_PANE_BORDER_FG="${TMUX_STYLES_PANE_BORDER_FG:-${TMUX_STYLES_COPY_COLOR}}"
+TMUX_STYLES_PANE_BORDER_BG="${TMUX_STYLES_PANE_BORDER_BG:-default}"
+TMUX_STYLES_PANE_ACTIVE_BORDER_FG="${TMUX_STYLES_PANE_ACTIVE_BORDER_FG:-${TMUX_STYLES_MENU_COLOR}}"
+TMUX_STYLES_PANE_ACTIVE_BORDER_BG="${TMUX_STYLES_PANE_ACTIVE_BORDER_BG:-default}"
 TMUX_STYLES_MESSAGE_STYLE_FG="${TMUX_STYLES_MESSAGE_COLOR}"
 TMUX_STYLES_MESSAGE_STYLE_BG="${TMUX_STYLES_SESSION_COLOR}"
 TMUX_STYLES_STATUS_STYLE_FG="${TMUX_STYLES_FG_COLOR}"
