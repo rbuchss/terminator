@@ -41,6 +41,14 @@ if [[ -n "${PS1}" ]]; then
   export HSR="${HOME}/.homesick/repos"
   terminator::cdpath::prepend "${HSR}"
 
+  # Remote sessions get different prompt accent colors so local/remote
+  # sessions are visually distinct at a glance. Uses the same rose accent
+  # (colour174) as the tmux remote identity color. All overridable per host
+  # via env vars exported before .bashrc runs.
+  if terminator::ssh::is_ssh_session; then
+    : "${TERMINATOR_STYLES_HOST_COLOR_CODE:=38;5;174m}"
+  fi
+
   export TERMINATOR_PROMPT_COMMAND="${TERMINATOR_PROMPT_COMMAND:-${TERMINATOR_PROMPT_COMMAND_DEFAULT}}"
   export TERMINATOR_GIT_STATUS_STASH_ENABLED=1
 
