@@ -94,8 +94,29 @@ _register_two_ws() {
 }
 
 # bats test_tags=terminator::workstation,terminator::workstation::register
-@test "terminator::workstation::register stores empty auth hook when not provided" {
+@test "terminator::workstation::register uses provider default auth hook when not specified" {
   _register_test_ws
+
+  [[ "${TERMINATOR_WORKSTATION_AUTH_HOOKS[0]}" == "terminator::workstation::provider::gcp::auth" ]]
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::register
+@test "terminator::workstation::register explicit --auth-hook overrides provider default" {
+  terminator::workstation::register \
+    --name test-ws \
+    --provider gcp \
+    --auth-hook my_custom_auth \
+    --zone us-east1-c \
+    --project test-project
+
+  [[ "${TERMINATOR_WORKSTATION_AUTH_HOOKS[0]}" == "my_custom_auth" ]]
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::register
+@test "terminator::workstation::register no auth hook when provider has no default" {
+  terminator::workstation::register \
+    --name test-ws \
+    --provider fake_provider
 
   [[ "${TERMINATOR_WORKSTATION_AUTH_HOOKS[0]}" == "" ]]
 }
@@ -225,8 +246,10 @@ _register_two_ws() {
 }
 
 # bats test_tags=terminator::workstation,terminator::workstation::__get_auth_hook__
-@test "terminator::workstation::__get_auth_hook__ returns empty when unset" {
-  _register_test_ws
+@test "terminator::workstation::__get_auth_hook__ returns empty when provider has no default" {
+  terminator::workstation::register \
+    --name test-ws \
+    --provider fake_provider
 
   local result
   terminator::workstation::__get_auth_hook__ "test-ws" result
@@ -321,7 +344,9 @@ _register_two_ws() {
 
 # bats test_tags=terminator::workstation,terminator::workstation::__run_auth_hook__
 @test "terminator::workstation::__run_auth_hook__ skips when no hook set" {
-  _register_test_ws
+  terminator::workstation::register \
+    --name test-ws \
+    --provider fake_provider
 
   run terminator::workstation::__run_auth_hook__ "test-ws"
 
@@ -525,6 +550,8 @@ _register_two_ws() {
 
 # bats test_tags=terminator::workstation,terminator::workstation::ssh
 @test "terminator::workstation::ssh dispatches to provider" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::gcloud::auth { :; }
   _register_test_ws
 
   # shellcheck disable=SC2317 # invoked indirectly
@@ -538,6 +565,8 @@ _register_two_ws() {
 
 # bats test_tags=terminator::workstation,terminator::workstation::ssh
 @test "terminator::workstation::ssh with -w flag" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::gcloud::auth { :; }
   _register_two_ws
 
   # shellcheck disable=SC2317 # invoked indirectly
@@ -607,6 +636,8 @@ _register_two_ws() {
 
 # bats test_tags=terminator::workstation,terminator::workstation::scp
 @test "terminator::workstation::scp dispatches to provider" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::gcloud::auth { :; }
   _register_test_ws
 
   # shellcheck disable=SC2317 # invoked indirectly
@@ -640,6 +671,8 @@ _register_two_ws() {
 
 # bats test_tags=terminator::workstation,terminator::workstation::scp
 @test "terminator::workstation::scp with -w flag" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::gcloud::auth { :; }
   _register_two_ws
 
   # shellcheck disable=SC2317 # invoked indirectly
@@ -724,6 +757,7 @@ _register_two_ws() {
     terminator::workstation::ssh::usage
     terminator::workstation::scp::usage
     terminator::workstation::rsync::usage
+    terminator::workstation::provider::gcp::auth
     terminator::workstation::provider::gcp::configure
     terminator::workstation::provider::gcp::ssh
     terminator::workstation::provider::gcp::scp

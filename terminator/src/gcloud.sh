@@ -33,6 +33,23 @@ function terminator::gcloud::alias_completion {
   _python_argcomplete gcloud "$@"
 }
 
+# Ensures gcloud is authenticated. Re-authenticates if tokens are expired.
+function terminator::gcloud::auth {
+  local __gcloud_auth_account__
+
+  __gcloud_auth_account__="$(gcloud auth list --filter=status:ACTIVE --format='value(account)' 2>/dev/null)"
+
+  if [[ -z "${__gcloud_auth_account__}" ]]; then
+    echo "No active gcloud authentication found. Logging in..."
+    gcloud auth login || return 1
+  elif ! gcloud auth print-access-token >/dev/null 2>&1; then
+    echo "Gcloud tokens expired for: ${__gcloud_auth_account__}. Re-authenticating..."
+    gcloud auth login || return 1
+  else
+    echo "Authenticated with gcloud as: ${__gcloud_auth_account__}"
+  fi
+}
+
 function terminator::gcloud::__disable__ {
   complete -r gcl
 
@@ -41,11 +58,13 @@ function terminator::gcloud::__disable__ {
 
 function terminator::gcloud::__export__ {
   export -f terminator::gcloud::alias_completion
+  export -f terminator::gcloud::auth
 }
 
 # KCOV_EXCL_START
 function terminator::gcloud::__recall__ {
   export -fn terminator::gcloud::alias_completion
+  export -fn terminator::gcloud::auth
 }
 # KCOV_EXCL_STOP
 

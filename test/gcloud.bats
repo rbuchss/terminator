@@ -19,6 +19,85 @@ bats_require_minimum_version 1.5.0
 }
 
 ################################################################################
+# terminator::gcloud::auth
+################################################################################
+
+# bats test_tags=terminator::gcloud,terminator::gcloud::auth
+@test "terminator::gcloud::auth function-exists" {
+  run type -t terminator::gcloud::auth
+
+  assert_success
+  assert_output 'function'
+}
+
+# bats test_tags=terminator::gcloud,terminator::gcloud::auth
+@test "terminator::gcloud::auth with active account" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function gcloud {
+    case "$1" in
+      auth)
+        case "$2" in
+          list) echo "user@example.com" ;;
+          print-access-token) return 0 ;;
+        esac
+        ;;
+    esac
+  }
+
+  run terminator::gcloud::auth
+
+  assert_success
+  assert_output --partial "Authenticated with gcloud as:"
+}
+
+# bats test_tags=terminator::gcloud,terminator::gcloud::auth
+@test "terminator::gcloud::auth with no active account triggers login" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function gcloud {
+    case "$1" in
+      auth)
+        case "$2" in
+          list) echo "" ;;
+          login)
+            echo "logged-in"
+            return 0
+            ;;
+        esac
+        ;;
+    esac
+  }
+
+  run terminator::gcloud::auth
+
+  assert_success
+  assert_output --partial "No active gcloud authentication found"
+}
+
+# bats test_tags=terminator::gcloud,terminator::gcloud::auth
+@test "terminator::gcloud::auth with expired tokens re-authenticates" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function gcloud {
+    case "$1" in
+      auth)
+        case "$2" in
+          list) echo "user@example.com" ;;
+          print-access-token) return 1 ;;
+          login)
+            echo "re-authed"
+            return 0
+            ;;
+        esac
+        ;;
+    esac
+  }
+
+  run terminator::gcloud::auth
+
+  assert_success
+  assert_output --partial "Gcloud tokens expired"
+}
+
+################################################################################
 # terminator::gcloud::__enable__
 ################################################################################
 

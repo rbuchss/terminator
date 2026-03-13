@@ -219,6 +219,14 @@ function terminator::workstation::register {
     return 0
   fi
 
+  # If no auth hook given, check if the provider defines a default
+  if [[ -z "${__reg_auth_hook__}" ]]; then
+    local __reg_default_auth__="terminator::workstation::provider::${__reg_provider__}::auth"
+    if terminator::command::exists "${__reg_default_auth__}"; then
+      __reg_auth_hook__="${__reg_default_auth__}"
+    fi
+  fi
+
   TERMINATOR_WORKSTATION_NAMES+=("${__reg_name__}")
   TERMINATOR_WORKSTATION_PROVIDERS+=("${__reg_provider__}")
   TERMINATOR_WORKSTATION_AUTH_HOOKS+=("${__reg_auth_hook__}")
@@ -495,6 +503,13 @@ TERMINATOR_WORKSTATION_GCP_PROJECTS=()
 
 # Configures GCP-specific settings for a workstation.
 # Called automatically by core register with passthrough args.
+# Default auth hook for the GCP provider. Delegates to terminator::gcloud::auth.
+function terminator::workstation::provider::gcp::auth {
+  terminator::gcloud::auth "$@"
+}
+
+# Configures GCP-specific settings for a workstation.
+# Called automatically by core register with passthrough args.
 function terminator::workstation::provider::gcp::configure {
   local __gcp_conf_name__="" __gcp_conf_zone__="" __gcp_conf_project__=""
 
@@ -700,6 +715,7 @@ function terminator::workstation::__export__ {
   export -f terminator::workstation::scp::usage
   export -f terminator::workstation::rsync
   export -f terminator::workstation::rsync::usage
+  export -f terminator::workstation::provider::gcp::auth
   export -f terminator::workstation::provider::gcp::configure
   export -f terminator::workstation::provider::gcp::ssh
   export -f terminator::workstation::provider::gcp::scp
@@ -737,6 +753,7 @@ function terminator::workstation::__recall__ {
   export -fn terminator::workstation::scp::usage
   export -fn terminator::workstation::rsync
   export -fn terminator::workstation::rsync::usage
+  export -fn terminator::workstation::provider::gcp::auth
   export -fn terminator::workstation::provider::gcp::configure
   export -fn terminator::workstation::provider::gcp::ssh
   export -fn terminator::workstation::provider::gcp::scp
