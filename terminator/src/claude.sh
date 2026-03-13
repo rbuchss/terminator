@@ -55,7 +55,7 @@ function terminator::claude::mcp::add::context7 {
     claude mcp remove --scope user context7 2>/dev/null || true
     claude mcp add \
       --scope user context7 \
-      -- npx -y @upstash/context7-mcp@${desired_version}
+      -- bunx -y @upstash/context7-mcp@${desired_version}
   fi
 }
 
