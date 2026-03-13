@@ -14,7 +14,6 @@ TERMINATOR_WORKSTATION_NAMES=()
 TERMINATOR_WORKSTATION_PROVIDERS=()
 TERMINATOR_WORKSTATION_AUTH_HOOKS=()
 TERMINATOR_WORKSTATION_CURRENT=""
-TERMINATOR_WORKSTATION_RSYNC_EXCLUDE_DIRS=()
 
 ################################################################################
 # Internal functions
@@ -420,7 +419,7 @@ Usage: ${FUNCNAME[1]} [OPTIONS] SRC DEST
 
   Rsync files to/from a workstation via the configured provider.
   Prefix remote paths with WORKSTATION_NAME:
-  Excludes: ${TERMINATOR_WORKSTATION_RSYNC_EXCLUDE_DIRS[*]:-none}
+  Excludes: ${TERMINATOR_RSYNC_EXCLUDE_DIRS[*]:-none}
 
   Options:
     -w, --workstation NAME    Override workstation (default: auto-detect from path)
@@ -482,7 +481,7 @@ function terminator::workstation::rsync {
     __rsync_excludes__=() \
     __rsync_exclude_dir__
 
-  for __rsync_exclude_dir__ in "${TERMINATOR_WORKSTATION_RSYNC_EXCLUDE_DIRS[@]}"; do
+  for __rsync_exclude_dir__ in "${TERMINATOR_RSYNC_EXCLUDE_DIRS[@]}"; do
     __rsync_excludes__+=("--exclude=${__rsync_exclude_dir__}")
   done
 
@@ -694,7 +693,6 @@ function terminator::workstation::__export__ {
   export TERMINATOR_WORKSTATION_PROVIDERS
   export TERMINATOR_WORKSTATION_AUTH_HOOKS
   export TERMINATOR_WORKSTATION_CURRENT
-  export TERMINATOR_WORKSTATION_RSYNC_EXCLUDE_DIRS
   export TERMINATOR_WORKSTATION_GCP_ZONES
   export TERMINATOR_WORKSTATION_GCP_PROJECTS
 
@@ -732,7 +730,6 @@ function terminator::workstation::__recall__ {
   unset TERMINATOR_WORKSTATION_PROVIDERS
   unset TERMINATOR_WORKSTATION_AUTH_HOOKS
   unset TERMINATOR_WORKSTATION_CURRENT
-  unset TERMINATOR_WORKSTATION_RSYNC_EXCLUDE_DIRS
   unset TERMINATOR_WORKSTATION_GCP_ZONES
   unset TERMINATOR_WORKSTATION_GCP_PROJECTS
 
