@@ -35,6 +35,7 @@ terminator::source \
   "${HOME}/.terminator/src/python.sh" \
   "${HOME}/.terminator/src/rbenv.sh" \
   "${HOME}/.terminator/src/rg.sh" \
+  "${HOME}/.terminator/src/rsync.sh" \
   "${HOME}/.terminator/src/ruby.sh" \
   "${HOME}/.terminator/src/rust.sh" \
   "${HOME}/.terminator/src/ssh.sh" \
@@ -79,6 +80,7 @@ __modules__=(
   terminator::python
   terminator::rbenv
   terminator::rg
+  terminator::rsync
   terminator::ruby
   terminator::rust
   terminator::source
