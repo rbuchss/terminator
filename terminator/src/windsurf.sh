@@ -32,19 +32,13 @@ function terminator::windsurf::__disable__::os::darwin {
 }
 
 function terminator::windsurf::__enable__::os::linux {
-  # TODO: enable this for linux if possible.
-  # For now setting this as unsupported until cli install path is confirmed.
-  # terminator::path::append \
-  #   "${HOME}/.local/share/windsurf/scripts"
-  terminator::windsurf::__enable__::os::unsupported
+  terminator::path::append \
+    "${HOME}/.local/share/windsurf/scripts"
 }
 
 function terminator::windsurf::__disable__::os::linux {
-  # TODO: enable this for linux if possible.
-  # For now setting this as unsupported until cli install path is confirmed.
-  # terminator::path::remove \
-  #   "${HOME}/.local/share/windsurf/scripts"
-  terminator::windsurf::__disable__::os::unsupported
+  terminator::path::remove \
+    "${HOME}/.local/share/windsurf/scripts"
 }
 
 function terminator::windsurf::__enable__::os::windows {
