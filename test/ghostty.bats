@@ -29,17 +29,17 @@ bats_require_minimum_version 1.5.0
 ################################################################################
 
 # bats test_tags=terminator::ghostty,terminator::ghostty::__enable__::os::linux
-@test "terminator::ghostty::__enable__::os::linux returns-error" {
+@test "terminator::ghostty::__enable__::os::linux is-noop" {
   run terminator::ghostty::__enable__::os::linux
 
-  assert_failure 1
+  assert_success
 }
 
 # bats test_tags=terminator::ghostty,terminator::ghostty::__disable__::os::linux
-@test "terminator::ghostty::__disable__::os::linux returns-error" {
+@test "terminator::ghostty::__disable__::os::linux is-noop" {
   run terminator::ghostty::__disable__::os::linux
 
-  assert_failure 1
+  assert_success
 }
 
 ################################################################################

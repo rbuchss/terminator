@@ -32,15 +32,12 @@ function terminator::ghostty::__disable__::os::darwin {
 }
 
 function terminator::ghostty::__enable__::os::linux {
-  # TODO: enable this for linux if possible.
-  # For now setting this as unsupported until cli install path is confirmed.
-  terminator::ghostty::__enable__::os::unsupported
+  # Ghostty on Linux is installed via package manager; binary is already on PATH.
+  :
 }
 
 function terminator::ghostty::__disable__::os::linux {
-  # TODO: enable this for linux if possible.
-  # For now setting this as unsupported until cli install path is confirmed.
-  terminator::ghostty::__disable__::os::unsupported
+  :
 }
 
 function terminator::ghostty::__enable__::os::windows {

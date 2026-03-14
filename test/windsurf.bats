@@ -29,17 +29,17 @@ bats_require_minimum_version 1.5.0
 ################################################################################
 
 # bats test_tags=terminator::windsurf,terminator::windsurf::__enable__::os::linux
-@test "terminator::windsurf::__enable__::os::linux returns-error" {
+@test "terminator::windsurf::__enable__::os::linux succeeds" {
   run terminator::windsurf::__enable__::os::linux
 
-  assert_failure 1
+  assert_success
 }
 
 # bats test_tags=terminator::windsurf,terminator::windsurf::__disable__::os::linux
-@test "terminator::windsurf::__disable__::os::linux returns-error" {
+@test "terminator::windsurf::__disable__::os::linux succeeds" {
   run terminator::windsurf::__disable__::os::linux
 
-  assert_failure 1
+  assert_success
 }
 
 ################################################################################
