@@ -298,30 +298,27 @@ _register_two_ws() {
 @test "terminator::workstation::__parse_instance__ parses -w flag" {
   _register_test_ws
 
-  local inst pass
-  terminator::workstation::__parse_instance__ inst pass -w test-ws ls -la
+  local inst
+  terminator::workstation::__parse_instance__ inst -w test-ws ls -la
 
   [[ "${inst}" == "test-ws" ]]
-  # passthrough should contain "ls -la"
-  local args=()
-  eval "args=(${pass})"
-  [[ "${args[0]}" == "ls" ]]
-  [[ "${args[1]}" == "-la" ]]
+  [[ "${__TERMINATOR_WS_PASSTHROUGH__[0]}" == "ls" ]]
+  [[ "${__TERMINATOR_WS_PASSTHROUGH__[1]}" == "-la" ]]
 }
 
 # bats test_tags=terminator::workstation,terminator::workstation::__parse_instance__
 @test "terminator::workstation::__parse_instance__ defaults to TERMINATOR_WORKSTATION_CURRENT" {
   _register_test_ws
 
-  local inst pass
-  terminator::workstation::__parse_instance__ inst pass ls -la
+  local inst
+  terminator::workstation::__parse_instance__ inst ls -la
 
   [[ "${inst}" == "test-ws" ]]
 }
 
 # bats test_tags=terminator::workstation,terminator::workstation::__parse_instance__
 @test "terminator::workstation::__parse_instance__ returns 2 for --help" {
-  run terminator::workstation::__parse_instance__ inst pass --help
+  run terminator::workstation::__parse_instance__ inst --help
 
   assert_failure 2
 }
@@ -330,9 +327,9 @@ _register_two_ws() {
 @test "terminator::workstation::__parse_instance__ returns 0 normally" {
   _register_test_ws
 
-  local inst pass
+  local inst
 
-  terminator::workstation::__parse_instance__ inst pass ls
+  terminator::workstation::__parse_instance__ inst ls
   local rc=$?
 
   ((rc == 0))

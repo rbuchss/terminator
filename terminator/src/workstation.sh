@@ -106,14 +106,15 @@ function terminator::workstation::__extract_instance__ {
 }
 
 # Parses -w/--workstation and -h/--help from args.
-# Sets instance and serialized passthrough args via printf -v.
+# Sets instance via printf -v and passthrough args via __TERMINATOR_WS_PASSTHROUGH__.
 # Returns 2 if help was requested.
-# Usage: __parse_instance__ instance_var passthrough_var "$@"
+# Usage: __parse_instance__ instance_var "$@"
 function terminator::workstation::__parse_instance__ {
-  local __pi_inst_out__="$1" __pi_pass_out__="$2"
-  shift 2
+  local __pi_inst_out__="$1"
+  shift
 
-  local __pi_inst__="" __pi_pass__=() __pi_help__=0
+  local __pi_inst__="" __pi_help__=0
+  __TERMINATOR_WS_PASSTHROUGH__=()
 
   while (($# != 0)); do
     case "$1" in
@@ -125,19 +126,13 @@ function terminator::workstation::__parse_instance__ {
         __pi_help__=1
         ;;
       *)
-        __pi_pass__+=("$1")
+        __TERMINATOR_WS_PASSTHROUGH__+=("$1")
         ;;
     esac
     shift
   done
 
   printf -v "${__pi_inst_out__}" '%s' "${__pi_inst__:-${TERMINATOR_WORKSTATION_CURRENT}}"
-
-  local __pi_i__ __pi_serialized__=""
-  for __pi_i__ in "${__pi_pass__[@]}"; do
-    __pi_serialized__+="$(printf '%q ' "${__pi_i__}")"
-  done
-  printf -v "${__pi_pass_out__}" '%s' "${__pi_serialized__}"
 
   ((__pi_help__ == 1)) && return 2
   return 0
@@ -308,9 +303,9 @@ USAGE_TEXT
 }
 
 function terminator::workstation::ssh {
-  local __ssh_instance__ __ssh_passthrough_str__
+  local __ssh_instance__
 
-  terminator::workstation::__parse_instance__ __ssh_instance__ __ssh_passthrough_str__ "$@"
+  terminator::workstation::__parse_instance__ __ssh_instance__ "$@"
   local __ssh_parse_rc__=$?
 
   if ((__ssh_parse_rc__ == 2)); then
@@ -335,11 +330,8 @@ function terminator::workstation::ssh {
   local __ssh_provider__
   terminator::workstation::__get_provider__ "${__ssh_instance__}" __ssh_provider__
 
-  local __ssh_args__=()
-  eval "__ssh_args__=(${__ssh_passthrough_str__})"
-
   "terminator::workstation::provider::${__ssh_provider__}::ssh" \
-    "${__ssh_instance__}" "${__ssh_args__[@]}"
+    "${__ssh_instance__}" "${__TERMINATOR_WS_PASSTHROUGH__[@]}"
 }
 
 ################################################################################
@@ -368,9 +360,9 @@ USAGE_TEXT
 }
 
 function terminator::workstation::scp {
-  local __scp_instance__ __scp_passthrough_str__
+  local __scp_instance__
 
-  terminator::workstation::__parse_instance__ __scp_instance__ __scp_passthrough_str__ "$@"
+  terminator::workstation::__parse_instance__ __scp_instance__ "$@"
   local __scp_parse_rc__=$?
 
   if ((__scp_parse_rc__ == 2)) || (($# == 0)); then
@@ -379,12 +371,9 @@ function terminator::workstation::scp {
     return 1
   fi
 
-  local __scp_args__=()
-  eval "__scp_args__=(${__scp_passthrough_str__})"
-
   # If -w wasn't given, try to extract from the paths
   if [[ "${__scp_instance__}" == "${TERMINATOR_WORKSTATION_CURRENT}" ]]; then
-    terminator::workstation::__extract_instance__ __scp_instance__ "${__scp_args__[@]}" \
+    terminator::workstation::__extract_instance__ __scp_instance__ "${__TERMINATOR_WS_PASSTHROUGH__[@]}" \
       || __scp_instance__="${TERMINATOR_WORKSTATION_CURRENT}"
   fi
 
@@ -406,7 +395,7 @@ function terminator::workstation::scp {
   terminator::workstation::__get_provider__ "${__scp_instance__}" __scp_provider__
 
   "terminator::workstation::provider::${__scp_provider__}::scp" \
-    "${__scp_instance__}" "${__scp_args__[@]}"
+    "${__scp_instance__}" "${__TERMINATOR_WS_PASSTHROUGH__[@]}"
 }
 
 ################################################################################
@@ -435,9 +424,9 @@ USAGE_TEXT
 }
 
 function terminator::workstation::rsync {
-  local __rsync_instance__ __rsync_passthrough_str__
+  local __rsync_instance__
 
-  terminator::workstation::__parse_instance__ __rsync_instance__ __rsync_passthrough_str__ "$@"
+  terminator::workstation::__parse_instance__ __rsync_instance__ "$@"
   local __rsync_parse_rc__=$?
 
   if ((__rsync_parse_rc__ == 2)) || (($# == 0)); then
@@ -446,12 +435,9 @@ function terminator::workstation::rsync {
     return 1
   fi
 
-  local __rsync_args__=()
-  eval "__rsync_args__=(${__rsync_passthrough_str__})"
-
   # If -w wasn't given, try to extract from the paths
   if [[ "${__rsync_instance__}" == "${TERMINATOR_WORKSTATION_CURRENT}" ]]; then
-    terminator::workstation::__extract_instance__ __rsync_instance__ "${__rsync_args__[@]}" \
+    terminator::workstation::__extract_instance__ __rsync_instance__ "${__TERMINATOR_WS_PASSTHROUGH__[@]}" \
       || __rsync_instance__="${TERMINATOR_WORKSTATION_CURRENT}"
   fi
 
@@ -485,12 +471,12 @@ function terminator::workstation::rsync {
     __rsync_excludes__+=("--exclude=${__rsync_exclude_dir__}")
   done
 
-  echo "running: rsync -avz --progress ${__rsync_excludes__[*]} -e '...' ${__rsync_args__[*]}"
+  echo "running: rsync -avz --progress ${__rsync_excludes__[*]} -e '...' ${__TERMINATOR_WS_PASSTHROUGH__[*]}"
 
   rsync -avz --progress \
     "${__rsync_excludes__[@]}" \
     -e 'bash -c '\''terminator::workstation::__rsync_rsh__ "$@"'\'' _' \
-    "${__rsync_args__[@]}"
+    "${__TERMINATOR_WS_PASSTHROUGH__[@]}"
 }
 
 ################################################################################
