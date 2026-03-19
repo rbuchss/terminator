@@ -174,13 +174,13 @@ bats_require_minimum_version 1.5.0
 }
 
 # bats test_tags=terminator::myjournal,terminator::myjournal::template
-@test "terminator::myjournal::template with-extra-tags" {
-  local original="${OBSIDIAN_DAILY_NOTE_EXTRA_TAGS}"
-  OBSIDIAN_DAILY_NOTE_EXTRA_TAGS='work,personal'
+@test "terminator::myjournal::template with-registered-tags" {
+  local -a original=("${TERMINATOR_MYJOURNAL_TAGS[@]}")
+  TERMINATOR_MYJOURNAL_TAGS=('daily-notes' 'work' 'personal')
 
   run terminator::myjournal::template '2025/12/11'
 
-  OBSIDIAN_DAILY_NOTE_EXTRA_TAGS="${original}"
+  TERMINATOR_MYJOURNAL_TAGS=("${original[@]}")
 
   assert_success
   assert_output --partial '  - daily-notes'
@@ -189,48 +189,68 @@ bats_require_minimum_version 1.5.0
 }
 
 # bats test_tags=terminator::myjournal,terminator::myjournal::template
-@test "terminator::myjournal::template with-duplicate-tag" {
-  local original="${OBSIDIAN_DAILY_NOTE_EXTRA_TAGS}"
-  OBSIDIAN_DAILY_NOTE_EXTRA_TAGS='daily-notes,extra'
+@test "terminator::myjournal::template with-default-tags-only" {
+  local -a original=("${TERMINATOR_MYJOURNAL_TAGS[@]}")
+  TERMINATOR_MYJOURNAL_TAGS=('daily-notes')
 
   run terminator::myjournal::template '2025/12/11'
 
-  OBSIDIAN_DAILY_NOTE_EXTRA_TAGS="${original}"
-
-  assert_success
-  assert_output --partial '  - daily-notes'
-  assert_output --partial '  - extra'
-  # daily-notes should appear only once
-  local count
-  count="$(echo "${output}" | grep -c '  - daily-notes')"
-  assert_equal "${count}" '1'
-}
-
-# bats test_tags=terminator::myjournal,terminator::myjournal::template
-@test "terminator::myjournal::template with-empty-extra-tags" {
-  local original="${OBSIDIAN_DAILY_NOTE_EXTRA_TAGS}"
-  OBSIDIAN_DAILY_NOTE_EXTRA_TAGS=''
-
-  run terminator::myjournal::template '2025/12/11'
-
-  OBSIDIAN_DAILY_NOTE_EXTRA_TAGS="${original}"
+  TERMINATOR_MYJOURNAL_TAGS=("${original[@]}")
 
   assert_success
   assert_output --partial '  - daily-notes'
 }
 
-# bats test_tags=terminator::myjournal,terminator::myjournal::template
-@test "terminator::myjournal::template with-whitespace-extra-tags" {
-  local original="${OBSIDIAN_DAILY_NOTE_EXTRA_TAGS}"
-  OBSIDIAN_DAILY_NOTE_EXTRA_TAGS='  work  ,  personal  '
+################################################################################
+# terminator::myjournal::tag
+################################################################################
 
-  run terminator::myjournal::template '2025/12/11'
+# bats test_tags=terminator::myjournal,terminator::myjournal::tag
+@test "terminator::myjournal::tag when-missing-name-flag" {
+  run terminator::myjournal::tag
 
-  OBSIDIAN_DAILY_NOTE_EXTRA_TAGS="${original}"
+  assert_failure 1
+}
 
-  assert_success
-  assert_output --partial '  - work'
-  assert_output --partial '  - personal'
+# bats test_tags=terminator::myjournal,terminator::myjournal::tag
+@test "terminator::myjournal::tag adds-single-tag" {
+  local -a original=("${TERMINATOR_MYJOURNAL_TAGS[@]}")
+  TERMINATOR_MYJOURNAL_TAGS=('daily-notes')
+
+  terminator::myjournal::tag --name work
+
+  ((${#TERMINATOR_MYJOURNAL_TAGS[@]} == 2))
+  [[ "${TERMINATOR_MYJOURNAL_TAGS[1]}" == "work" ]]
+
+  TERMINATOR_MYJOURNAL_TAGS=("${original[@]}")
+}
+
+# bats test_tags=terminator::myjournal,terminator::myjournal::tag
+@test "terminator::myjournal::tag adds-multiple-tags" {
+  local -a original=("${TERMINATOR_MYJOURNAL_TAGS[@]}")
+  TERMINATOR_MYJOURNAL_TAGS=('daily-notes')
+
+  terminator::myjournal::tag --name work --name personal
+
+  ((${#TERMINATOR_MYJOURNAL_TAGS[@]} == 3))
+  [[ "${TERMINATOR_MYJOURNAL_TAGS[1]}" == "work" ]]
+  [[ "${TERMINATOR_MYJOURNAL_TAGS[2]}" == "personal" ]]
+
+  TERMINATOR_MYJOURNAL_TAGS=("${original[@]}")
+}
+
+# bats test_tags=terminator::myjournal,terminator::myjournal::tag
+@test "terminator::myjournal::tag skips-duplicates" {
+  local -a original=("${TERMINATOR_MYJOURNAL_TAGS[@]}")
+  TERMINATOR_MYJOURNAL_TAGS=('daily-notes')
+
+  terminator::myjournal::tag --name daily-notes --name extra
+
+  ((${#TERMINATOR_MYJOURNAL_TAGS[@]} == 2))
+  [[ "${TERMINATOR_MYJOURNAL_TAGS[0]}" == "daily-notes" ]]
+  [[ "${TERMINATOR_MYJOURNAL_TAGS[1]}" == "extra" ]]
+
+  TERMINATOR_MYJOURNAL_TAGS=("${original[@]}")
 }
 
 ################################################################################

@@ -8,6 +8,8 @@ source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/vim.sh"
 
 terminator::__module__::load || return 0
 
+TERMINATOR_MYJOURNAL_TAGS=('daily-notes')
+
 function terminator::myjournal::__enable__ {
   alias myjournal='terminator::myjournal::invoke'
   alias mj='terminator::myjournal::invoke'
@@ -141,34 +143,12 @@ function terminator::myjournal::template {
   # Convert YYYY/MM/DD to YYYY-MM-DD for date parsing
   local date_str="${journal_name//\//-}"
 
-  # Start building the tags array
-  local tags=('daily-notes')
-
-  # Add extra tags from environment variable if set
-  if [[ -n "${OBSIDIAN_DAILY_NOTE_EXTRA_TAGS}" ]]; then
-    local \
-      tag \
-      extra_tags
-
-    IFS=',' read -ra extra_tags <<<"${OBSIDIAN_DAILY_NOTE_EXTRA_TAGS}"
-
-    for tag in "${extra_tags[@]}"; do
-      # Trim whitespace
-      tag="$(echo "${tag}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
-
-      if [[ -n "${tag}" ]] \
-        && ! terminator::array::contains "${tag}" "${tags[@]}"; then
-        tags+=("${tag}")
-      fi
-    done
-  fi
-
   cat <<EOF
 ---
 id: ${date_str}
 aliases: []
 tags:
-$(printf '  - %s\n' "${tags[@]}")
+$(printf '  - %s\n' "${TERMINATOR_MYJOURNAL_TAGS[@]}")
 ---
 EOF
 }
@@ -258,13 +238,48 @@ function terminator::myjournal::completion::remove_alias {
   done
 }
 
+# Registers tags for journal entries.
+# Usage: tag --name TAG [--name TAG ...]
+function terminator::myjournal::tag {
+  local -a tags=()
+
+  while (($# != 0)); do
+    case "$1" in
+      --name)
+        shift
+        tags+=("$1")
+        ;;
+      *)
+        terminator::logger::warning "unknown option: $1"
+        return 1
+        ;;
+    esac
+    shift
+  done
+
+  if ((${#tags[@]} == 0)); then
+    terminator::logger::warning '--name is required'
+    return 1
+  fi
+
+  local tag
+  for tag in "${tags[@]}"; do
+    if ! terminator::array::contains "${tag}" "${TERMINATOR_MYJOURNAL_TAGS[@]}"; then
+      TERMINATOR_MYJOURNAL_TAGS+=("${tag}")
+    fi
+  done
+}
+
 function terminator::myjournal::__export__ {
+  export TERMINATOR_MYJOURNAL_TAGS
+
   export -f terminator::myjournal::invoke
   export -f terminator::myjournal::root_dir
   export -f terminator::myjournal::valid_name
   export -f terminator::myjournal::convert_keyword_to_date
   export -f terminator::myjournal::template
   export -f terminator::myjournal::new_entry
+  export -f terminator::myjournal::tag
   export -f terminator::myjournal::completion
   export -f terminator::myjournal::completion::add_alias
   export -f terminator::myjournal::completion::remove_alias
@@ -272,12 +287,15 @@ function terminator::myjournal::__export__ {
 
 # KCOV_EXCL_START
 function terminator::myjournal::__recall__ {
+  TERMINATOR_MYJOURNAL_TAGS=('daily-notes')
+
   export -fn terminator::myjournal::invoke
   export -fn terminator::myjournal::root_dir
   export -fn terminator::myjournal::valid_name
   export -fn terminator::myjournal::convert_keyword_to_date
   export -fn terminator::myjournal::template
   export -fn terminator::myjournal::new_entry
+  export -fn terminator::myjournal::tag
   export -fn terminator::myjournal::completion
   export -fn terminator::myjournal::completion::add_alias
   export -fn terminator::myjournal::completion::remove_alias
