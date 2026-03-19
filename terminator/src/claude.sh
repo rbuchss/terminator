@@ -30,6 +30,8 @@ function terminator::claude::__enable__ {
   #
   terminator::claude::mcp::add::context7
   terminator::claude::mcp::add::serena
+
+  terminator::claude::settings::merge_baseline
 }
 
 function terminator::claude::__disable__ {
@@ -98,15 +100,170 @@ function terminator::claude::mcp::add::serena {
   fi
 }
 
+# Merges open-source baseline settings into ~/.claude/settings.json.
+# Existing user settings take precedence (baseline provides defaults only).
+# Handles transition from homesick-managed symlink to generated regular file.
+function terminator::claude::settings::merge_baseline {
+  local \
+    baseline_path="${TERMINATOR_MODULE_ROOT_DIR}/config/claude/settings.base.json" \
+    settings_path="${HOME}/.claude/settings.json" \
+    merged \
+    current
+
+  if ! terminator::command::exists jq; then
+    terminator::logger::warning 'jq is required for claude settings merge'
+    return 1
+  fi
+
+  if [[ ! -f "${baseline_path}" ]]; then
+    terminator::logger::warning "claude baseline settings not found: ${baseline_path}"
+    return 1
+  fi
+
+  # Remove symlinks (broken or live) to decouple from homesick tracking.
+  # Reads existing content through the symlink before removing it.
+  if [[ -L "${settings_path}" ]]; then
+    if [[ -f "${settings_path}" ]]; then
+      current="$(cat "${settings_path}")"
+    fi
+    rm "${settings_path}"
+    if [[ -n "${current}" ]]; then
+      printf '%s\n' "${current}" >"${settings_path}"
+    fi
+  fi
+
+  if [[ ! -f "${settings_path}" ]]; then
+    mkdir -p "${HOME}/.claude"
+    jq . "${baseline_path}" >"${settings_path}"
+    return 0
+  fi
+
+  merged="$(jq -s '.[0] * .[1]' "${baseline_path}" "${settings_path}")"
+  current="$(cat "${settings_path}")"
+
+  if [[ "${merged}" == "${current}" ]]; then
+    return 0
+  fi
+
+  printf '%s\n' "${merged}" >"${settings_path}.tmp"
+  mv "${settings_path}.tmp" "${settings_path}"
+}
+
+# Checks if a marketplace repo is already registered.
+# Matches the parenthesized repo format from `claude plugin marketplace list`.
+function terminator::claude::plugin::marketplace::exists {
+  local marketplace_repo="$1"
+
+  claude plugin marketplace list 2>/dev/null \
+    | grep -qF "(${marketplace_repo})"
+}
+
+# Registers a Claude Code plugin marketplace if not already present.
+function terminator::claude::plugin::marketplace::add {
+  local marketplace_repo="$1"
+
+  if terminator::claude::plugin::marketplace::exists "${marketplace_repo}"; then
+    return 0
+  fi
+
+  claude plugin marketplace add "${marketplace_repo}"
+}
+
+# Checks if a plugin is already installed.
+# Matches the plugin ID format from `claude plugin list`.
+function terminator::claude::plugin::exists {
+  local plugin_id="$1"
+
+  claude plugin list 2>/dev/null \
+    | grep -qF "${plugin_id}"
+}
+
+# Checks if a plugin is enabled by looking for the enabled status marker
+# in the output block following the plugin ID line.
+function terminator::claude::plugin::is_enabled {
+  local plugin_id="$1"
+
+  claude plugin list 2>/dev/null \
+    | grep -A3 -F "${plugin_id}" \
+    | grep -qF 'enabled'
+}
+
+# Installs and enables a Claude Code plugin.
+# Handles three states: not installed, installed but disabled, installed and enabled.
+function terminator::claude::plugin::install {
+  local plugin_id="$1"
+
+  if terminator::claude::plugin::is_enabled "${plugin_id}"; then
+    return 0
+  fi
+
+  if ! terminator::claude::plugin::exists "${plugin_id}"; then
+    claude plugin install "${plugin_id}"
+  fi
+
+  claude plugin enable "${plugin_id}"
+}
+
+# Registers a Claude Code plugin marketplace and installs/enables the plugin.
+# Usage: register --plugin PLUGIN_ID --marketplace GITHUB_REPO
+function terminator::claude::plugin::register {
+  local plugin_id marketplace_repo
+
+  while (($# != 0)); do
+    case "$1" in
+      --plugin)
+        shift
+        plugin_id="$1"
+        ;;
+      --marketplace)
+        shift
+        marketplace_repo="$1"
+        ;;
+      *)
+        terminator::logger::warning "unknown option: $1"
+        return 1
+        ;;
+    esac
+    shift
+  done
+
+  if [[ -z "${plugin_id}" ]]; then
+    terminator::logger::warning '--plugin is required'
+    return 1
+  fi
+
+  if [[ -z "${marketplace_repo}" ]]; then
+    terminator::logger::warning '--marketplace is required'
+    return 1
+  fi
+
+  terminator::claude::plugin::marketplace::add "${marketplace_repo}"
+  terminator::claude::plugin::install "${plugin_id}"
+}
+
 function terminator::claude::__export__ {
   export -f terminator::claude::mcp::add::context7
   export -f terminator::claude::mcp::add::serena
+  export -f terminator::claude::settings::merge_baseline
+  export -f terminator::claude::plugin::marketplace::exists
+  export -f terminator::claude::plugin::marketplace::add
+  export -f terminator::claude::plugin::exists
+  export -f terminator::claude::plugin::is_enabled
+  export -f terminator::claude::plugin::install
+  export -f terminator::claude::plugin::register
 }
 
 # KCOV_EXCL_START
 function terminator::claude::__recall__ {
   export -fn terminator::claude::mcp::add::context7
   export -fn terminator::claude::mcp::add::serena
+  export -fn terminator::claude::settings::merge_baseline
+  export -fn terminator::claude::plugin::marketplace::exists
+  export -fn terminator::claude::plugin::marketplace::add
+  export -fn terminator::claude::plugin::exists
+  export -fn terminator::claude::plugin::is_enabled
+  export -fn terminator::claude::plugin::install
+  export -fn terminator::claude::plugin::register
 }
 # KCOV_EXCL_STOP
 

@@ -3,5 +3,6 @@
     "type": "command",
     "command": "bunx -y ccstatusline@2.0.28",
     "padding": 0
-  }
+  },
+  "effortLevel": "high"
 }
