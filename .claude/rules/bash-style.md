@@ -13,6 +13,20 @@ Examples:
 - Good: `"${PROJECT_NAME}"`, `"${HOME}"`, `"$1"`, `"$2"`, `"$?"`
 - Bad: `"$PROJECT_NAME"`, `$HOME`, `"${1}"`
 
+## Arithmetic comparisons
+
+Prefer `(( ))` for arithmetic over `[[ ]]` with `-eq`, `-ne`, `-gt`, etc.:
+
+```bash
+# Good
+(( ${#array[@]} == 0 ))
+(( count > 5 ))
+
+# Bad
+[[ ${#array[@]} -eq 0 ]]
+[[ "${count}" -gt 5 ]]
+```
+
 ## `printf -v` and local variable scoping
 
 When a function uses `printf -v "$1"` to write to a caller-provided variable name,
