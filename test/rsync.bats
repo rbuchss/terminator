@@ -87,6 +87,49 @@ _teardown_rsync_stub() {
 }
 
 ################################################################################
+# terminator::rsync::exclude
+################################################################################
+
+# bats test_tags=terminator::rsync,terminator::rsync::exclude
+@test "terminator::rsync::exclude when-missing-dir-flag" {
+  run terminator::rsync::exclude
+
+  assert_failure 1
+}
+
+# bats test_tags=terminator::rsync,terminator::rsync::exclude
+@test "terminator::rsync::exclude adds-single-dir" {
+  TERMINATOR_RSYNC_EXCLUDE_DIRS=()
+
+  terminator::rsync::exclude --dir .cache
+
+  ((${#TERMINATOR_RSYNC_EXCLUDE_DIRS[@]} == 1))
+  [[ "${TERMINATOR_RSYNC_EXCLUDE_DIRS[0]}" == ".cache" ]]
+}
+
+# bats test_tags=terminator::rsync,terminator::rsync::exclude
+@test "terminator::rsync::exclude adds-multiple-dirs" {
+  TERMINATOR_RSYNC_EXCLUDE_DIRS=()
+
+  terminator::rsync::exclude --dir .cache --dir .venv
+
+  ((${#TERMINATOR_RSYNC_EXCLUDE_DIRS[@]} == 2))
+  [[ "${TERMINATOR_RSYNC_EXCLUDE_DIRS[0]}" == ".cache" ]]
+  [[ "${TERMINATOR_RSYNC_EXCLUDE_DIRS[1]}" == ".venv" ]]
+}
+
+# bats test_tags=terminator::rsync,terminator::rsync::exclude
+@test "terminator::rsync::exclude appends-to-existing" {
+  TERMINATOR_RSYNC_EXCLUDE_DIRS=(.git)
+
+  terminator::rsync::exclude --dir .cache
+
+  ((${#TERMINATOR_RSYNC_EXCLUDE_DIRS[@]} == 2))
+  [[ "${TERMINATOR_RSYNC_EXCLUDE_DIRS[0]}" == ".git" ]]
+  [[ "${TERMINATOR_RSYNC_EXCLUDE_DIRS[1]}" == ".cache" ]]
+}
+
+################################################################################
 # terminator::rsync::__enable__
 ################################################################################
 
