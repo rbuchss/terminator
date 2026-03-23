@@ -18,6 +18,13 @@ auto-update = check
 
 link-url = true
 
+# Ghostty 1.3.0 switched Bash shell integration to native PS0/PROMPT_COMMAND,
+# which generates OSC sequences (including title updates) on every prompt.
+# tmux monitor-activity detects these as activity in non-current windows,
+# causing constant false highlighting. Disabling the title feature reduces
+# the PROMPT_COMMAND output enough to restore normal activity behavior.
+shell-integration-features = no-title
+
 ################################################################################
 # Font
 ################################################################################
