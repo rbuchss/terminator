@@ -205,9 +205,9 @@ function terminator::myjournal::completion {
 
   local suggestions=(
     "$(find "${journal_dir}" \
+      -mindepth 2 \
       -type f \
       -name '*.md' \
-      -mindepth 2 \
       | sed -E "s%${journal_dir}/(.+).md%\1%")"
   )
 
