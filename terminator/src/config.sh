@@ -61,8 +61,8 @@ function terminator::config::cd::completion {
 
   local suggestions=(
     "$(find "${config_dir}" \
-      -type d \
       -mindepth 1 \
+      -type d \
       | sed -E "s%${config_dir}/(.+)%\1%")"
   )
 
