@@ -550,7 +550,7 @@ function terminator::workstation::provider::gcp::ssh {
     --zone "${__gcp_ssh_zone__}" \
     "${__gcp_ssh_instance__}" \
     --project "${__gcp_ssh_project__}" \
-    -- -A "$@"
+    -- "$@"
 }
 
 # SCP files to/from a GCP instance via gcloud compute scp.
