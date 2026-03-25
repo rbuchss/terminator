@@ -471,12 +471,24 @@ function terminator::workstation::rsync {
     __rsync_excludes__+=("--exclude=${__rsync_exclude_dir__}")
   done
 
+  if ! terminator::command::exists rsync; then
+    terminator::logger::error "rsync is not installed locally"
+    return 1
+  fi
+
   echo "running: rsync -avz --progress ${__rsync_excludes__[*]} -e '...' ${__TERMINATOR_WS_PASSTHROUGH__[*]}"
 
   rsync -avz --progress \
     "${__rsync_excludes__[@]}" \
     -e 'bash -c '\''terminator::workstation::__rsync_rsh__ "$@"'\'' _' \
     "${__TERMINATOR_WS_PASSTHROUGH__[@]}"
+
+  local __rsync_rc__=$?
+  if ((__rsync_rc__ == 12)); then
+    terminator::logger::warning "rsync may not be installed on the remote workstation"
+    terminator::logger::warning "  install it with: workstation-ssh -w ${__rsync_instance__} 'sudo apt install rsync'"
+  fi
+  return "${__rsync_rc__}"
 }
 
 ################################################################################
