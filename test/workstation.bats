@@ -506,7 +506,7 @@ _register_two_ws() {
   run terminator::workstation::provider::gcp::ssh "test-ws" -A
 
   assert_success
-  assert_output "gcloud compute ssh --zone us-east1-c test-ws --project test-project -- -A -A"
+  assert_output "gcloud compute ssh --zone us-east1-c test-ws --project test-project -- -A"
 }
 
 ################################################################################
@@ -557,7 +557,7 @@ _register_two_ws() {
   run terminator::workstation::ssh ls -la
 
   assert_success
-  assert_output --partial "gcloud compute ssh --zone us-east1-c test-ws --project test-project -- -A ls -la"
+  assert_output --partial "gcloud compute ssh --zone us-east1-c test-ws --project test-project -- ls -la"
 }
 
 # bats test_tags=terminator::workstation,terminator::workstation::ssh
@@ -572,7 +572,7 @@ _register_two_ws() {
   run terminator::workstation::ssh -w dev-ws ls
 
   assert_success
-  assert_output --partial "gcloud compute ssh --zone us-central1-a dev-ws --project dev-project -- -A ls"
+  assert_output --partial "gcloud compute ssh --zone us-central1-a dev-ws --project dev-project -- ls"
 }
 
 # bats test_tags=terminator::workstation,terminator::workstation::ssh
