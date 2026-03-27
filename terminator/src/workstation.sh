@@ -408,7 +408,7 @@ Usage: ${FUNCNAME[1]} [OPTIONS] SRC DEST
 
   Rsync files to/from a workstation via the configured provider.
   Prefix remote paths with WORKSTATION_NAME:
-  Excludes: ${TERMINATOR_RSYNC_EXCLUDE_DIRS[*]:-none}
+  Excludes: ${TERMINATOR_RSYNC_EXCLUDES[*]:-none}
 
   Options:
     -w, --workstation NAME    Override workstation (default: auto-detect from path)
@@ -465,10 +465,10 @@ function terminator::workstation::rsync {
 
   local \
     __rsync_excludes__=() \
-    __rsync_exclude_dir__
+    __rsync_exclude_entry__
 
-  for __rsync_exclude_dir__ in "${TERMINATOR_RSYNC_EXCLUDE_DIRS[@]}"; do
-    __rsync_excludes__+=("--exclude=${__rsync_exclude_dir__}")
+  for __rsync_exclude_entry__ in "${TERMINATOR_RSYNC_EXCLUDES[@]}"; do
+    __rsync_excludes__+=("--exclude=${__rsync_exclude_entry__}")
   done
 
   if ! terminator::command::exists rsync; then
