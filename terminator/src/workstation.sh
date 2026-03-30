@@ -150,7 +150,7 @@ function terminator::workstation::__run_auth_hook__ {
   fi
 
   if ! terminator::command::exists "${__auth_hook__}"; then
-    echo "ERROR: auth hook '${__auth_hook__}' not found" >&2
+    terminator::logger::error "auth hook '${__auth_hook__}' not found"
     return 1
   fi
 
@@ -199,12 +199,12 @@ function terminator::workstation::register {
   done
 
   if [[ -z "${__reg_name__}" ]]; then
-    echo "ERROR: --name is required" >&2
+    terminator::logger::error '--name is required'
     return 1
   fi
 
   if [[ -z "${__reg_provider__}" ]]; then
-    echo "ERROR: --provider is required" >&2
+    terminator::logger::error '--provider is required'
     return 1
   fi
 
@@ -245,7 +245,7 @@ function terminator::workstation::use {
   fi
 
   if ! terminator::workstation::__is_registered__ "$1"; then
-    echo "ERROR: '$1' is not a registered workstation" >&2
+    terminator::logger::error "'$1' is not a registered workstation"
     terminator::workstation::list >&2
     return 1
   fi
@@ -314,13 +314,13 @@ function terminator::workstation::ssh {
   fi
 
   if [[ -z "${__ssh_instance__}" ]]; then
-    echo "ERROR: no workstation specified and no default set" >&2
+    terminator::logger::error 'no workstation specified and no default set'
     terminator::workstation::ssh::usage >&2
     return 1
   fi
 
   if ! terminator::workstation::__is_registered__ "${__ssh_instance__}"; then
-    echo "ERROR: '${__ssh_instance__}' is not a registered workstation" >&2
+    terminator::logger::error "'${__ssh_instance__}' is not a registered workstation"
     terminator::workstation::list >&2
     return 1
   fi
@@ -378,13 +378,13 @@ function terminator::workstation::scp {
   fi
 
   if [[ -z "${__scp_instance__}" ]]; then
-    echo "ERROR: no workstation found in args and no default set" >&2
+    terminator::logger::error 'no workstation found in args and no default set'
     terminator::workstation::scp::usage >&2
     return 1
   fi
 
   if ! terminator::workstation::__is_registered__ "${__scp_instance__}"; then
-    echo "ERROR: '${__scp_instance__}' is not a registered workstation" >&2
+    terminator::logger::error "'${__scp_instance__}' is not a registered workstation"
     terminator::workstation::list >&2
     return 1
   fi
@@ -442,13 +442,13 @@ function terminator::workstation::rsync {
   fi
 
   if [[ -z "${__rsync_instance__}" ]]; then
-    echo "ERROR: no workstation found in args and no default set" >&2
+    terminator::logger::error 'no workstation found in args and no default set'
     terminator::workstation::rsync::usage >&2
     return 1
   fi
 
   if ! terminator::workstation::__is_registered__ "${__rsync_instance__}"; then
-    echo "ERROR: '${__rsync_instance__}' is not a registered workstation" >&2
+    terminator::logger::error "'${__rsync_instance__}' is not a registered workstation"
     terminator::workstation::list >&2
     return 1
   fi
@@ -498,6 +498,11 @@ function terminator::workstation::rsync {
 TERMINATOR_WORKSTATION_GCP_ZONES=()
 TERMINATOR_WORKSTATION_GCP_PROJECTS=()
 
+TERMINATOR_WORKSTATION_SSH_HOSTS=()
+TERMINATOR_WORKSTATION_SSH_USERS=()
+TERMINATOR_WORKSTATION_SSH_KEYS=()
+TERMINATOR_WORKSTATION_SSH_PORTS=()
+
 # Configures GCP-specific settings for a workstation.
 # Called automatically by core register with passthrough args.
 # Default auth hook for the GCP provider. Delegates to terminator::gcloud::auth.
@@ -525,7 +530,7 @@ function terminator::workstation::provider::gcp::configure {
         __gcp_conf_project__="$1"
         ;;
       *)
-        echo "ERROR: provider::gcp::configure unknown option: '$1'" >&2
+        terminator::logger::error "provider::gcp::configure unknown option: '$1'"
         return 1
         ;;
     esac
@@ -533,13 +538,13 @@ function terminator::workstation::provider::gcp::configure {
   done
 
   if [[ -z "${__gcp_conf_name__}" ]]; then
-    echo "ERROR: provider::gcp::configure --name is required" >&2
+    terminator::logger::error 'provider::gcp::configure --name is required'
     return 1
   fi
 
   local __gcp_conf_idx__
   if ! terminator::workstation::__index_of__ "${__gcp_conf_name__}" __gcp_conf_idx__; then
-    echo "ERROR: '${__gcp_conf_name__}' is not registered" >&2
+    terminator::logger::error "'${__gcp_conf_name__}' is not registered"
     return 1
   fi
 
@@ -611,6 +616,216 @@ function terminator::workstation::provider::gcp::format_info {
   terminator::workstation::__index_of__ "${__gcp_info_instance__}" __gcp_info_idx__
 
   echo "zone: ${TERMINATOR_WORKSTATION_GCP_ZONES[${__gcp_info_idx__}]}, project: ${TERMINATOR_WORKSTATION_GCP_PROJECTS[${__gcp_info_idx__}]}"
+}
+
+################################################################################
+# SSH provider
+################################################################################
+
+# Configures SSH-specific settings for a workstation.
+# Called automatically by core register with passthrough args.
+function terminator::workstation::provider::ssh::configure {
+  local \
+    name \
+    host \
+    user \
+    key \
+    port='22'
+
+  while (($# != 0)); do
+    case "$1" in
+      --name)
+        shift
+        name="$1"
+        ;;
+      --host)
+        shift
+        host="$1"
+        ;;
+      --user)
+        shift
+        user="$1"
+        ;;
+      --key)
+        shift
+        key="$1"
+        ;;
+      --port)
+        shift
+        port="$1"
+        ;;
+      *)
+        terminator::logger::error "provider::ssh::configure unknown option: '$1'"
+        return 1
+        ;;
+    esac
+    shift
+  done
+
+  if [[ -z "${name}" ]]; then
+    terminator::logger::error 'provider::ssh::configure --name is required'
+    return 1
+  fi
+
+  if [[ -z "${host}" ]]; then
+    terminator::logger::error 'provider::ssh::configure --host is required'
+    return 1
+  fi
+
+  local idx
+  if ! terminator::workstation::__index_of__ "${name}" idx; then
+    terminator::logger::error "'${name}' is not registered"
+    return 1
+  fi
+
+  TERMINATOR_WORKSTATION_SSH_HOSTS[idx]="${host}"
+  TERMINATOR_WORKSTATION_SSH_USERS[idx]="${user}"
+  TERMINATOR_WORKSTATION_SSH_KEYS[idx]="${key}"
+  TERMINATOR_WORKSTATION_SSH_PORTS[idx]="${port}"
+}
+
+# Builds common SSH flags (key, port) into an array variable.
+function terminator::workstation::provider::ssh::__build_flags__ {
+  local __ssh_flags_out__="$1"
+  local __ssh_flags_key__="$2"
+  local __ssh_flags_port__="$3"
+  local __ssh_flags_port_flag__="${4:--p}"
+
+  local __ssh_flags__=()
+
+  if [[ -n "${__ssh_flags_key__}" ]]; then
+    __ssh_flags__+=(-i "${__ssh_flags_key__}")
+  fi
+
+  if [[ -n "${__ssh_flags_port__}" ]]; then
+    __ssh_flags__+=("${__ssh_flags_port_flag__}" "${__ssh_flags_port__}")
+  fi
+
+  eval "${__ssh_flags_out__}=(\"\${__ssh_flags__[@]}\")"
+}
+
+# Builds user@host destination string.
+function terminator::workstation::provider::ssh::__build_dest__ {
+  local __ssh_dest_out__="$1"
+  local __ssh_dest_user__="$2"
+  local __ssh_dest_host__="$3"
+
+  local __ssh_dest_result__="${__ssh_dest_host__}"
+  if [[ -n "${__ssh_dest_user__}" ]]; then
+    __ssh_dest_result__="${__ssh_dest_user__}@${__ssh_dest_host__}"
+  fi
+
+  printf -v "${__ssh_dest_out__}" '%s' "${__ssh_dest_result__}"
+}
+
+# SSH into an instance via direct ssh.
+function terminator::workstation::provider::ssh::ssh {
+  local instance="$1"
+  shift
+
+  local idx
+  terminator::workstation::__index_of__ "${instance}" idx
+
+  local host="${TERMINATOR_WORKSTATION_SSH_HOSTS[${idx}]}"
+  local user="${TERMINATOR_WORKSTATION_SSH_USERS[${idx}]}"
+  local key="${TERMINATOR_WORKSTATION_SSH_KEYS[${idx}]}"
+  local port="${TERMINATOR_WORKSTATION_SSH_PORTS[${idx}]}"
+
+  local flags=()
+  terminator::workstation::provider::ssh::__build_flags__ flags "${key}" "${port}"
+
+  local dest
+  terminator::workstation::provider::ssh::__build_dest__ dest "${user}" "${host}"
+
+  # shellcheck disable=SC2029 # client-side expansion is intentional for remote commands
+  ssh "${flags[@]}" "${dest}" "$@"
+}
+
+# SCP files to/from an instance via direct scp.
+function terminator::workstation::provider::ssh::scp {
+  local instance="$1"
+  shift
+
+  local idx
+  terminator::workstation::__index_of__ "${instance}" idx
+
+  local host="${TERMINATOR_WORKSTATION_SSH_HOSTS[${idx}]}"
+  local user="${TERMINATOR_WORKSTATION_SSH_USERS[${idx}]}"
+  local key="${TERMINATOR_WORKSTATION_SSH_KEYS[${idx}]}"
+  local port="${TERMINATOR_WORKSTATION_SSH_PORTS[${idx}]}"
+
+  local dest
+  terminator::workstation::provider::ssh::__build_dest__ dest "${user}" "${host}"
+
+  # Rewrite instance:path to user@host:path in args
+  local rewritten=() arg
+  for arg in "$@"; do
+    if [[ "${arg}" == "${instance}:"* ]]; then
+      rewritten+=("${dest}:${arg#"${instance}:"}")
+    else
+      rewritten+=("${arg}")
+    fi
+  done
+
+  local flags=()
+  terminator::workstation::provider::ssh::__build_flags__ flags "${key}" "${port}" '-P'
+
+  scp "${flags[@]}" "${rewritten[@]}"
+}
+
+# Exports env vars for rsync child process.
+function terminator::workstation::provider::ssh::rsync_export_env {
+  local instance="$1"
+  local idx
+
+  terminator::workstation::__index_of__ "${instance}" idx
+
+  export __TERMINATOR_RSYNC_SSH_HOST__="${TERMINATOR_WORKSTATION_SSH_HOSTS[${idx}]}"
+  export __TERMINATOR_RSYNC_SSH_USER__="${TERMINATOR_WORKSTATION_SSH_USERS[${idx}]}"
+  export __TERMINATOR_RSYNC_SSH_KEY__="${TERMINATOR_WORKSTATION_SSH_KEYS[${idx}]}"
+  export __TERMINATOR_RSYNC_SSH_PORT__="${TERMINATOR_WORKSTATION_SSH_PORTS[${idx}]}"
+}
+
+# Rsync transport for SSH. Called in child bash via exec.
+function terminator::workstation::provider::ssh::rsync_rsh {
+  local args=()
+
+  if [[ -n "${__TERMINATOR_RSYNC_SSH_KEY__}" ]]; then
+    args+=(-i "${__TERMINATOR_RSYNC_SSH_KEY__}")
+  fi
+
+  if [[ -n "${__TERMINATOR_RSYNC_SSH_PORT__}" ]]; then
+    args+=(-p "${__TERMINATOR_RSYNC_SSH_PORT__}")
+  fi
+
+  local dest="${__TERMINATOR_RSYNC_SSH_HOST__}"
+  if [[ -n "${__TERMINATOR_RSYNC_SSH_USER__}" ]]; then
+    dest="${__TERMINATOR_RSYNC_SSH_USER__}@${__TERMINATOR_RSYNC_SSH_HOST__}"
+  fi
+
+  exec ssh "${args[@]}" "${dest}" "$@"
+}
+
+# Formats info for workstation list output.
+function terminator::workstation::provider::ssh::format_info {
+  local instance="$1"
+  local idx
+
+  terminator::workstation::__index_of__ "${instance}" idx
+
+  local user="${TERMINATOR_WORKSTATION_SSH_USERS[${idx}]}"
+  local host="${TERMINATOR_WORKSTATION_SSH_HOSTS[${idx}]}"
+  local port="${TERMINATOR_WORKSTATION_SSH_PORTS[${idx}]}"
+
+  local result="host: ${host}"
+  if [[ -n "${user}" ]]; then
+    result+=", user: ${user}"
+  fi
+  if [[ -n "${port}" ]] && [[ "${port}" != '22' ]]; then
+    result+=", port: ${port}"
+  fi
+
+  echo "${result}"
 }
 
 ################################################################################
@@ -693,6 +908,10 @@ function terminator::workstation::__export__ {
   export TERMINATOR_WORKSTATION_CURRENT
   export TERMINATOR_WORKSTATION_GCP_ZONES
   export TERMINATOR_WORKSTATION_GCP_PROJECTS
+  export TERMINATOR_WORKSTATION_SSH_HOSTS
+  export TERMINATOR_WORKSTATION_SSH_USERS
+  export TERMINATOR_WORKSTATION_SSH_KEYS
+  export TERMINATOR_WORKSTATION_SSH_PORTS
 
   export -f terminator::workstation::__index_of__
   export -f terminator::workstation::__is_registered__
@@ -718,6 +937,14 @@ function terminator::workstation::__export__ {
   export -f terminator::workstation::provider::gcp::rsync_export_env
   export -f terminator::workstation::provider::gcp::rsync_rsh
   export -f terminator::workstation::provider::gcp::format_info
+  export -f terminator::workstation::provider::ssh::configure
+  export -f terminator::workstation::provider::ssh::__build_flags__
+  export -f terminator::workstation::provider::ssh::__build_dest__
+  export -f terminator::workstation::provider::ssh::ssh
+  export -f terminator::workstation::provider::ssh::scp
+  export -f terminator::workstation::provider::ssh::rsync_export_env
+  export -f terminator::workstation::provider::ssh::rsync_rsh
+  export -f terminator::workstation::provider::ssh::format_info
   export -f terminator::workstation::__completion__
   export -f terminator::workstation::__use_completion__
 }
@@ -730,6 +957,10 @@ function terminator::workstation::__recall__ {
   unset TERMINATOR_WORKSTATION_CURRENT
   unset TERMINATOR_WORKSTATION_GCP_ZONES
   unset TERMINATOR_WORKSTATION_GCP_PROJECTS
+  unset TERMINATOR_WORKSTATION_SSH_HOSTS
+  unset TERMINATOR_WORKSTATION_SSH_USERS
+  unset TERMINATOR_WORKSTATION_SSH_KEYS
+  unset TERMINATOR_WORKSTATION_SSH_PORTS
 
   export -fn terminator::workstation::__index_of__
   export -fn terminator::workstation::__is_registered__
@@ -755,6 +986,14 @@ function terminator::workstation::__recall__ {
   export -fn terminator::workstation::provider::gcp::rsync_export_env
   export -fn terminator::workstation::provider::gcp::rsync_rsh
   export -fn terminator::workstation::provider::gcp::format_info
+  export -fn terminator::workstation::provider::ssh::configure
+  export -fn terminator::workstation::provider::ssh::__build_flags__
+  export -fn terminator::workstation::provider::ssh::__build_dest__
+  export -fn terminator::workstation::provider::ssh::ssh
+  export -fn terminator::workstation::provider::ssh::scp
+  export -fn terminator::workstation::provider::ssh::rsync_export_env
+  export -fn terminator::workstation::provider::ssh::rsync_rsh
+  export -fn terminator::workstation::provider::ssh::format_info
   export -fn terminator::workstation::__completion__
   export -fn terminator::workstation::__use_completion__
 }
