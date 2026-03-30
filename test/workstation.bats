@@ -28,6 +28,27 @@ _register_two_ws() {
 }
 
 ################################################################################
+# Helper: register a test workstation with SSH provider
+################################################################################
+
+_register_ssh_ws() {
+  terminator::workstation::register \
+    --name ssh-ws \
+    --provider ssh \
+    --host 10.0.0.42 \
+    --user testuser \
+    --key /tmp/test_key \
+    --port 2222
+}
+
+_register_ssh_ws_minimal() {
+  terminator::workstation::register \
+    --name ssh-ws-min \
+    --provider ssh \
+    --host 10.0.0.99
+}
+
+################################################################################
 # terminator::workstation::register
 ################################################################################
 
@@ -36,7 +57,7 @@ _register_two_ws() {
   run terminator::workstation::register --provider gcp
 
   assert_failure
-  assert_output --partial 'ERROR: --name is required'
+  assert_output --partial '--name is required'
 }
 
 # bats test_tags=terminator::workstation,terminator::workstation::register
@@ -44,7 +65,7 @@ _register_two_ws() {
   run terminator::workstation::register --name test-ws
 
   assert_failure
-  assert_output --partial 'ERROR: --provider is required'
+  assert_output --partial '--provider is required'
 }
 
 # bats test_tags=terminator::workstation,terminator::workstation::register
@@ -420,7 +441,7 @@ _register_two_ws() {
   run terminator::workstation::use "nonexistent"
 
   assert_failure
-  assert_output --partial "ERROR: 'nonexistent' is not a registered workstation"
+  assert_output --partial "'nonexistent' is not a registered workstation"
 }
 
 ################################################################################
@@ -542,6 +563,197 @@ _register_two_ws() {
 }
 
 ################################################################################
+# SSH provider: configure
+################################################################################
+
+# bats test_tags=terminator::workstation,terminator::workstation::provider::ssh::configure
+@test "provider::ssh::configure stores host, user, key, port" {
+  _register_ssh_ws
+
+  [[ "${TERMINATOR_WORKSTATION_SSH_HOSTS[0]}" == "10.0.0.42" ]]
+  [[ "${TERMINATOR_WORKSTATION_SSH_USERS[0]}" == "testuser" ]]
+  [[ "${TERMINATOR_WORKSTATION_SSH_KEYS[0]}" == "/tmp/test_key" ]]
+  [[ "${TERMINATOR_WORKSTATION_SSH_PORTS[0]}" == "2222" ]]
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::provider::ssh::configure
+@test "provider::ssh::configure defaults port to 22" {
+  _register_ssh_ws_minimal
+
+  [[ "${TERMINATOR_WORKSTATION_SSH_PORTS[0]}" == "22" ]]
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::provider::ssh::configure
+@test "provider::ssh::configure requires --name" {
+  run terminator::workstation::provider::ssh::configure --host 10.0.0.1
+
+  assert_failure
+  assert_output --partial '--name is required'
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::provider::ssh::configure
+@test "provider::ssh::configure requires --host" {
+  terminator::workstation::register --name bare-ws --provider fake_provider
+
+  run terminator::workstation::provider::ssh::configure --name bare-ws
+
+  assert_failure
+  assert_output --partial '--host is required'
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::provider::ssh::configure
+@test "provider::ssh::configure fails for unregistered name" {
+  run terminator::workstation::provider::ssh::configure --name nonexistent --host 10.0.0.1
+
+  assert_failure
+  assert_output --partial "'nonexistent' is not registered"
+}
+
+################################################################################
+# SSH provider: format_info
+################################################################################
+
+# bats test_tags=terminator::workstation,terminator::workstation::provider::ssh::format_info
+@test "provider::ssh::format_info outputs host and user" {
+  _register_ssh_ws
+
+  run terminator::workstation::provider::ssh::format_info "ssh-ws"
+
+  assert_success
+  assert_output "host: 10.0.0.42, user: testuser, port: 2222"
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::provider::ssh::format_info
+@test "provider::ssh::format_info omits port when 22" {
+  _register_ssh_ws_minimal
+
+  run terminator::workstation::provider::ssh::format_info "ssh-ws-min"
+
+  assert_success
+  assert_output "host: 10.0.0.99"
+}
+
+################################################################################
+# SSH provider: ssh (mocked ssh)
+################################################################################
+
+# bats test_tags=terminator::workstation,terminator::workstation::provider::ssh::ssh
+@test "provider::ssh::ssh calls ssh with correct args" {
+  _register_ssh_ws
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function ssh { echo "ssh $*"; }
+
+  run terminator::workstation::provider::ssh::ssh "ssh-ws" ls -la
+
+  assert_success
+  assert_output "ssh -i /tmp/test_key -p 2222 testuser@10.0.0.42 ls -la"
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::provider::ssh::ssh
+@test "provider::ssh::ssh works without user or key" {
+  _register_ssh_ws_minimal
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function ssh { echo "ssh $*"; }
+
+  run terminator::workstation::provider::ssh::ssh "ssh-ws-min"
+
+  assert_success
+  assert_output "ssh -p 22 10.0.0.99"
+}
+
+################################################################################
+# SSH provider: scp (mocked scp)
+################################################################################
+
+# bats test_tags=terminator::workstation,terminator::workstation::provider::ssh::scp
+@test "provider::ssh::scp calls scp with correct args and rewrites paths" {
+  _register_ssh_ws
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function scp { echo "scp $*"; }
+
+  run terminator::workstation::provider::ssh::scp "ssh-ws" "ssh-ws:~/remote-file" "./local"
+
+  assert_success
+  assert_output "scp -i /tmp/test_key -P 2222 testuser@10.0.0.42:~/remote-file ./local"
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::provider::ssh::scp
+@test "provider::ssh::scp rewrites only matching instance prefix" {
+  _register_ssh_ws
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function scp { echo "scp $*"; }
+
+  run terminator::workstation::provider::ssh::scp "ssh-ws" "./local" "ssh-ws:~/remote"
+
+  assert_success
+  assert_output "scp -i /tmp/test_key -P 2222 ./local testuser@10.0.0.42:~/remote"
+}
+
+################################################################################
+# SSH provider: rsync_export_env
+################################################################################
+
+# bats test_tags=terminator::workstation,terminator::workstation::provider::ssh::rsync_export_env
+@test "provider::ssh::rsync_export_env exports env vars" {
+  _register_ssh_ws
+
+  terminator::workstation::provider::ssh::rsync_export_env "ssh-ws"
+
+  [[ "${__TERMINATOR_RSYNC_SSH_HOST__}" == "10.0.0.42" ]]
+  [[ "${__TERMINATOR_RSYNC_SSH_USER__}" == "testuser" ]]
+  [[ "${__TERMINATOR_RSYNC_SSH_KEY__}" == "/tmp/test_key" ]]
+  [[ "${__TERMINATOR_RSYNC_SSH_PORT__}" == "2222" ]]
+}
+
+################################################################################
+# SSH provider: list shows SSH details
+################################################################################
+
+# bats test_tags=terminator::workstation,terminator::workstation::list
+@test "terminator::workstation::list shows SSH details" {
+  _register_ssh_ws
+
+  run terminator::workstation::list
+
+  assert_success
+  assert_output --partial "host: 10.0.0.42, user: testuser, port: 2222"
+}
+
+################################################################################
+# SSH provider: dispatch through core ssh
+################################################################################
+
+# bats test_tags=terminator::workstation,terminator::workstation::ssh
+@test "terminator::workstation::ssh dispatches to ssh provider" {
+  _register_ssh_ws
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function ssh { echo "ssh $*"; }
+
+  run terminator::workstation::ssh ls -la
+
+  assert_success
+  assert_output "ssh -i /tmp/test_key -p 2222 testuser@10.0.0.42 ls -la"
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::scp
+@test "terminator::workstation::scp dispatches to ssh provider" {
+  _register_ssh_ws
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function scp { echo "scp $*"; }
+
+  run terminator::workstation::scp "ssh-ws:~/remote" "./local"
+
+  assert_success
+  assert_output "scp -i /tmp/test_key -P 2222 testuser@10.0.0.42:~/remote ./local"
+}
+
+################################################################################
 # Dispatch: ssh (mocked provider + auth)
 ################################################################################
 
@@ -593,7 +805,7 @@ _register_two_ws() {
   run terminator::workstation::ssh
 
   assert_failure
-  assert_output --partial "ERROR: no workstation specified and no default set"
+  assert_output --partial 'no workstation specified and no default set'
 }
 
 # bats test_tags=terminator::workstation,terminator::workstation::ssh
@@ -603,7 +815,7 @@ _register_two_ws() {
   run terminator::workstation::ssh -w nonexistent
 
   assert_failure
-  assert_output --partial "ERROR: 'nonexistent' is not a registered workstation"
+  assert_output --partial "'nonexistent' is not a registered workstation"
 }
 
 # bats test_tags=terminator::workstation,terminator::workstation::ssh
@@ -761,6 +973,14 @@ _register_two_ws() {
     terminator::workstation::provider::gcp::rsync_export_env
     terminator::workstation::provider::gcp::rsync_rsh
     terminator::workstation::provider::gcp::format_info
+    terminator::workstation::provider::ssh::configure
+    terminator::workstation::provider::ssh::__build_flags__
+    terminator::workstation::provider::ssh::__build_dest__
+    terminator::workstation::provider::ssh::ssh
+    terminator::workstation::provider::ssh::scp
+    terminator::workstation::provider::ssh::rsync_export_env
+    terminator::workstation::provider::ssh::rsync_rsh
+    terminator::workstation::provider::ssh::format_info
     terminator::workstation::__completion__
     terminator::workstation::__use_completion__
     terminator::workstation::__enable__
