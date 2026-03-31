@@ -62,24 +62,41 @@ $(terminator::unicode::code 0xE0B0)"
 TMUX_STYLES_STATUS_POSITION='bottom'
 TMUX_STYLES_STATUS_JUSTIFY='absolute-centre'
 
+# Width-adaptive statusline helper. Emits a tmux conditional that shows
+# content only when client_width >= threshold. The shell expansion runs once
+# at session creation; tmux evaluates #{client_width} live on each refresh.
+#
+# Breakpoints (cumulative strip):
+#   < 80:   drop date from status-right
+#   < 70:   drop hostname from status-left
+#   < 45:   drop time from status-right, drop window names (index only)
+terminator::tmux::styles::__width_above__() {
+  local width="$1"
+  shift
+  printf '#{?#{e|>=:#{client_width},%d},%s,}' "${width}" "$*"
+}
+
 TMUX_STYLES_STATUS_RIGHT="\
 #[fg=${TMUX_STYLES_SESSION_COLOR},bg=${TMUX_STYLES_BG_COLOR}]\
-${TMUX_STYLES_DIVIDER_RIGHT} %a %b %d %R #[default]"
+${TMUX_STYLES_DIVIDER_RIGHT} \
+$(terminator::tmux::styles::__width_above__ 80 '%a %b %d ')\
+$(terminator::tmux::styles::__width_above__ 45 '%R ')#[default]"
 
 TMUX_STYLES_STATUS_LEFT="\
 #[fg=${TMUX_STYLES_SESSION_COLOR},bg=${TMUX_STYLES_BG_COLOR}] #S \
-#[fg=${TMUX_STYLES_HOST_COLOR},bg=${TMUX_STYLES_BG_COLOR}]#h ${TMUX_STYLES_DIVIDER_LEFT} "
+#[fg=${TMUX_STYLES_HOST_COLOR},bg=${TMUX_STYLES_BG_COLOR}]\
+$(terminator::tmux::styles::__width_above__ 70 '#h ')${TMUX_STYLES_DIVIDER_LEFT} "
 
 TMUX_STYLES_WINDOW_STATUS_SEPARATOR=' • '
 TMUX_STYLES_STATUS_MAXIMIZED_PANE_ICON='󰊓'
 TMUX_STYLES_COPY_MODE_ICON='󰆏'
 
-TMUX_STYLES_WINDOW_STATUS_FORMAT=" #I #W \
+TMUX_STYLES_WINDOW_STATUS_FORMAT=" #I$(terminator::tmux::styles::__width_above__ 45 ' #W') \
 #{?window_zoomed_flag,${TMUX_STYLES_STATUS_MAXIMIZED_PANE_ICON} ,}\
 #{?pane_in_mode,${TMUX_STYLES_COPY_MODE_ICON} ,}"
 
 TMUX_STYLES_WINDOW_STATUS_CURRENT_FORMAT="\
-#[fg=${TMUX_STYLES_MESSAGE_COLOR},bg=${TMUX_STYLES_MENU_COLOR},noreverse,bright,nobold] #I #W \
+#[fg=${TMUX_STYLES_MESSAGE_COLOR},bg=${TMUX_STYLES_MENU_COLOR},noreverse,bright,nobold] #I$(terminator::tmux::styles::__width_above__ 45 ' #W') \
 #{?window_zoomed_flag,${TMUX_STYLES_STATUS_MAXIMIZED_PANE_ICON} ,}\
 #{?pane_in_mode,${TMUX_STYLES_COPY_MODE_ICON} ,}\
 #[fg=${TMUX_STYLES_MENU_COLOR},bg=${TMUX_STYLES_BG_COLOR},nobold]"
