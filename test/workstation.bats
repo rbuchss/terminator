@@ -514,6 +514,23 @@ _register_ssh_ws_minimal() {
 }
 
 ################################################################################
+# GCP provider: get_external_ip (mocked gcloud)
+################################################################################
+
+# bats test_tags=terminator::workstation,terminator::workstation::provider::gcp::get_external_ip
+@test "provider::gcp::get_external_ip calls gcloud with correct args" {
+  _register_test_ws
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function gcloud { echo "gcloud $*"; }
+
+  run terminator::workstation::provider::gcp::get_external_ip "test-ws"
+
+  assert_success
+  assert_output "gcloud compute instances describe test-ws --zone us-east1-c --project test-project --format=get(networkInterfaces[0].accessConfigs[0].natIP)"
+}
+
+################################################################################
 # GCP provider: ssh (mocked gcloud)
 ################################################################################
 
@@ -724,6 +741,242 @@ _register_ssh_ws_minimal() {
 }
 
 ################################################################################
+# SSH provider: get_external_ip
+################################################################################
+
+################################################################################
+# SSH provider: __resolve_ssh_config__
+################################################################################
+
+# bats test_tags=terminator::workstation,terminator::workstation::provider::ssh::__resolve_ssh_config__
+@test "__resolve_ssh_config__ resolves host alias to IP" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function ssh { echo "hostname 192.168.1.50"; }
+
+  run terminator::workstation::provider::ssh::__resolve_ssh_config__ "my-alias"
+
+  assert_success
+  assert_output "192.168.1.50"
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::provider::ssh::__resolve_ssh_config__
+@test "__resolve_ssh_config__ resolves host alias to DNS name" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function ssh { echo "hostname actual.example.com"; }
+
+  run terminator::workstation::provider::ssh::__resolve_ssh_config__ "my-alias"
+
+  assert_success
+  assert_output "actual.example.com"
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::provider::ssh::__resolve_ssh_config__
+@test "__resolve_ssh_config__ returns 1 when hostname unchanged" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function ssh { echo "hostname example.test"; }
+
+  run terminator::workstation::provider::ssh::__resolve_ssh_config__ "example.test"
+
+  assert_failure
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::provider::ssh::__resolve_ssh_config__
+@test "__resolve_ssh_config__ returns 1 when ssh unavailable" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 1; }
+
+  run terminator::workstation::provider::ssh::__resolve_ssh_config__ "my-alias"
+
+  assert_failure
+}
+
+################################################################################
+# SSH provider: __resolve_dns__
+################################################################################
+
+# bats test_tags=terminator::workstation,terminator::workstation::provider::ssh::__resolve_dns__
+@test "__resolve_dns__ resolves via getent" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function getent { echo "93.184.216.34  example.test"; }
+
+  run terminator::workstation::provider::ssh::__resolve_dns__ "example.test"
+
+  assert_success
+  assert_output "93.184.216.34"
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::provider::ssh::__resolve_dns__
+@test "__resolve_dns__ resolves via nslookup" {
+  # Hide getent so nslookup is tried
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists {
+    [[ "$1" == 'getent' ]] && return 1
+    command -v "$1" >/dev/null 2>&1
+  }
+  # shellcheck disable=SC2317 # invoked indirectly
+  function nslookup { echo "Address: 93.184.216.34"; }
+
+  run terminator::workstation::provider::ssh::__resolve_dns__ "example.test"
+
+  assert_success
+  assert_output "93.184.216.34"
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::provider::ssh::__resolve_dns__
+@test "__resolve_dns__ resolves via dig" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists {
+    [[ "$1" == 'getent' || "$1" == 'nslookup' ]] && return 1
+    command -v "$1" >/dev/null 2>&1
+  }
+  # shellcheck disable=SC2317 # invoked indirectly
+  function dig { echo "93.184.216.34"; }
+
+  run terminator::workstation::provider::ssh::__resolve_dns__ "example.test"
+
+  assert_success
+  assert_output "93.184.216.34"
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::provider::ssh::__resolve_dns__
+@test "__resolve_dns__ resolves via host" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists {
+    [[ "$1" == 'getent' || "$1" == 'nslookup' || "$1" == 'dig' ]] && return 1
+    command -v "$1" >/dev/null 2>&1
+  }
+  # shellcheck disable=SC2317 # invoked indirectly
+  function host { echo "example.test has address 93.184.216.34"; }
+
+  run terminator::workstation::provider::ssh::__resolve_dns__ "example.test"
+
+  assert_success
+  assert_output "93.184.216.34"
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::provider::ssh::__resolve_dns__
+@test "__resolve_dns__ returns 1 when no tools available" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 1; }
+
+  run terminator::workstation::provider::ssh::__resolve_dns__ "example.test"
+
+  assert_failure
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::provider::ssh::__resolve_dns__
+@test "__resolve_dns__ returns 1 when resolution fails" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function getent { return 2; }
+
+  run terminator::workstation::provider::ssh::__resolve_dns__ "nonexistent.invalid"
+
+  assert_failure
+}
+
+################################################################################
+# SSH provider: get_external_ip
+################################################################################
+
+# bats test_tags=terminator::workstation,terminator::workstation::provider::ssh::get_external_ip
+@test "provider::ssh::get_external_ip returns IP directly when configured with IP" {
+  _register_ssh_ws
+
+  run terminator::workstation::provider::ssh::get_external_ip "ssh-ws"
+
+  assert_success
+  assert_output "10.0.0.42"
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::provider::ssh::get_external_ip
+@test "provider::ssh::get_external_ip resolves SSH config to IP" {
+  terminator::workstation::register \
+    --name ssh-alias-ws \
+    --provider ssh \
+    --host my-server-alias
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function ssh { echo "hostname 192.168.1.50"; }
+
+  run terminator::workstation::provider::ssh::get_external_ip "ssh-alias-ws"
+
+  assert_success
+  assert_output "192.168.1.50"
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::provider::ssh::get_external_ip
+@test "provider::ssh::get_external_ip resolves SSH config to DNS then DNS to IP" {
+  terminator::workstation::register \
+    --name ssh-chain-ws \
+    --provider ssh \
+    --host my-alias
+
+  # SSH config resolves alias to a DNS name
+  # shellcheck disable=SC2317 # invoked indirectly
+  function ssh { echo "hostname actual.example.com"; }
+  # DNS resolves that name to an IP
+  # shellcheck disable=SC2317 # invoked indirectly
+  function getent { echo "10.20.30.40  actual.example.com"; }
+
+  run terminator::workstation::provider::ssh::get_external_ip "ssh-chain-ws"
+
+  assert_success
+  assert_output "10.20.30.40"
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::provider::ssh::get_external_ip
+@test "provider::ssh::get_external_ip resolves DNS hostname" {
+  terminator::workstation::register \
+    --name ssh-dns-ws \
+    --provider ssh \
+    --host example.test
+
+  # ssh -G returns the same hostname (no SSH config match)
+  # shellcheck disable=SC2317 # invoked indirectly
+  function ssh { echo "hostname example.test"; }
+  # Mock all DNS tools to ensure whichever is tried first works
+  # shellcheck disable=SC2317 # invoked indirectly
+  function getent { echo "93.184.216.34  example.test"; }
+  # shellcheck disable=SC2317 # invoked indirectly
+  function nslookup { echo "Address: 93.184.216.34"; }
+  # shellcheck disable=SC2317 # invoked indirectly
+  function dig { echo "93.184.216.34"; }
+  # shellcheck disable=SC2317 # invoked indirectly
+  function host { echo "example.test has address 93.184.216.34"; }
+
+  run terminator::workstation::provider::ssh::get_external_ip "ssh-dns-ws"
+
+  assert_success
+  assert_output "93.184.216.34"
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::provider::ssh::get_external_ip
+@test "provider::ssh::get_external_ip falls back to host when unresolvable" {
+  terminator::workstation::register \
+    --name ssh-noip-ws \
+    --provider ssh \
+    --host unresolvable.invalid
+
+  # ssh -G returns the same hostname
+  # shellcheck disable=SC2317 # invoked indirectly
+  function ssh { echo "hostname unresolvable.invalid"; }
+  # No DNS tools can resolve it
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists {
+    case "$1" in
+      ssh) return 0 ;;
+      getent | nslookup | dig | host) return 1 ;;
+      *) command -v "$1" >/dev/null 2>&1 ;;
+    esac
+  }
+
+  run terminator::workstation::provider::ssh::get_external_ip "ssh-noip-ws"
+
+  assert_success
+  assert_output --partial "unresolvable.invalid"
+}
+
+################################################################################
 # SSH provider: dispatch through core ssh
 ################################################################################
 
@@ -751,6 +1004,82 @@ _register_ssh_ws_minimal() {
 
   assert_success
   assert_output "scp -i /tmp/test_key -P 2222 testuser@10.0.0.42:~/remote ./local"
+}
+
+################################################################################
+# Dispatch: ip
+################################################################################
+
+# bats test_tags=terminator::workstation,terminator::workstation::ip
+@test "terminator::workstation::ip dispatches to gcp provider" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::gcloud::auth { :; }
+  _register_test_ws
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function gcloud { echo "gcloud $*"; }
+
+  run terminator::workstation::ip
+
+  assert_success
+  assert_output --partial "gcloud compute instances describe test-ws --zone us-east1-c --project test-project"
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::ip
+@test "terminator::workstation::ip with -w flag" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::gcloud::auth { :; }
+  _register_two_ws
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function gcloud { echo "gcloud $*"; }
+
+  run terminator::workstation::ip -w dev-ws
+
+  assert_success
+  assert_output --partial "gcloud compute instances describe dev-ws --zone us-central1-a --project dev-project"
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::ip
+@test "terminator::workstation::ip --help shows usage" {
+  _register_test_ws
+
+  run terminator::workstation::ip --help
+
+  assert_success
+  assert_output --partial "Usage:"
+  assert_output --partial "--workstation"
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::ip
+@test "terminator::workstation::ip fails with no workstation and no default" {
+  TERMINATOR_WORKSTATION_CURRENT=""
+
+  run terminator::workstation::ip
+
+  assert_failure
+  assert_output --partial 'no workstation specified and no default set'
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::ip
+@test "terminator::workstation::ip fails for unsupported provider" {
+  terminator::workstation::register \
+    --name test-ws \
+    --provider fake_provider
+
+  run terminator::workstation::ip
+
+  assert_failure
+  assert_output --partial "does not support get_external_ip"
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::ip::usage
+@test "terminator::workstation::ip::usage shows help text" {
+  run terminator::workstation::ip::usage
+
+  assert_success
+  assert_output --partial "Usage:"
+  assert_output --partial "--workstation"
 }
 
 ################################################################################
@@ -960,6 +1289,8 @@ _register_ssh_ws_minimal() {
     terminator::workstation::register
     terminator::workstation::use
     terminator::workstation::list
+    terminator::workstation::ip
+    terminator::workstation::ip::usage
     terminator::workstation::ssh
     terminator::workstation::scp
     terminator::workstation::rsync
@@ -972,6 +1303,7 @@ _register_ssh_ws_minimal() {
     terminator::workstation::provider::gcp::scp
     terminator::workstation::provider::gcp::rsync_export_env
     terminator::workstation::provider::gcp::rsync_rsh
+    terminator::workstation::provider::gcp::get_external_ip
     terminator::workstation::provider::gcp::format_info
     terminator::workstation::provider::ssh::configure
     terminator::workstation::provider::ssh::__build_flags__
@@ -980,6 +1312,7 @@ _register_ssh_ws_minimal() {
     terminator::workstation::provider::ssh::scp
     terminator::workstation::provider::ssh::rsync_export_env
     terminator::workstation::provider::ssh::rsync_rsh
+    terminator::workstation::provider::ssh::get_external_ip
     terminator::workstation::provider::ssh::format_info
     terminator::workstation::__completion__
     terminator::workstation::__use_completion__
