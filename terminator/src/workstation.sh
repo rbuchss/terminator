@@ -279,6 +279,64 @@ function terminator::workstation::list {
 }
 
 ################################################################################
+# IP
+################################################################################
+
+function terminator::workstation::ip::usage {
+  cat <<USAGE_TEXT
+Usage: ${FUNCNAME[1]} [OPTIONS]
+
+  Get the external IP of a workstation via the configured provider.
+
+  Options:
+    -w, --workstation NAME    Target workstation (default: ${TERMINATOR_WORKSTATION_CURRENT:-none})
+    -h, --help                Show this help
+
+  Examples:
+    ${FUNCNAME[1]}                                  # default workstation
+    ${FUNCNAME[1]} -w dev-workstation               # specific workstation
+
+  Registered: ${TERMINATOR_WORKSTATION_NAMES[*]:-none}
+USAGE_TEXT
+}
+
+function terminator::workstation::ip {
+  local __ip_instance__
+
+  terminator::workstation::__parse_instance__ __ip_instance__ "$@"
+  local __ip_parse_rc__=$?
+
+  if ((__ip_parse_rc__ == 2)); then
+    terminator::workstation::ip::usage
+    return 0
+  fi
+
+  if [[ -z "${__ip_instance__}" ]]; then
+    terminator::logger::error 'no workstation specified and no default set'
+    terminator::workstation::ip::usage >&2
+    return 1
+  fi
+
+  if ! terminator::workstation::__is_registered__ "${__ip_instance__}"; then
+    terminator::logger::error "'${__ip_instance__}' is not a registered workstation"
+    terminator::workstation::list >&2
+    return 1
+  fi
+
+  local __ip_provider__
+  terminator::workstation::__get_provider__ "${__ip_instance__}" __ip_provider__
+
+  local __ip_func__="terminator::workstation::provider::${__ip_provider__}::get_external_ip"
+
+  if ! terminator::command::exists "${__ip_func__}"; then
+    terminator::logger::error "provider '${__ip_provider__}' does not support get_external_ip"
+    return 1
+  fi
+
+  "${__ip_func__}" "${__ip_instance__}"
+}
+
+################################################################################
 # SSH
 ################################################################################
 
@@ -608,6 +666,24 @@ function terminator::workstation::provider::gcp::rsync_rsh {
     -- "$@"
 }
 
+# Gets the external IP of a GCP instance.
+function terminator::workstation::provider::gcp::get_external_ip {
+  local \
+    instance="$1" \
+    idx
+
+  terminator::workstation::__index_of__ "${instance}" idx
+
+  local \
+    zone="${TERMINATOR_WORKSTATION_GCP_ZONES[${idx}]}" \
+    project="${TERMINATOR_WORKSTATION_GCP_PROJECTS[${idx}]}"
+
+  gcloud compute instances describe "${instance}" \
+    --zone "${zone}" \
+    --project "${project}" \
+    --format='get(networkInterfaces[0].accessConfigs[0].natIP)'
+}
+
 # Formats info for workstation list output.
 function terminator::workstation::provider::gcp::format_info {
   local __gcp_info_instance__="$1"
@@ -807,6 +883,91 @@ function terminator::workstation::provider::ssh::rsync_rsh {
 }
 
 # Formats info for workstation list output.
+# Resolves an SSH config host alias to its configured hostname.
+# Returns 1 if ssh is unavailable or the host didn't resolve differently.
+function terminator::workstation::provider::ssh::__resolve_ssh_config__ {
+  local host="$1"
+
+  if ! terminator::command::exists ssh; then
+    return 1
+  fi
+
+  local resolved
+  resolved="$(ssh -G "${host}" 2>/dev/null | awk '/^hostname / { print $2; exit }')"
+
+  if [[ -n "${resolved}" ]] && [[ "${resolved}" != "${host}" ]]; then
+    echo "${resolved}"
+    return 0
+  fi
+
+  return 1
+}
+
+# Resolves a hostname to an IP via DNS.
+# Tries tools in order of portability: getent, nslookup, dig, host.
+# Returns 1 if no tool succeeded.
+function terminator::workstation::provider::ssh::__resolve_dns__ {
+  local host="$1"
+  local resolved
+
+  if terminator::command::exists getent; then
+    resolved="$(getent hosts "${host}" 2>/dev/null | awk '{ print $1; exit }')"
+  elif terminator::command::exists nslookup; then
+    resolved="$(nslookup "${host}" 2>/dev/null | awk '/^Address: / { print $2; exit }')"
+  elif terminator::command::exists dig; then
+    resolved="$(dig +short "${host}" 2>/dev/null | head -1)"
+  elif terminator::command::exists host; then
+    resolved="$(host "${host}" 2>/dev/null | awk '/has address/ { print $4; exit }')"
+  fi
+
+  if [[ -n "${resolved}" ]]; then
+    echo "${resolved}"
+    return 0
+  fi
+
+  return 1
+}
+
+# Resolves the IP for an SSH workstation.
+# If the configured host is already an IP, returns it directly.
+# Otherwise resolves via SSH config, then DNS.
+function terminator::workstation::provider::ssh::get_external_ip {
+  local \
+    instance="$1" \
+    idx
+
+  terminator::workstation::__index_of__ "${instance}" idx
+
+  local host="${TERMINATOR_WORKSTATION_SSH_HOSTS[${idx}]}"
+
+  # Already an IPv4 address
+  if [[ "${host}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo "${host}"
+    return 0
+  fi
+
+  # Resolve SSH config (Host aliases, ProxyJump, etc.) to a hostname
+  local resolved
+  resolved="$(terminator::workstation::provider::ssh::__resolve_ssh_config__ "${host}")" \
+    && host="${resolved}"
+
+  # Check if resolved to an IP
+  if [[ "${host}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo "${host}"
+    return 0
+  fi
+
+  # DNS resolution
+  if resolved="$(terminator::workstation::provider::ssh::__resolve_dns__ "${host}")"; then
+    echo "${resolved}"
+    return 0
+  fi
+
+  # Fallback: return the host as-is
+  terminator::logger::warning "could not resolve '${host}' to an IP, returning as-is"
+  echo "${host}"
+}
+
 function terminator::workstation::provider::ssh::format_info {
   local instance="$1"
   local idx
@@ -879,9 +1040,11 @@ function terminator::workstation::__enable__ {
   alias workstation-ssh='terminator::workstation::ssh'
   alias workstation-scp='terminator::workstation::scp'
   alias workstation-rsync='terminator::workstation::rsync'
+  alias workstation-ip='terminator::workstation::ip'
   alias workstation-use='terminator::workstation::use'
   alias workstation-list='terminator::workstation::list'
 
+  complete -F terminator::workstation::__completion__ workstation-ip
   complete -F terminator::workstation::__completion__ workstation-ssh
   complete -F terminator::workstation::__completion__ workstation-scp
   complete -F terminator::workstation::__completion__ workstation-rsync
@@ -892,9 +1055,11 @@ function terminator::workstation::__disable__ {
   unalias workstation-ssh 2>/dev/null
   unalias workstation-scp 2>/dev/null
   unalias workstation-rsync 2>/dev/null
+  unalias workstation-ip 2>/dev/null
   unalias workstation-use 2>/dev/null
   unalias workstation-list 2>/dev/null
 
+  complete -r workstation-ip 2>/dev/null
   complete -r workstation-ssh 2>/dev/null
   complete -r workstation-scp 2>/dev/null
   complete -r workstation-rsync 2>/dev/null
@@ -924,6 +1089,8 @@ function terminator::workstation::__export__ {
   export -f terminator::workstation::register
   export -f terminator::workstation::use
   export -f terminator::workstation::list
+  export -f terminator::workstation::ip
+  export -f terminator::workstation::ip::usage
   export -f terminator::workstation::ssh
   export -f terminator::workstation::ssh::usage
   export -f terminator::workstation::scp
@@ -936,6 +1103,7 @@ function terminator::workstation::__export__ {
   export -f terminator::workstation::provider::gcp::scp
   export -f terminator::workstation::provider::gcp::rsync_export_env
   export -f terminator::workstation::provider::gcp::rsync_rsh
+  export -f terminator::workstation::provider::gcp::get_external_ip
   export -f terminator::workstation::provider::gcp::format_info
   export -f terminator::workstation::provider::ssh::configure
   export -f terminator::workstation::provider::ssh::__build_flags__
@@ -944,6 +1112,9 @@ function terminator::workstation::__export__ {
   export -f terminator::workstation::provider::ssh::scp
   export -f terminator::workstation::provider::ssh::rsync_export_env
   export -f terminator::workstation::provider::ssh::rsync_rsh
+  export -f terminator::workstation::provider::ssh::__resolve_ssh_config__
+  export -f terminator::workstation::provider::ssh::__resolve_dns__
+  export -f terminator::workstation::provider::ssh::get_external_ip
   export -f terminator::workstation::provider::ssh::format_info
   export -f terminator::workstation::__completion__
   export -f terminator::workstation::__use_completion__
@@ -973,6 +1144,8 @@ function terminator::workstation::__recall__ {
   export -fn terminator::workstation::register
   export -fn terminator::workstation::use
   export -fn terminator::workstation::list
+  export -fn terminator::workstation::ip
+  export -fn terminator::workstation::ip::usage
   export -fn terminator::workstation::ssh
   export -fn terminator::workstation::ssh::usage
   export -fn terminator::workstation::scp
@@ -985,6 +1158,7 @@ function terminator::workstation::__recall__ {
   export -fn terminator::workstation::provider::gcp::scp
   export -fn terminator::workstation::provider::gcp::rsync_export_env
   export -fn terminator::workstation::provider::gcp::rsync_rsh
+  export -fn terminator::workstation::provider::gcp::get_external_ip
   export -fn terminator::workstation::provider::gcp::format_info
   export -fn terminator::workstation::provider::ssh::configure
   export -fn terminator::workstation::provider::ssh::__build_flags__
@@ -993,6 +1167,9 @@ function terminator::workstation::__recall__ {
   export -fn terminator::workstation::provider::ssh::scp
   export -fn terminator::workstation::provider::ssh::rsync_export_env
   export -fn terminator::workstation::provider::ssh::rsync_rsh
+  export -fn terminator::workstation::provider::ssh::__resolve_ssh_config__
+  export -fn terminator::workstation::provider::ssh::__resolve_dns__
+  export -fn terminator::workstation::provider::ssh::get_external_ip
   export -fn terminator::workstation::provider::ssh::format_info
   export -fn terminator::workstation::__completion__
   export -fn terminator::workstation::__use_completion__
