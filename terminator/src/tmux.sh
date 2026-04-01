@@ -20,13 +20,17 @@ function terminator::tmux::__disable__ {
 function terminator::tmux::invoke {
   local recalled=0
 
-  if (($# == 0)) && [[ -z "${TMUX_PATH_INITIALIZED}" ]]; then
-    # shellcheck source=/dev/null
-    source "${HOME}/.terminator/bin/tmux-session-create"
+  if [[ -z "${TMUX_PATH_INITIALIZED}" ]]; then
+    case "${1-}" in
+      '' | new | new-session)
+        # shellcheck source=/dev/null
+        source "${HOME}/.terminator/bin/tmux-session-create"
 
-    # We need to remove exported log functions otherwise tmux will not be happy.
-    terminator::__module__::recall terminator::logger
-    recalled=1
+        # We need to remove exported log functions otherwise tmux will not be happy.
+        terminator::__module__::recall terminator::logger
+        recalled=1
+        ;;
+    esac
   fi
 
   command tmux "$@"
