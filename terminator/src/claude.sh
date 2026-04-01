@@ -40,7 +40,25 @@ function terminator::claude::__disable__ {
   terminator::path::remove "${local_bin_path}"
 }
 
+# Guards against missing claude CLI. Logs a warning with the caller's name.
+# Optional message argument appends context to the warning.
+function terminator::claude::__require_claude__ {
+  if terminator::command::exists claude; then
+    return 0
+  fi
+
+  local msg="claude is not installed, skipping ${FUNCNAME[1]}"
+  if [[ -n "$1" ]]; then
+    msg+=": $1"
+  fi
+
+  terminator::logger::warning "${msg}"
+  return 1
+}
+
 function terminator::claude::mcp::add::context7 {
+  terminator::claude::__require_claude__ 'context7' || return 1
+
   local \
     desired_version='2.1.2' \
     current_version
@@ -77,6 +95,8 @@ function terminator::claude::mcp::add::context7 {
 # UI, tool defaults, logging) live in the auto-created
 # ~/.serena/serena_config.yml; CLI flags override it.
 function terminator::claude::mcp::add::serena {
+  terminator::claude::__require_claude__ 'serena' || return 1
+
   local \
     desired_commit='2ab807a1ff13ffc08e82070e44c3d2bfc5aa75f8' \
     repo_url='https://github.com/oraios/serena' \
@@ -154,6 +174,8 @@ function terminator::claude::settings::merge_baseline {
 function terminator::claude::plugin::marketplace::exists {
   local marketplace_repo="$1"
 
+  terminator::claude::__require_claude__ || return 1
+
   claude plugin marketplace list 2>/dev/null \
     | grep -qF "(${marketplace_repo})"
 }
@@ -161,6 +183,8 @@ function terminator::claude::plugin::marketplace::exists {
 # Registers a Claude Code plugin marketplace if not already present.
 function terminator::claude::plugin::marketplace::add {
   local marketplace_repo="$1"
+
+  terminator::claude::__require_claude__ || return 1
 
   if terminator::claude::plugin::marketplace::exists "${marketplace_repo}"; then
     return 0
@@ -174,6 +198,8 @@ function terminator::claude::plugin::marketplace::add {
 function terminator::claude::plugin::exists {
   local plugin_id="$1"
 
+  terminator::claude::__require_claude__ || return 1
+
   claude plugin list 2>/dev/null \
     | grep -qF "${plugin_id}"
 }
@@ -182,6 +208,8 @@ function terminator::claude::plugin::exists {
 # in the output block following the plugin ID line.
 function terminator::claude::plugin::is_enabled {
   local plugin_id="$1"
+
+  terminator::claude::__require_claude__ || return 1
 
   claude plugin list 2>/dev/null \
     | grep -A3 -F "${plugin_id}" \
@@ -192,6 +220,8 @@ function terminator::claude::plugin::is_enabled {
 # Handles three states: not installed, installed but disabled, installed and enabled.
 function terminator::claude::plugin::install {
   local plugin_id="$1"
+
+  terminator::claude::__require_claude__ || return 1
 
   if terminator::claude::plugin::is_enabled "${plugin_id}"; then
     return 0
@@ -227,6 +257,8 @@ function terminator::claude::plugin::register {
     shift
   done
 
+  terminator::claude::__require_claude__ "${plugin_id}" || return 1
+
   if [[ -z "${plugin_id}" ]]; then
     terminator::logger::warning '--plugin is required'
     return 1
@@ -242,6 +274,7 @@ function terminator::claude::plugin::register {
 }
 
 function terminator::claude::__export__ {
+  export -f terminator::claude::__require_claude__
   export -f terminator::claude::mcp::add::context7
   export -f terminator::claude::mcp::add::serena
   export -f terminator::claude::settings::merge_baseline
@@ -255,6 +288,7 @@ function terminator::claude::__export__ {
 
 # KCOV_EXCL_START
 function terminator::claude::__recall__ {
+  export -fn terminator::claude::__require_claude__
   export -fn terminator::claude::mcp::add::context7
   export -fn terminator::claude::mcp::add::serena
   export -fn terminator::claude::settings::merge_baseline
