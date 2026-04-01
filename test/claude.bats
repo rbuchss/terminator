@@ -7,6 +7,42 @@ setup_with_coverage 'terminator/src/claude.sh'
 bats_require_minimum_version 1.5.0
 
 ################################################################################
+# terminator::claude::__require_claude__
+################################################################################
+
+# bats test_tags=terminator::claude,terminator::claude::__require_claude__
+@test "terminator::claude::__require_claude__ returns 0 when claude exists" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  run terminator::claude::__require_claude__
+
+  assert_success
+}
+
+# bats test_tags=terminator::claude,terminator::claude::__require_claude__
+@test "terminator::claude::__require_claude__ returns 1 when claude missing" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 1; }
+
+  run terminator::claude::__require_claude__
+
+  assert_failure
+  assert_output --partial 'claude is not installed'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::__require_claude__
+@test "terminator::claude::__require_claude__ includes optional message" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 1; }
+
+  run terminator::claude::__require_claude__ 'my-plugin'
+
+  assert_failure
+  assert_output --partial 'my-plugin'
+}
+
+################################################################################
 # terminator::claude::__enable__
 ################################################################################
 
@@ -63,6 +99,28 @@ bats_require_minimum_version 1.5.0
 
   assert_success
   assert_output 'function'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::add::context7
+@test "terminator::claude::mcp::add::context7 when-claude-missing" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 1; }
+
+  run terminator::claude::mcp::add::context7
+
+  assert_failure
+  assert_output --partial 'context7'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::add::serena
+@test "terminator::claude::mcp::add::serena when-claude-missing" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 1; }
+
+  run terminator::claude::mcp::add::serena
+
+  assert_failure
+  assert_output --partial 'serena'
 }
 
 ################################################################################
@@ -194,6 +252,16 @@ bats_require_minimum_version 1.5.0
 ################################################################################
 
 # bats test_tags=terminator::claude,terminator::claude::plugin::marketplace::exists
+@test "terminator::claude::plugin::marketplace::exists when-claude-missing" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 1; }
+
+  run terminator::claude::plugin::marketplace::exists 'rbuchss/my-plugins'
+
+  assert_failure
+}
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::marketplace::exists
 @test "terminator::claude::plugin::marketplace::exists when-registered" {
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
@@ -300,6 +368,19 @@ bats_require_minimum_version 1.5.0
 ################################################################################
 # terminator::claude::plugin::register
 ################################################################################
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::register
+@test "terminator::claude::plugin::register when-claude-missing" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 1; }
+
+  run terminator::claude::plugin::register \
+    --plugin greeter@my-plugins \
+    --marketplace rbuchss/my-plugins
+
+  assert_failure
+  assert_output --partial 'greeter@my-plugins'
+}
 
 # bats test_tags=terminator::claude,terminator::claude::plugin::register
 @test "terminator::claude::plugin::register when-missing-plugin-flag" {
