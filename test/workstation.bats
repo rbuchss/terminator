@@ -531,6 +531,83 @@ _register_ssh_ws_minimal() {
 }
 
 ################################################################################
+# GCP provider: inject_ssh_key (mocked gcloud)
+################################################################################
+
+# bats test_tags=terminator::workstation,terminator::workstation::provider::gcp::inject_ssh_key
+@test "provider::gcp::inject_ssh_key appends key to instance metadata" {
+  _register_test_ws
+
+  echo "ssh-ed25519 AAAA testkey" >/tmp/test_key.pub
+
+  local gcloud_calls=()
+  # shellcheck disable=SC2317 # invoked indirectly
+  function gcloud {
+    gcloud_calls+=("$*")
+    # First call is describe (fetch existing keys), return empty
+    if [[ "$1" == 'compute' && "$2" == 'instances' && "$3" == 'describe' ]]; then
+      echo ""
+    fi
+  }
+
+  run terminator::workstation::provider::gcp::inject_ssh_key "test-ws" "/tmp/test_key.pub" "testuser"
+
+  assert_success
+  rm -f /tmp/test_key.pub
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::provider::gcp::inject_ssh_key
+@test "provider::gcp::inject_ssh_key skips duplicate key" {
+  _register_test_ws
+
+  echo "ssh-ed25519 AAAA testkey" >/tmp/test_key.pub
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function gcloud {
+    # Describe returns existing key that matches
+    if [[ "$3" == 'describe' ]]; then
+      echo "testuser:ssh-ed25519 AAAA testkey"
+    fi
+  }
+
+  run terminator::workstation::provider::gcp::inject_ssh_key "test-ws" "/tmp/test_key.pub" "testuser"
+
+  assert_success
+  assert_output --partial "NOOP: key already present"
+  rm -f /tmp/test_key.pub
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::provider::gcp::inject_ssh_key
+@test "provider::gcp::inject_ssh_key preserves existing keys when appending" {
+  _register_test_ws
+
+  echo "ssh-ed25519 BBBB newkey" >/tmp/test_key.pub
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function gcloud {
+    if [[ "$3" == 'describe' ]]; then
+      echo "alice:ssh-rsa AAAA existingkey"
+    elif [[ "$3" == 'add-metadata' ]]; then
+      # Read the file passed via --metadata-from-file ssh-keys=<(...)
+      local flag
+      for flag in "$@"; do
+        if [[ "${flag}" == ssh-keys=* ]]; then
+          cat "${flag#ssh-keys=}"
+          return
+        fi
+      done
+    fi
+  }
+
+  run terminator::workstation::provider::gcp::inject_ssh_key "test-ws" "/tmp/test_key.pub" "bob"
+
+  assert_success
+  assert_output --partial "alice:ssh-rsa AAAA existingkey"
+  assert_output --partial "bob:ssh-ed25519 BBBB newkey"
+  rm -f /tmp/test_key.pub
+}
+
+################################################################################
 # GCP provider: ssh (mocked gcloud)
 ################################################################################
 
@@ -1007,6 +1084,138 @@ _register_ssh_ws_minimal() {
 }
 
 ################################################################################
+# Dispatch: inject_ssh_key
+################################################################################
+
+# bats test_tags=terminator::workstation,terminator::workstation::inject_ssh_key
+@test "terminator::workstation::inject_ssh_key dispatches to gcp provider" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::gcloud::auth { :; }
+  _register_test_ws
+
+  echo "ssh-ed25519 AAAA testkey" >/tmp/test_key.pub
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function gcloud { echo "gcloud $*"; }
+
+  run terminator::workstation::inject_ssh_key /tmp/test_key.pub testuser
+
+  assert_success
+  rm -f /tmp/test_key.pub
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::inject_ssh_key
+@test "terminator::workstation::inject_ssh_key with -w flag" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::gcloud::auth { :; }
+  _register_two_ws
+
+  echo "ssh-ed25519 AAAA testkey" >/tmp/test_key.pub
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function gcloud { echo "gcloud $*"; }
+
+  run terminator::workstation::inject_ssh_key -w dev-ws /tmp/test_key.pub russ
+
+  assert_success
+  assert_output --partial "dev-project"
+  rm -f /tmp/test_key.pub
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::inject_ssh_key
+@test "terminator::workstation::inject_ssh_key fails for unregistered workstation" {
+  _register_test_ws
+
+  echo "ssh-ed25519 AAAA testkey" >/tmp/test_key.pub
+
+  run terminator::workstation::inject_ssh_key -w nonexistent /tmp/test_key.pub
+
+  assert_failure
+  assert_output --partial "'nonexistent' is not a registered workstation"
+  rm -f /tmp/test_key.pub
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::inject_ssh_key
+@test "terminator::workstation::inject_ssh_key --help shows usage" {
+  _register_test_ws
+
+  run terminator::workstation::inject_ssh_key --help
+
+  assert_success
+  assert_output --partial "Usage:"
+  assert_output --partial "KEY_FILE"
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::inject_ssh_key
+@test "terminator::workstation::inject_ssh_key fails without key file" {
+  _register_test_ws
+
+  run terminator::workstation::inject_ssh_key
+
+  assert_failure
+  assert_output --partial "KEY_FILE is required"
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::inject_ssh_key
+@test "terminator::workstation::inject_ssh_key fails with nonexistent key file" {
+  _register_test_ws
+
+  run terminator::workstation::inject_ssh_key /tmp/nonexistent_key.pub
+
+  assert_failure
+  assert_output --partial "key file not found"
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::inject_ssh_key
+@test "terminator::workstation::inject_ssh_key fails for unsupported provider" {
+  terminator::workstation::register \
+    --name test-ws \
+    --provider fake_provider
+
+  echo "ssh-ed25519 AAAA testkey" >/tmp/test_key.pub
+
+  run terminator::workstation::inject_ssh_key /tmp/test_key.pub
+
+  assert_failure
+  assert_output --partial "does not support inject_ssh_key"
+  rm -f /tmp/test_key.pub
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::inject_ssh_key
+@test "terminator::workstation::inject_ssh_key defaults username to USER" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::gcloud::auth { :; }
+  _register_test_ws
+
+  echo "ssh-ed25519 AAAA testkey" >/tmp/test_key.pub
+
+  local gcloud_metadata_arg
+  # shellcheck disable=SC2317 # invoked indirectly
+  function gcloud {
+    if [[ "$3" == 'add-metadata' ]]; then
+      # Capture the ssh-keys content from stdin of the process substitution
+      gcloud_metadata_arg="intercepted"
+    fi
+    echo ""
+  }
+
+  run terminator::workstation::inject_ssh_key /tmp/test_key.pub
+
+  assert_success
+  rm -f /tmp/test_key.pub
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::inject_ssh_key::usage
+@test "terminator::workstation::inject_ssh_key::usage shows help text" {
+  run terminator::workstation::inject_ssh_key::usage
+
+  assert_success
+  assert_output --partial "Usage:"
+  assert_output --partial "KEY_FILE"
+  assert_output --partial "--workstation"
+}
+
+################################################################################
 # Dispatch: ip
 ################################################################################
 
@@ -1071,6 +1280,16 @@ _register_ssh_ws_minimal() {
 
   assert_failure
   assert_output --partial "does not support get_external_ip"
+}
+
+# bats test_tags=terminator::workstation,terminator::workstation::ip
+@test "terminator::workstation::ip fails for unregistered workstation" {
+  _register_test_ws
+
+  run terminator::workstation::ip -w nonexistent
+
+  assert_failure
+  assert_output --partial "'nonexistent' is not a registered workstation"
 }
 
 # bats test_tags=terminator::workstation,terminator::workstation::ip::usage
@@ -1289,6 +1508,8 @@ _register_ssh_ws_minimal() {
     terminator::workstation::register
     terminator::workstation::use
     terminator::workstation::list
+    terminator::workstation::inject_ssh_key
+    terminator::workstation::inject_ssh_key::usage
     terminator::workstation::ip
     terminator::workstation::ip::usage
     terminator::workstation::ssh
@@ -1304,6 +1525,7 @@ _register_ssh_ws_minimal() {
     terminator::workstation::provider::gcp::rsync_export_env
     terminator::workstation::provider::gcp::rsync_rsh
     terminator::workstation::provider::gcp::get_external_ip
+    terminator::workstation::provider::gcp::inject_ssh_key
     terminator::workstation::provider::gcp::format_info
     terminator::workstation::provider::ssh::configure
     terminator::workstation::provider::ssh::__build_flags__

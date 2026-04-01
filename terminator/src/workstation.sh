@@ -301,39 +301,118 @@ USAGE_TEXT
 }
 
 function terminator::workstation::ip {
-  local __ip_instance__
+  local instance
 
-  terminator::workstation::__parse_instance__ __ip_instance__ "$@"
-  local __ip_parse_rc__=$?
+  terminator::workstation::__parse_instance__ instance "$@"
+  local parse_rc=$?
 
-  if ((__ip_parse_rc__ == 2)); then
+  if ((parse_rc == 2)); then
     terminator::workstation::ip::usage
     return 0
   fi
 
-  if [[ -z "${__ip_instance__}" ]]; then
+  if [[ -z "${instance}" ]]; then
     terminator::logger::error 'no workstation specified and no default set'
     terminator::workstation::ip::usage >&2
     return 1
   fi
 
-  if ! terminator::workstation::__is_registered__ "${__ip_instance__}"; then
-    terminator::logger::error "'${__ip_instance__}' is not a registered workstation"
+  if ! terminator::workstation::__is_registered__ "${instance}"; then
+    terminator::logger::error "'${instance}' is not a registered workstation"
     terminator::workstation::list >&2
     return 1
   fi
 
-  local __ip_provider__
-  terminator::workstation::__get_provider__ "${__ip_instance__}" __ip_provider__
+  local provider
+  terminator::workstation::__get_provider__ "${instance}" provider
 
-  local __ip_func__="terminator::workstation::provider::${__ip_provider__}::get_external_ip"
+  local func="terminator::workstation::provider::${provider}::get_external_ip"
 
-  if ! terminator::command::exists "${__ip_func__}"; then
-    terminator::logger::error "provider '${__ip_provider__}' does not support get_external_ip"
+  if ! terminator::command::exists "${func}"; then
+    terminator::logger::error "provider '${provider}' does not support get_external_ip"
     return 1
   fi
 
-  "${__ip_func__}" "${__ip_instance__}"
+  "${func}" "${instance}"
+}
+
+################################################################################
+# Inject SSH Key
+################################################################################
+
+function terminator::workstation::inject_ssh_key::usage {
+  cat <<USAGE_TEXT
+Usage: ${FUNCNAME[1]} [OPTIONS] KEY_FILE [USERNAME]
+
+  Inject an SSH public key into a workstation's authorized keys via the
+  configured provider. Appends to existing keys rather than overwriting.
+
+  Arguments:
+    KEY_FILE                  Path to the public key file (required)
+    USERNAME                  Remote username for the key (default: \$USER)
+
+  Options:
+    -w, --workstation NAME    Target workstation (default: ${TERMINATOR_WORKSTATION_CURRENT:-none})
+    -h, --help                Show this help
+
+  Examples:
+    ${FUNCNAME[1]} ~/.ssh/id_ed25519.pub
+    ${FUNCNAME[1]} ~/.ssh/id_ed25519.pub russ
+    ${FUNCNAME[1]} -w dev-ws ~/.ssh/id_ed25519.pub
+
+  Registered: ${TERMINATOR_WORKSTATION_NAMES[*]:-none}
+USAGE_TEXT
+}
+
+function terminator::workstation::inject_ssh_key {
+  local instance
+
+  terminator::workstation::__parse_instance__ instance "$@"
+  local parse_rc=$?
+
+  if ((parse_rc == 2)); then
+    terminator::workstation::inject_ssh_key::usage
+    return 0
+  fi
+
+  if [[ -z "${instance}" ]]; then
+    terminator::logger::error 'no workstation specified and no default set'
+    terminator::workstation::inject_ssh_key::usage >&2
+    return 1
+  fi
+
+  if ! terminator::workstation::__is_registered__ "${instance}"; then
+    terminator::logger::error "'${instance}' is not a registered workstation"
+    terminator::workstation::list >&2
+    return 1
+  fi
+
+  local \
+    key_file="${__TERMINATOR_WS_PASSTHROUGH__[0]}" \
+    user="${__TERMINATOR_WS_PASSTHROUGH__[1]:-${USER}}"
+
+  if [[ -z "${key_file}" ]]; then
+    terminator::logger::error 'KEY_FILE is required'
+    terminator::workstation::inject_ssh_key::usage >&2
+    return 1
+  fi
+
+  if [[ ! -f "${key_file}" ]]; then
+    terminator::logger::error "key file not found: ${key_file}"
+    return 1
+  fi
+
+  local provider
+  terminator::workstation::__get_provider__ "${instance}" provider
+
+  local func="terminator::workstation::provider::${provider}::inject_ssh_key"
+
+  if ! terminator::command::exists "${func}"; then
+    terminator::logger::error "provider '${provider}' does not support inject_ssh_key"
+    return 1
+  fi
+
+  "${func}" "${instance}" "${key_file}" "${user}"
 }
 
 ################################################################################
@@ -682,6 +761,52 @@ function terminator::workstation::provider::gcp::get_external_ip {
     --zone "${zone}" \
     --project "${project}" \
     --format='get(networkInterfaces[0].accessConfigs[0].natIP)'
+}
+
+# Injects an SSH public key into GCP instance metadata.
+# Appends to existing keys rather than overwriting. Skips if already present.
+function terminator::workstation::provider::gcp::inject_ssh_key {
+  local \
+    instance="$1" \
+    key_file="$2" \
+    user="$3" \
+    idx
+
+  terminator::workstation::__index_of__ "${instance}" idx
+
+  local \
+    zone="${TERMINATOR_WORKSTATION_GCP_ZONES[${idx}]}" \
+    project="${TERMINATOR_WORKSTATION_GCP_PROJECTS[${idx}]}"
+
+  local new_entry
+  new_entry="${user}:$(cat "${key_file}")"
+
+  # Fetch existing keys so we append rather than overwrite
+  local existing_keys
+  existing_keys="$(
+    gcloud compute instances describe "${instance}" \
+      --zone "${zone}" \
+      --project "${project}" \
+      --format='value(metadata.items[ssh-keys])'
+  )"
+
+  # Skip if this key is already present
+  if [[ -n "${existing_keys}" ]] && grep -qF "${new_entry}" <<<"${existing_keys}"; then
+    terminator::logger::info "NOOP: key already present for ${user} on ${instance}"
+    return 0
+  fi
+
+  local combined
+  if [[ -n "${existing_keys}" ]]; then
+    combined="${existing_keys}"$'\n'"${new_entry}"
+  else
+    combined="${new_entry}"
+  fi
+
+  gcloud compute instances add-metadata "${instance}" \
+    --zone "${zone}" \
+    --project "${project}" \
+    --metadata-from-file ssh-keys=<(echo "${combined}")
 }
 
 # Formats info for workstation list output.
@@ -1040,10 +1165,12 @@ function terminator::workstation::__enable__ {
   alias workstation-ssh='terminator::workstation::ssh'
   alias workstation-scp='terminator::workstation::scp'
   alias workstation-rsync='terminator::workstation::rsync'
+  alias workstation-inject-key='terminator::workstation::inject_ssh_key'
   alias workstation-ip='terminator::workstation::ip'
   alias workstation-use='terminator::workstation::use'
   alias workstation-list='terminator::workstation::list'
 
+  complete -F terminator::workstation::__completion__ workstation-inject-key
   complete -F terminator::workstation::__completion__ workstation-ip
   complete -F terminator::workstation::__completion__ workstation-ssh
   complete -F terminator::workstation::__completion__ workstation-scp
@@ -1055,10 +1182,12 @@ function terminator::workstation::__disable__ {
   unalias workstation-ssh 2>/dev/null
   unalias workstation-scp 2>/dev/null
   unalias workstation-rsync 2>/dev/null
+  unalias workstation-inject-key 2>/dev/null
   unalias workstation-ip 2>/dev/null
   unalias workstation-use 2>/dev/null
   unalias workstation-list 2>/dev/null
 
+  complete -r workstation-inject-key 2>/dev/null
   complete -r workstation-ip 2>/dev/null
   complete -r workstation-ssh 2>/dev/null
   complete -r workstation-scp 2>/dev/null
@@ -1089,6 +1218,8 @@ function terminator::workstation::__export__ {
   export -f terminator::workstation::register
   export -f terminator::workstation::use
   export -f terminator::workstation::list
+  export -f terminator::workstation::inject_ssh_key
+  export -f terminator::workstation::inject_ssh_key::usage
   export -f terminator::workstation::ip
   export -f terminator::workstation::ip::usage
   export -f terminator::workstation::ssh
@@ -1104,6 +1235,7 @@ function terminator::workstation::__export__ {
   export -f terminator::workstation::provider::gcp::rsync_export_env
   export -f terminator::workstation::provider::gcp::rsync_rsh
   export -f terminator::workstation::provider::gcp::get_external_ip
+  export -f terminator::workstation::provider::gcp::inject_ssh_key
   export -f terminator::workstation::provider::gcp::format_info
   export -f terminator::workstation::provider::ssh::configure
   export -f terminator::workstation::provider::ssh::__build_flags__
@@ -1144,6 +1276,8 @@ function terminator::workstation::__recall__ {
   export -fn terminator::workstation::register
   export -fn terminator::workstation::use
   export -fn terminator::workstation::list
+  export -fn terminator::workstation::inject_ssh_key
+  export -fn terminator::workstation::inject_ssh_key::usage
   export -fn terminator::workstation::ip
   export -fn terminator::workstation::ip::usage
   export -fn terminator::workstation::ssh
@@ -1159,6 +1293,7 @@ function terminator::workstation::__recall__ {
   export -fn terminator::workstation::provider::gcp::rsync_export_env
   export -fn terminator::workstation::provider::gcp::rsync_rsh
   export -fn terminator::workstation::provider::gcp::get_external_ip
+  export -fn terminator::workstation::provider::gcp::inject_ssh_key
   export -fn terminator::workstation::provider::gcp::format_info
   export -fn terminator::workstation::provider::ssh::configure
   export -fn terminator::workstation::provider::ssh::__build_flags__
