@@ -28,7 +28,9 @@ function terminator::claude::__enable__ {
   #
   # See: https://code.claude.com/docs/en/mcp#project-scope
   #
+  # shellcheck disable=SC2119 # optional --force flag, no args needed here
   terminator::claude::mcp::add::context7
+  # shellcheck disable=SC2119 # optional --force flag, no args needed here
   terminator::claude::mcp::add::serena
 
   terminator::claude::settings::merge_baseline
@@ -56,12 +58,25 @@ function terminator::claude::__require_claude__ {
   return 1
 }
 
+# shellcheck disable=SC2120 # optional --force flag, called without args by default
 function terminator::claude::mcp::add::context7 {
   terminator::claude::__require_claude__ 'context7' || return 1
 
   local \
+    force=0 \
     desired_version='2.1.2' \
     current_version
+
+  while (($# > 0)); do
+    case "$1" in
+      -f | --force) force=1 ;;
+      *)
+        terminator::logger::warning "unknown option: $1"
+        return 1
+        ;;
+    esac
+    shift
+  done
 
   current_version="$(
     claude mcp list \
@@ -71,7 +86,8 @@ function terminator::claude::mcp::add::context7 {
   )"
 
   if [[ -z "${current_version}" ]] \
-    || [[ "${current_version}" != "${desired_version}" ]]; then
+    || [[ "${current_version}" != "${desired_version}" ]] \
+    || ((force == 1)); then
     claude mcp remove --scope user context7 2>/dev/null || true
     claude mcp add \
       --scope user context7 \
@@ -94,13 +110,26 @@ function terminator::claude::mcp::add::context7 {
 # .serena/project.yml in each repository. Global settings (language backend,
 # UI, tool defaults, logging) live in the auto-created
 # ~/.serena/serena_config.yml; CLI flags override it.
+# shellcheck disable=SC2120 # optional --force flag, called without args by default
 function terminator::claude::mcp::add::serena {
   terminator::claude::__require_claude__ 'serena' || return 1
 
   local \
+    force=0 \
     desired_commit='2ab807a1ff13ffc08e82070e44c3d2bfc5aa75f8' \
     repo_url='https://github.com/oraios/serena' \
     current_commit
+
+  while (($# > 0)); do
+    case "$1" in
+      -f | --force) force=1 ;;
+      *)
+        terminator::logger::warning "unknown option: $1"
+        return 1
+        ;;
+    esac
+    shift
+  done
 
   current_commit="$(
     claude mcp list \
@@ -110,13 +139,76 @@ function terminator::claude::mcp::add::serena {
   )"
 
   if [[ -z "${current_commit}" ]] \
-    || [[ "${current_commit}" != "${desired_commit}" ]]; then
+    || [[ "${current_commit}" != "${desired_commit}" ]] \
+    || ((force == 1)); then
     claude mcp remove --scope user serena 2>/dev/null || true
     claude mcp add \
       --scope user serena \
       -- uvx --from "git+${repo_url}@${desired_commit}" \
       serena start-mcp-server --context claude-code --project-from-cwd \
       --open-web-dashboard False
+  fi
+}
+
+# Adds the mcp-atlassian MCP server (Jira + Confluence) at user scope.
+# Requires JIRA_* and CONFLUENCE_* env vars to be set for authentication.
+# Supports -f/--force to re-add even when the version matches, useful after
+# rotating secrets.
+# See: https://github.com/sooperset/mcp-atlassian
+function terminator::claude::mcp::add::atlassian {
+  terminator::claude::__require_claude__ 'mcp-atlassian' || return 1
+
+  local missing=()
+
+  [[ -z "${JIRA_URL}" ]] && missing+=('JIRA_URL')
+  [[ -z "${JIRA_USERNAME}" ]] && missing+=('JIRA_USERNAME')
+  [[ -z "${JIRA_API_TOKEN}" ]] && missing+=('JIRA_API_TOKEN')
+  [[ -z "${CONFLUENCE_URL}" ]] && missing+=('CONFLUENCE_URL')
+  [[ -z "${CONFLUENCE_USERNAME}" ]] && missing+=('CONFLUENCE_USERNAME')
+  [[ -z "${CONFLUENCE_API_TOKEN}" ]] && missing+=('CONFLUENCE_API_TOKEN')
+
+  if ((${#missing[@]} > 0)); then
+    terminator::logger::warning \
+      "mcp-atlassian: missing env vars: ${missing[*]}"
+    return 1
+  fi
+
+  local \
+    force=0 \
+    desired_version='0.21.0' \
+    current_version
+
+  while (($# > 0)); do
+    case "$1" in
+      -f | --force) force=1 ;;
+      *)
+        terminator::logger::warning "unknown option: $1"
+        return 1
+        ;;
+    esac
+    shift
+  done
+
+  current_version="$(
+    claude mcp list \
+      | grep 'atlassian' \
+      | grep -o 'mcp-atlassian==[0-9.]*' \
+      | cut -d= -f3
+  )"
+
+  if [[ -z "${current_version}" ]] \
+    || [[ "${current_version}" != "${desired_version}" ]] \
+    || ((force == 1)); then
+    claude mcp remove --scope user atlassian 2>/dev/null || true
+    claude mcp add \
+      --scope user atlassian \
+      -e JIRA_URL="${JIRA_URL}" \
+      -e JIRA_USERNAME="${JIRA_USERNAME}" \
+      -e JIRA_API_TOKEN="${JIRA_API_TOKEN}" \
+      -e CONFLUENCE_URL="${CONFLUENCE_URL}" \
+      -e CONFLUENCE_USERNAME="${CONFLUENCE_USERNAME}" \
+      -e CONFLUENCE_API_TOKEN="${CONFLUENCE_API_TOKEN}" \
+      -- uvx mcp-atlassian==${desired_version}
   fi
 }
 
@@ -277,6 +369,7 @@ function terminator::claude::__export__ {
   export -f terminator::claude::__require_claude__
   export -f terminator::claude::mcp::add::context7
   export -f terminator::claude::mcp::add::serena
+  export -f terminator::claude::mcp::add::atlassian
   export -f terminator::claude::settings::merge_baseline
   export -f terminator::claude::plugin::marketplace::exists
   export -f terminator::claude::plugin::marketplace::add
@@ -291,6 +384,7 @@ function terminator::claude::__recall__ {
   export -fn terminator::claude::__require_claude__
   export -fn terminator::claude::mcp::add::context7
   export -fn terminator::claude::mcp::add::serena
+  export -fn terminator::claude::mcp::add::atlassian
   export -fn terminator::claude::settings::merge_baseline
   export -fn terminator::claude::plugin::marketplace::exists
   export -fn terminator::claude::plugin::marketplace::add
