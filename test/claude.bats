@@ -112,6 +112,69 @@ bats_require_minimum_version 1.5.0
   assert_output --partial 'context7'
 }
 
+# bats test_tags=terminator::claude,terminator::claude::mcp::add::context7
+@test "terminator::claude::mcp::add::context7 when-unknown-option" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  run terminator::claude::mcp::add::context7 --bogus
+
+  assert_failure
+  assert_output --partial 'unknown option'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::add::context7
+@test "terminator::claude::mcp::add::context7 skips-when-version-matches" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$1" in
+      mcp)
+        shift
+        case "$1" in
+          list) echo 'context7: bunx -y @upstash/context7-mcp@2.1.2' ;;
+          remove)
+            echo 'should not be called'
+            return 1
+            ;;
+          add)
+            echo 'should not be called'
+            return 1
+            ;;
+        esac
+        ;;
+    esac
+  }
+
+  run terminator::claude::mcp::add::context7
+
+  assert_success
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::add::context7
+@test "terminator::claude::mcp::add::context7 force-readds-when-version-matches" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$1" in
+      mcp)
+        shift
+        case "$1" in
+          list) echo 'context7: bunx -y @upstash/context7-mcp@2.1.2' ;;
+          remove) return 0 ;;
+          add) return 0 ;;
+        esac
+        ;;
+    esac
+  }
+
+  run terminator::claude::mcp::add::context7 --force
+
+  assert_success
+}
+
+################################################################################
+# terminator::claude::mcp::add::serena
+################################################################################
+
 # bats test_tags=terminator::claude,terminator::claude::mcp::add::serena
 @test "terminator::claude::mcp::add::serena when-claude-missing" {
   # shellcheck disable=SC2317 # invoked indirectly
@@ -121,6 +184,262 @@ bats_require_minimum_version 1.5.0
 
   assert_failure
   assert_output --partial 'serena'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::add::serena
+@test "terminator::claude::mcp::add::serena when-unknown-option" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  run terminator::claude::mcp::add::serena --bogus
+
+  assert_failure
+  assert_output --partial 'unknown option'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::add::serena
+@test "terminator::claude::mcp::add::serena skips-when-commit-matches" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$1" in
+      mcp)
+        shift
+        case "$1" in
+          list) echo 'serena: uvx --from git+https://github.com/oraios/serena@2ab807a1ff13ffc08e82070e44c3d2bfc5aa75f8' ;;
+          remove)
+            echo 'should not be called'
+            return 1
+            ;;
+          add)
+            echo 'should not be called'
+            return 1
+            ;;
+        esac
+        ;;
+    esac
+  }
+
+  run terminator::claude::mcp::add::serena
+
+  assert_success
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::add::serena
+@test "terminator::claude::mcp::add::serena force-readds-when-commit-matches" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$1" in
+      mcp)
+        shift
+        case "$1" in
+          list) echo 'serena: uvx --from git+https://github.com/oraios/serena@2ab807a1ff13ffc08e82070e44c3d2bfc5aa75f8' ;;
+          remove) return 0 ;;
+          add) return 0 ;;
+        esac
+        ;;
+    esac
+  }
+
+  run terminator::claude::mcp::add::serena --force
+
+  assert_success
+}
+
+################################################################################
+# terminator::claude::mcp::add::atlassian
+################################################################################
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::add::atlassian
+@test "terminator::claude::mcp::add::atlassian function-exists" {
+  run type -t terminator::claude::mcp::add::atlassian
+
+  assert_success
+  assert_output 'function'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::add::atlassian
+@test "terminator::claude::mcp::add::atlassian when-claude-missing" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 1; }
+
+  run terminator::claude::mcp::add::atlassian
+
+  assert_failure
+  assert_output --partial 'mcp-atlassian'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::add::atlassian
+@test "terminator::claude::mcp::add::atlassian when-all-env-vars-missing" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  unset JIRA_URL JIRA_USERNAME JIRA_API_TOKEN \
+    CONFLUENCE_URL CONFLUENCE_USERNAME CONFLUENCE_API_TOKEN
+
+  run terminator::claude::mcp::add::atlassian
+
+  assert_failure
+  assert_output --partial 'missing env vars'
+  assert_output --partial 'JIRA_URL'
+  assert_output --partial 'CONFLUENCE_API_TOKEN'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::add::atlassian
+@test "terminator::claude::mcp::add::atlassian when-partial-env-vars-missing" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  export JIRA_URL='https://hill-valley.atlassian.net'
+  export JIRA_USERNAME='doc.brown@hill-valley.net'
+  export JIRA_API_TOKEN='1.21-gigawatts'
+  export CONFLUENCE_URL='https://hill-valley.atlassian.net/wiki'
+  unset CONFLUENCE_USERNAME CONFLUENCE_API_TOKEN
+
+  run terminator::claude::mcp::add::atlassian
+
+  assert_failure
+  assert_output --partial 'missing env vars'
+  assert_output --partial 'CONFLUENCE_USERNAME'
+  assert_output --partial 'CONFLUENCE_API_TOKEN'
+  refute_output --partial 'JIRA_URL'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::add::atlassian
+@test "terminator::claude::mcp::add::atlassian when-unknown-option" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  export JIRA_URL='https://hill-valley.atlassian.net'
+  export JIRA_USERNAME='doc.brown@hill-valley.net'
+  export JIRA_API_TOKEN='1.21-gigawatts'
+  export CONFLUENCE_URL='https://hill-valley.atlassian.net/wiki'
+  export CONFLUENCE_USERNAME='doc.brown@hill-valley.net'
+  export CONFLUENCE_API_TOKEN='great-scott'
+
+  run terminator::claude::mcp::add::atlassian --bogus
+
+  assert_failure
+  assert_output --partial 'unknown option'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::add::atlassian
+@test "terminator::claude::mcp::add::atlassian adds-when-not-installed" {
+  export JIRA_URL='https://hill-valley.atlassian.net'
+  export JIRA_USERNAME='doc.brown@hill-valley.net'
+  export JIRA_API_TOKEN='1.21-gigawatts'
+  export CONFLUENCE_URL='https://hill-valley.atlassian.net/wiki'
+  export CONFLUENCE_USERNAME='doc.brown@hill-valley.net'
+  export CONFLUENCE_API_TOKEN='great-scott'
+
+  local __add_called__=false
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$1" in
+      mcp)
+        shift
+        case "$1" in
+          list) echo '' ;;
+          remove) return 0 ;;
+          add) __add_called__=true ;;
+        esac
+        ;;
+    esac
+  }
+
+  run terminator::claude::mcp::add::atlassian
+
+  assert_success
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::add::atlassian
+@test "terminator::claude::mcp::add::atlassian skips-when-version-matches" {
+  export JIRA_URL='https://hill-valley.atlassian.net'
+  export JIRA_USERNAME='doc.brown@hill-valley.net'
+  export JIRA_API_TOKEN='1.21-gigawatts'
+  export CONFLUENCE_URL='https://hill-valley.atlassian.net/wiki'
+  export CONFLUENCE_USERNAME='doc.brown@hill-valley.net'
+  export CONFLUENCE_API_TOKEN='great-scott'
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$1" in
+      mcp)
+        shift
+        case "$1" in
+          list) echo 'atlassian: uvx mcp-atlassian==0.21.0' ;;
+          remove)
+            echo 'should not be called'
+            return 1
+            ;;
+          add)
+            echo 'should not be called'
+            return 1
+            ;;
+        esac
+        ;;
+    esac
+  }
+
+  run terminator::claude::mcp::add::atlassian
+
+  assert_success
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::add::atlassian
+@test "terminator::claude::mcp::add::atlassian force-readds-when-version-matches" {
+  export JIRA_URL='https://hill-valley.atlassian.net'
+  export JIRA_USERNAME='doc.brown@hill-valley.net'
+  export JIRA_API_TOKEN='1.21-gigawatts'
+  export CONFLUENCE_URL='https://hill-valley.atlassian.net/wiki'
+  export CONFLUENCE_USERNAME='doc.brown@hill-valley.net'
+  export CONFLUENCE_API_TOKEN='great-scott'
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$1" in
+      mcp)
+        shift
+        case "$1" in
+          list) echo 'atlassian: uvx mcp-atlassian==0.21.0' ;;
+          remove) return 0 ;;
+          add) return 0 ;;
+        esac
+        ;;
+    esac
+  }
+
+  run terminator::claude::mcp::add::atlassian --force
+
+  assert_success
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::add::atlassian
+@test "terminator::claude::mcp::add::atlassian updates-when-version-mismatches" {
+  export JIRA_URL='https://hill-valley.atlassian.net'
+  export JIRA_USERNAME='doc.brown@hill-valley.net'
+  export JIRA_API_TOKEN='1.21-gigawatts'
+  export CONFLUENCE_URL='https://hill-valley.atlassian.net/wiki'
+  export CONFLUENCE_USERNAME='doc.brown@hill-valley.net'
+  export CONFLUENCE_API_TOKEN='great-scott'
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$1" in
+      mcp)
+        shift
+        case "$1" in
+          list) echo 'atlassian: uvx mcp-atlassian==0.19.0' ;;
+          remove) return 0 ;;
+          add) return 0 ;;
+        esac
+        ;;
+    esac
+  }
+
+  run terminator::claude::mcp::add::atlassian
+
+  assert_success
 }
 
 ################################################################################
