@@ -28,7 +28,8 @@ function terminator::config::__disable__ {
 }
 
 function terminator::config::path {
-  local filepath="$1" \
+  local \
+    filepath="$1" \
     config_dir="${2:-${TERMINATOR_CONFIG_DIR}}"
 
   if [[ -z "${filepath}" ]]; then
@@ -98,7 +99,8 @@ function terminator::config::load {
 }
 
 function terminator::config::hooks::invoke {
-  local hook_type="$1" \
+  local \
+    hook_type="$1" \
     hooks_dir="$2" \
     hook_files=()
 

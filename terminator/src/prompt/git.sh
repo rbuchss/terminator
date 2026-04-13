@@ -176,7 +176,8 @@ function terminator::prompt::git::format {
   local files_unmerged="${13}"
   local stash_count="${14}"
 
-  local branch_symbol \
+  local \
+    branch_symbol \
     branch_color \
     upstream_same_color \
     upstream_ahead_color \
@@ -207,7 +208,8 @@ function terminator::prompt::git::format {
   terminator::styles::enclosure_color enclosure_color
   terminator::color::off color_off
 
-  local branch_message \
+  local \
+    branch_message \
     upstream_message \
     index_message \
     files_message \
@@ -392,7 +394,8 @@ function terminator::prompt::git::branch {
 }
 
 function terminator::prompt::git::stash {
-  local git_dir="$1" \
+  local \
+    git_dir="$1" \
     count=0
 
   if [[ -n "${git_dir}" ]] \

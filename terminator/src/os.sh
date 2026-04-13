@@ -6,7 +6,8 @@ source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/logger.sh"
 terminator::__module__::load || return 0
 
 function terminator::os::switch {
-  local darwin_block=terminator::os::switch::darwin_default \
+  local \
+    darwin_block=terminator::os::switch::darwin_default \
     linux_block=terminator::os::switch::linux_default \
     windows_block=terminator::os::switch::windows_default \
     unsupported_block=terminator::os::switch::unsupported_default \

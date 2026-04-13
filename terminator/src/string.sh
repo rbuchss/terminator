@@ -7,7 +7,8 @@ source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/number.sh"
 terminator::__module__::load || return 0
 
 function terminator::string::bytes_to_length_offset {
-  local value \
+  local \
+    value \
     length \
     offset \
     output \
@@ -71,7 +72,8 @@ USAGE_TEXT
 }
 
 function terminator::string::repeat {
-  local value \
+  local \
+    value \
     count \
     output_buffer \
     output \
@@ -146,7 +148,8 @@ USAGE_TEXT
 }
 
 function terminator::string::strip_colors {
-  local value \
+  local \
+    value \
     output_buffer \
     output \
     help_command=terminator::string::strip_colors::usage

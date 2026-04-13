@@ -147,7 +147,8 @@ function terminator::prompt::minimal {
 # Full BASH PS1 prompt showing current GIT or SVN repository and branch
 # with colorization to show status (red dirty/green clean).
 function terminator::prompt::full {
-  local last_command_exit="${1:-$?}" \
+  local \
+    last_command_exit="${1:-$?}" \
     left_prompt \
     right_prompt
 
@@ -177,7 +178,8 @@ function terminator::prompt::enable_env_tracing {
 }
 
 function terminator::prompt::left {
-  local last_command_exit="${1:-$?}" \
+  local \
+    last_command_exit="${1:-$?}" \
     error_status \
     ssh_status \
     user_prefix \
@@ -246,7 +248,8 @@ function terminator::prompt::left {
 }
 
 function terminator::prompt::right {
-  local last_command_exit="${1:-$?}" \
+  local \
+    last_command_exit="${1:-$?}" \
     right_prompt_prefix \
     right_prompt_content \
     right_prompt_suffix \
@@ -483,7 +486,8 @@ function terminator::prompt::version_control {
 }
 
 function terminator::prompt::jobs_info {
-  local jobs_symbol_color \
+  local \
+    jobs_symbol_color \
     jobs_symbol \
     jobs_content \
     enclosure_color \
@@ -506,7 +510,8 @@ function terminator::prompt::jobs_info {
 }
 
 function terminator::prompt::timestamp {
-  local timestamp_symbol_color \
+  local \
+    timestamp_symbol_color \
     timestamp_symbol \
     timestamp_content \
     enclosure_color \
@@ -549,7 +554,8 @@ function terminator::prompt::static::command_symbol_prefix {
 }
 
 function terminator::prompt::command_symbol {
-  local last_command_exit="${1:-$?}" \
+  local \
+    last_command_exit="${1:-$?}" \
     command_symbol_color \
     command_symbol_
 
@@ -644,7 +650,8 @@ function terminator::prompt::static::right_prompt_suffix {
 }
 
 function terminator::prompt::print_if_exists {
-  local message_color \
+  local \
+    message_color \
     message_content \
     color_off \
     left_padding=0 \

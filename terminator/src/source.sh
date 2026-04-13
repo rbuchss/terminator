@@ -37,7 +37,8 @@ function terminator::source::__disable__ {
 }
 
 function terminator::source::bash_profile {
-  local refresh_all_modules=0 \
+  local \
+    refresh_all_modules=0 \
     refresh_modules=()
 
   while (($# != 0)); do
@@ -81,7 +82,8 @@ USAGE_TEXT
 }
 
 function terminator::source::bash_profile::completion {
-  local word="${COMP_WORDS[COMP_CWORD]}" \
+  local \
+    word="${COMP_WORDS[COMP_CWORD]}" \
     suggestions=("${TERMINATOR_MODULES_LOADED[@]}")
 
   COMPREPLY=()

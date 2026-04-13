@@ -11,7 +11,8 @@ TERMINATOR_COMMAND_LOG_OUTPUT_NONE='/dev/null'
 TERMINATOR_COMMAND_INVALID_STATUS=255
 
 function terminator::command::exists {
-  local argument \
+  local \
+    argument \
     log_level="${TERMINATOR_COMMAND_LOG_LEVEL_DEFAULT}" \
     log_output="${TERMINATOR_COMMAND_LOG_OUTPUT_NONE}" \
     arguments=()
@@ -62,7 +63,8 @@ function terminator::command::exists {
 }
 
 function terminator::command::any_exist {
-  local argument \
+  local \
+    argument \
     log_level="${TERMINATOR_COMMAND_LOG_LEVEL_DEFAULT}" \
     log_output="${TERMINATOR_COMMAND_LOG_OUTPUT_NONE}" \
     arguments=()
@@ -111,7 +113,8 @@ function terminator::command::any_exist {
 }
 
 function terminator::command::none_exist {
-  local argument \
+  local \
+    argument \
     log_level="${TERMINATOR_COMMAND_LOG_LEVEL_DEFAULT}" \
     log_output="${TERMINATOR_COMMAND_LOG_OUTPUT_NONE}" \
     arguments=()
@@ -162,7 +165,8 @@ function terminator::command::none_exist {
 }
 
 function terminator::command::all_exist {
-  local argument \
+  local \
+    argument \
     log_level="${TERMINATOR_COMMAND_LOG_LEVEL_DEFAULT}" \
     log_output="${TERMINATOR_COMMAND_LOG_OUTPUT_NONE}" \
     arguments=()
