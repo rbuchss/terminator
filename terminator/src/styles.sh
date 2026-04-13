@@ -68,9 +68,10 @@ function terminator::styles::char_coalesce {
 }
 
 function terminator::styles::command_coalesce {
-  local commands=() \
-  invalid_commands=() \
-  arguments=()
+  local \
+    commands=() \
+    invalid_commands=() \
+    arguments=()
 
   while (($# != 0)); do
     case "$1" in

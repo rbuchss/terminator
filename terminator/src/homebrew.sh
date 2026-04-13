@@ -23,7 +23,8 @@ function terminator::homebrew::package::is_installed {
 }
 
 function terminator::homebrew::__enable__ {
-  local brew_path_exists=0 \
+  local \
+    brew_path_exists=0 \
     possible_brew_paths=(/usr/local/bin/brew /opt/homebrew/bin/brew)
 
   for brew_path in "${possible_brew_paths[@]}"; do

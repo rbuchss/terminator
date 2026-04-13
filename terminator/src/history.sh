@@ -26,7 +26,8 @@ function terminator::history::stats {
 }
 
 function terminator::history::search {
-  local found_command=0 \
+  local \
+    found_command=0 \
     search_command \
     search_commands=(
       'rg'

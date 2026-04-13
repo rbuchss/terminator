@@ -40,7 +40,8 @@ function terminator::vim::__disable__ {
 }
 
 function terminator::vim::get_command {
-  local vim_command \
+  local \
+    vim_command \
     vim_commands=(
       nvim
       vim
@@ -96,7 +97,8 @@ function terminator::vim::invoke {
 }
 
 function terminator::vim::open::filename_match {
-  local found_command=0 \
+  local \
+    found_command=0 \
     search_command \
     search_commands=(
       'rg'
@@ -172,7 +174,8 @@ function terminator::vim::open::filename_match::find {
 }
 
 function terminator::vim::open::content_match {
-  local found_command=0 \
+  local \
+    found_command=0 \
     search_command \
     search_commands=(
       'rg'
@@ -250,7 +253,8 @@ function terminator::vim::open::content_match::grep {
 }
 
 function terminator::vim::open::git_diff {
-  local found_ref=0 \
+  local \
+    found_ref=0 \
     ref \
     root_dir \
     option_read_mode='REF' \

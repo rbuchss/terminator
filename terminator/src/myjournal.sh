@@ -29,7 +29,8 @@ function terminator::myjournal::__disable__ {
 }
 
 function terminator::myjournal::invoke {
-  local journal_dir \
+  local \
+    journal_dir \
     journal_file \
     journal_filepath \
     journal_files=("$@") \
@@ -198,7 +199,8 @@ function terminator::myjournal::new_entry {
 }
 
 function terminator::myjournal::completion {
-  local journal_dir \
+  local \
+    journal_dir \
     word="${COMP_WORDS[COMP_CWORD]}"
 
   journal_dir="$(terminator::myjournal::root_dir)"

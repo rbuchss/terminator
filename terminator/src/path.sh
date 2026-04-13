@@ -148,84 +148,85 @@ function terminator::paths::clear {
 }
 
 function terminator::path::__prepend__ {
-  local _output_var \
-    _output_var_used=0 \
-    _path \
-    _path_used=0 \
-    _force=0 \
-    _arguments=() \
-    _ignored_count=0 \
-    __prepend_tmp_path \
-    _argument \
-    _invalid_status=255
+  local \
+    __output_var__ \
+    output_var_used=0 \
+    __path__ \
+    path_used=0 \
+    force=0 \
+    arguments=() \
+    ignored_count=0 \
+    prepend_tmp_path \
+    argument \
+    invalid_status=255
 
   while (($# != 0)); do
     case "$1" in
       -h | --help)
         >&2 terminator::path::__prepend__::usage
-        return "${_invalid_status}"
+        return "${invalid_status}"
         ;;
       -f | --force)
-        _force=1
+        force=1
         ;;
       -p | --path)
-        if ((_path_used == 1)); then
+        if ((path_used == 1)); then
           terminator::logger::error "$1 specified more than once"
           >&2 terminator::path::__prepend__::usage
-          return "${_invalid_status}"
+          return "${invalid_status}"
         fi
 
         shift
-        _path="$1"
-        _path_used=1
+        __path__="$1"
+        path_used=1
         ;;
       -o | --output)
-        if ((_output_var_used == 1)); then
+        if ((output_var_used == 1)); then
           terminator::logger::error "$1 specified more than once"
           >&2 terminator::path::__prepend__::usage
-          return "${_invalid_status}"
+          return "${invalid_status}"
         fi
 
         shift
-        _output_var="$1"
-        _output_var_used=1
+        __output_var__="$1"
+        output_var_used=1
         ;;
       -*)
         terminator::logger::error "invalid option: '$1'"
         >&2 terminator::path::__prepend__::usage
-        return "${_invalid_status}"
+        return "${invalid_status}"
         ;;
       *)
-        _arguments+=("$1")
+        arguments+=("$1")
         ;;
     esac
     shift
   done
 
-  for _argument in "${_arguments[@]}"; do
-    if terminator::path::__excludes__ "${_path}" "${_argument}"; then
-      _path="${_argument}${_path:+:${_path}}"
-    elif ((_force == 1)); then
-      unset -v __prepend_tmp_path
+  for argument in "${arguments[@]}"; do
+    if terminator::path::__excludes__ "${__path__}" "${argument}"; then
+      __path__="${argument}${__path__:+:${__path__}}"
+    elif ((force == 1)); then
+      unset -v prepend_tmp_path
 
       terminator::path::__remove__ \
-        --output __prepend_tmp_path \
-        --path "${_path}" \
-        "${_argument}"
+        --output prepend_tmp_path \
+        --path "${__path__}" \
+        "${argument}"
 
-      _path="${_argument}${__prepend_tmp_path:+:${__prepend_tmp_path}}"
+      __path__="${argument}${prepend_tmp_path:+:${prepend_tmp_path}}"
     else
-      ((_ignored_count++))
+      ((ignored_count++))
     fi
   done
 
-  if [[ -n "${_output_var}" ]]; then
-    printf -v "${_output_var}" '%s' "${_path}"
+  if [[ -n "${__output_var__}" ]]; then
+    printf -v "${__output_var__}" '%s' "${__path__}"
   else
-    echo "${_path}"
+    echo "${__path__}"
   fi
 
-  return "${_ignored_count}"
+  return "${ignored_count}"
 }
 
 function terminator::path::__prepend__::usage {
@@ -252,84 +253,85 @@ USAGE_TEXT
 }
 
 function terminator::path::__append__ {
-  local _output_var \
-    _output_var_used=0 \
-    _path \
-    _path_used=0 \
-    _force=0 \
-    _arguments=() \
-    _ignored_count=0 \
-    __append_tmp_path \
-    _argument \
-    _invalid_status=255
+  local \
+    __output_var__ \
+    output_var_used=0 \
+    __path__ \
+    path_used=0 \
+    force=0 \
+    arguments=() \
+    ignored_count=0 \
+    append_tmp_path \
+    argument \
+    invalid_status=255
 
   while (($# != 0)); do
     case "$1" in
       -h | --help)
         >&2 terminator::path::__append__::usage
-        return "${_invalid_status}"
+        return "${invalid_status}"
         ;;
       -f | --force)
-        _force=1
+        force=1
         ;;
       -p | --path)
-        if ((_path_used == 1)); then
+        if ((path_used == 1)); then
           terminator::logger::error "$1 specified more than once"
           >&2 terminator::path::__append__::usage
-          return "${_invalid_status}"
+          return "${invalid_status}"
         fi
 
         shift
-        _path="$1"
-        _path_used=1
+        __path__="$1"
+        path_used=1
         ;;
       -o | --output)
-        if ((_output_var_used == 1)); then
+        if ((output_var_used == 1)); then
           terminator::logger::error "$1 specified more than once"
           >&2 terminator::path::__append__::usage
-          return "${_invalid_status}"
+          return "${invalid_status}"
         fi
 
         shift
-        _output_var="$1"
-        _output_var_used=1
+        __output_var__="$1"
+        output_var_used=1
         ;;
       -*)
         terminator::logger::error "invalid option: '$1'"
         >&2 terminator::path::__append__::usage
-        return "${_invalid_status}"
+        return "${invalid_status}"
         ;;
       *)
-        _arguments+=("$1")
+        arguments+=("$1")
         ;;
     esac
     shift
   done
 
-  for _argument in "${_arguments[@]}"; do
-    if terminator::path::__excludes__ "${_path}" "${_argument}"; then
-      _path="${_path:+${_path}:}${_argument}"
-    elif ((_force == 1)); then
-      unset -v __append_tmp_path
+  for argument in "${arguments[@]}"; do
+    if terminator::path::__excludes__ "${__path__}" "${argument}"; then
+      __path__="${__path__:+${__path__}:}${argument}"
+    elif ((force == 1)); then
+      unset -v append_tmp_path
 
       terminator::path::__remove__ \
-        --output __append_tmp_path \
-        --path "${_path}" \
-        "${_argument}"
+        --output append_tmp_path \
+        --path "${__path__}" \
+        "${argument}"
 
-      _path="${__append_tmp_path:+${__append_tmp_path}:}${_argument}"
+      __path__="${append_tmp_path:+${append_tmp_path}:}${argument}"
     else
-      ((_ignored_count++))
+      ((ignored_count++))
     fi
   done
 
-  if [[ -n "${_output_var}" ]]; then
-    printf -v "${_output_var}" '%s' "${_path}"
+  if [[ -n "${__output_var__}" ]]; then
+    printf -v "${__output_var__}" '%s' "${__path__}"
   else
-    echo "${_path}"
+    echo "${__path__}"
   fi
 
-  return "${_ignored_count}"
+  return "${ignored_count}"
 }
 
 function terminator::path::__append__::usage {
@@ -356,69 +358,70 @@ USAGE_TEXT
 }
 
 function terminator::path::__remove__ {
-  local _output_var \
-    _output_var_used=0 \
-    _path \
-    _path_used=0 \
-    _arguments=() \
-    _argument \
-    _invalid_status=255
+  local \
+    __output_var__ \
+    output_var_used=0 \
+    __path__ \
+    path_used=0 \
+    arguments=() \
+    argument \
+    invalid_status=255
 
   while (($# != 0)); do
     case "$1" in
       -h | --help)
         >&2 terminator::path::__remove__::usage
-        return "${_invalid_status}"
+        return "${invalid_status}"
         ;;
       -p | --path)
-        if ((_path_used == 1)); then
+        if ((path_used == 1)); then
           terminator::logger::error "$1 specified more than once"
           >&2 terminator::path::__remove__::usage
-          return "${_invalid_status}"
+          return "${invalid_status}"
         fi
 
         shift
-        _path="$1"
-        _path_used=1
+        __path__="$1"
+        path_used=1
         ;;
       -o | --output)
-        if ((_output_var_used == 1)); then
+        if ((output_var_used == 1)); then
           terminator::logger::error "$1 specified more than once"
           >&2 terminator::path::__remove__::usage
-          return "${_invalid_status}"
+          return "${invalid_status}"
         fi
 
         shift
-        _output_var="$1"
-        _output_var_used=1
+        __output_var__="$1"
+        output_var_used=1
         ;;
       -*)
         terminator::logger::error "invalid option: '$1'"
         >&2 terminator::path::__remove__::usage
-        return "${_invalid_status}"
+        return "${invalid_status}"
         ;;
       *)
-        _arguments+=("$1")
+        arguments+=("$1")
         ;;
     esac
     shift
   done
 
-  _path=":${_path}:"
+  __path__=":${__path__}:"
 
-  for _argument in "${_arguments[@]}"; do
-    if terminator::path::__includes__ "${_path}" "${_argument}"; then
-      _path="${_path//:${_argument}:/:}"
+  for argument in "${arguments[@]}"; do
+    if terminator::path::__includes__ "${__path__}" "${argument}"; then
+      __path__="${__path__//:${argument}:/:}"
     fi
   done
 
-  _path="${_path#:}"
-  _path="${_path%:}"
+  __path__="${__path__#:}"
+  __path__="${__path__%:}"
 
-  if [[ -n "${_output_var}" ]]; then
-    printf -v "${_output_var}" '%s' "${_path}"
+  if [[ -n "${__output_var__}" ]]; then
+    printf -v "${__output_var__}" '%s' "${__path__}"
   else
-    echo "${_path}"
+    echo "${__path__}"
   fi
 }
 
