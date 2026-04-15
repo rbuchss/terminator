@@ -111,6 +111,45 @@ bats_require_minimum_version 1.5.0
 }
 
 ################################################################################
+# terminator::awake::completion
+################################################################################
+
+# bats test_tags=terminator::awake,terminator::awake::completion
+@test "terminator::awake::completion function-exists" {
+  run type -t terminator::awake::completion
+
+  assert_success
+  assert_output 'function'
+}
+
+# bats test_tags=terminator::awake,terminator::awake::completion
+@test "terminator::awake::completion suggests-all-for-empty-word" {
+  COMP_WORDS=('awake' '')
+  COMP_CWORD=1
+
+  terminator::awake::completion
+
+  # All defaults should appear
+  [[ " ${COMPREPLY[*]} " == *' 0.5 '* ]]
+  [[ " ${COMPREPLY[*]} " == *' 2 '* ]]
+  [[ " ${COMPREPLY[*]} " == *' 24 '* ]]
+}
+
+# bats test_tags=terminator::awake,terminator::awake::completion
+@test "terminator::awake::completion filters-by-prefix" {
+  COMP_WORDS=('awake' '1')
+  COMP_CWORD=1
+
+  terminator::awake::completion
+
+  # '1' should match only '1' and '12'
+  [[ " ${COMPREPLY[*]} " == *' 1 '* ]]
+  [[ " ${COMPREPLY[*]} " == *' 12 '* ]]
+  [[ " ${COMPREPLY[*]} " != *' 2 '* ]]
+  [[ " ${COMPREPLY[*]} " != *' 24 '* ]]
+}
+
+################################################################################
 # terminator::awake::__enable__
 ################################################################################
 

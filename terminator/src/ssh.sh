@@ -137,7 +137,7 @@ function terminator::ssh::add_key {
     --linux terminator::ssh::add_key::os::linux \
     --windows terminator::ssh::add_key::os::windows \
     --unsupported terminator::ssh::add_key::os::unsupported \
-    "${ssh_key_path}"
+    -- "${ssh_key_path}"
 }
 
 function terminator::ssh::add_key::os::darwin {
