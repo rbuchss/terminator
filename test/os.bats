@@ -138,6 +138,42 @@ bats_require_minimum_version 1.5.0
   assert_output 'arg1 arg2 arg3'
 }
 
+# bats test_tags=terminator::os,terminator::os::switch
+@test "terminator::os::switch forwards-flags-after-double-dash" {
+  local original_ostype="${OSTYPE}"
+  OSTYPE='darwin23'
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function os_switch_test_handler { printf '[%s]' "$@"; }
+
+  run terminator::os::switch \
+    --darwin os_switch_test_handler \
+    -- '-n' '-e' 'value'
+
+  OSTYPE="${original_ostype}"
+
+  assert_success
+  assert_output '[-n][-e][value]'
+}
+
+# bats test_tags=terminator::os,terminator::os::switch
+@test "terminator::os::switch mixes-positional-and-forwarded-flags" {
+  local original_ostype="${OSTYPE}"
+  OSTYPE='darwin23'
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function os_switch_test_handler { printf '[%s]' "$@"; }
+
+  run terminator::os::switch \
+    --darwin os_switch_test_handler \
+    'first' -- '-flag' 'second'
+
+  OSTYPE="${original_ostype}"
+
+  assert_success
+  assert_output '[first][-flag][second]'
+}
+
 ################################################################################
 # terminator::os::switch::usage
 ################################################################################

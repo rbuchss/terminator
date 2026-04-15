@@ -5,6 +5,21 @@ source "${TERMINATOR_MODULE_SRC_DIR:-${BASH_SOURCE[0]%/*}}/logger.sh"
 
 terminator::__module__::load || return 0
 
+# Dispatches to an OS-specific handler based on "${OSTYPE}".
+# Positional args after the handler options are forwarded to the selected handler.
+#
+# Usage: terminator::os::switch [OPTIONS] [--] [HANDLER_ARGS...]
+#   --darwin FN       Handler for darwin (macOS)
+#   --linux FN        Handler for linux
+#   --windows FN      Handler for windows (msys)
+#   --unsupported FN  Handler for unrecognized OSTYPE
+#   --                End-of-options marker; everything after is passed verbatim
+#                     to the handler, including args starting with '-'. Use this
+#                     whenever the caller forwards positional args, as a POSIX
+#                     safeguard against flag collisions.
+#
+# Example (no args): terminator::os::switch --darwin fn_mac --linux fn_nix
+# Example (args):    terminator::os::switch --darwin fn_mac -- "${path}" -v
 function terminator::os::switch {
   local \
     darwin_block=terminator::os::switch::darwin_default \
@@ -34,6 +49,13 @@ function terminator::os::switch {
       -u | --unsupported)
         shift
         unsupported_block="$1"
+        ;;
+      --)
+        # POSIX end-of-options marker: treat everything after as positional
+        # arguments, allowing callers to pass '-*' flags through to the handler.
+        shift
+        arguments+=("$@")
+        break
         ;;
       -*)
         terminator::logger::error "invalid option: '$1'"
@@ -65,11 +87,16 @@ Usage: ${FUNCNAME[1]} [OPTIONS] <args>
   -l, --linux        Function, command or script used to run if OS is linux.
                      Default: terminator::os::switch::linux_default
 
-  -d, --windows      Function, command or script used to run if OS is windows.
+  -w, --windows      Function, command or script used to run if OS is windows.
                      Default: terminator::os::switch::windows_default
 
-  -d, --unsupported  Function, command or script used to run if OS is unsupported.
+  -u, --unsupported  Function, command or script used to run if OS is unsupported.
                      Default: terminator::os::switch::unsupported_default
+
+  --                 End of options; remaining args are forwarded to the handler
+                     as-is, including those starting with '-'. Use this whenever
+                     the caller forwards positional args, as a POSIX safeguard
+                     against flag collisions.
 
   -h, --help         Display this help message
 USAGE_TEXT
