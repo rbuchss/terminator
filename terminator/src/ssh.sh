@@ -111,6 +111,14 @@ function terminator::ssh::find_and_add_keys {
   done
 }
 
+function terminator::ssh::add_keys {
+  local ssh_key_path
+
+  for ssh_key_path in "$@"; do
+    terminator::ssh::add_key "${ssh_key_path}"
+  done
+}
+
 function terminator::ssh::add_key {
   local ssh_key_path="${1:?}"
 
@@ -255,6 +263,7 @@ function terminator::ssh::__export__ {
   export -f terminator::ssh::is_ssh_sudo
   export -f terminator::ssh::find_keys
   export -f terminator::ssh::find_and_add_keys
+  export -f terminator::ssh::add_keys
   export -f terminator::ssh::add_key
   export -f terminator::ssh::add_key::os::darwin
   export -f terminator::ssh::add_key::os::linux
@@ -271,6 +280,7 @@ function terminator::ssh::__recall__ {
   export -fn terminator::ssh::is_ssh_sudo
   export -fn terminator::ssh::find_keys
   export -fn terminator::ssh::find_and_add_keys
+  export -fn terminator::ssh::add_keys
   export -fn terminator::ssh::add_key
   export -fn terminator::ssh::add_key::os::darwin
   export -fn terminator::ssh::add_key::os::linux

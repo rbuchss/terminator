@@ -128,6 +128,24 @@ bats_require_minimum_version 1.5.0
 }
 
 ################################################################################
+# terminator::ssh::add_keys
+################################################################################
+
+# bats test_tags=terminator::ssh,terminator::ssh::add_keys
+@test "terminator::ssh::add_keys no-arguments" {
+  run terminator::ssh::add_keys
+
+  assert_success
+}
+
+# bats test_tags=terminator::ssh,terminator::ssh::add_keys
+@test "terminator::ssh::add_keys missing-private-keys" {
+  run --separate-stderr terminator::ssh::add_keys '/nonexistent/key1' '/nonexistent/key2'
+
+  assert_failure 1
+}
+
+################################################################################
 # terminator::ssh::add_key::os::unsupported
 ################################################################################
 
