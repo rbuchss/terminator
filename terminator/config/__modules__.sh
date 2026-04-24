@@ -25,6 +25,7 @@ terminator::source \
   "${HOME}/.terminator/src/kubectl.sh" \
   "${HOME}/.terminator/src/less.sh" \
   "${HOME}/.terminator/src/ls.sh" \
+  "${HOME}/.terminator/src/mise.sh" \
   "${HOME}/.terminator/src/myjournal.sh" \
   "${HOME}/.terminator/src/mysql.sh" \
   "${HOME}/.terminator/src/network.sh" \
@@ -71,6 +72,7 @@ __modules__=(
   terminator::kubectl
   terminator::less
   terminator::ls
+  terminator::mise
   terminator::myjournal
   terminator::mysql
   terminator::network
