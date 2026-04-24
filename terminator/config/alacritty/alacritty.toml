@@ -1,0 +1,105 @@
+################################################################################
+# Alacritty Config
+#
+# Ref:
+#   - https://alacritty.org/config-alacritty.html
+#
+################################################################################
+
+# NOTE: Alacritty uses xterm-256color by default via TERM env var
+
+################################################################################
+# Window
+################################################################################
+
+[window]
+# decorations = "buttonless"
+opacity = 0.95
+dynamic_title = true
+padding.x = 6
+padding.y = 4
+
+# NOTE: this allows meta keys to be used in the terminal (matching Ghostty).
+option_as_alt = "Both"
+
+################################################################################
+# Font
+################################################################################
+
+[font]
+size = 12
+
+[font.normal]
+family = "JetBrainsMonoNL Nerd Font Mono"
+style = "Regular"
+
+[font.bold]
+style = "Bold"
+
+[font.italic]
+style = "Italic"
+
+[font.bold_italic]
+style = "Bold Italic"
+
+################################################################################
+# Appearance - Catppuccin Mocha
+################################################################################
+
+[colors.primary]
+background = "#1e1e2e"
+foreground = "#cdd6f4"
+
+[colors.cursor]
+cursor = "#f5e0dc"
+text = "#1e1e2e"
+
+[colors.selection]
+background = "#45475a"
+text = "#cdd6f4"
+
+[colors.normal]
+black   = "#181825"
+red     = "#f38ba8"
+green   = "#a6e3a1"
+yellow  = "#f9e2af"
+blue    = "#89b4fa"
+magenta = "#f5c2e7"
+cyan    = "#94e2d5"
+white   = "#bac2de"
+
+[colors.bright]
+black   = "#585b70"
+red     = "#f38ba8"
+green   = "#a6e3a1"
+yellow  = "#f9e2af"
+blue    = "#89b4fa"
+magenta = "#f5c2e7"
+cyan    = "#94e2d5"
+white   = "#a6adc8"
+
+################################################################################
+# Cursor
+################################################################################
+
+[cursor]
+style.shape = "Beam"
+style.blinking = "On"
+
+# [mouse]
+# hide_when_typing = true
+
+################################################################################
+# Keybindings
+################################################################################
+
+[keyboard]
+bindings = [
+  { key = "V", mods = "Command", action = "Paste" },
+  { key = "C", mods = "Command", action = "Copy" },
+  { key = "N", mods = "Command", action = "SpawnNewInstance" },
+  # TODO: add keybind for toggling opacity when available
+  # { key = "U", mods = "Command", action = "DecreaseOpacity" },
+  # { key = "U", mods = "Command|Shift", action = "IncreaseOpacity" },
+]
+
