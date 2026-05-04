@@ -37,14 +37,21 @@ local module="$1" \
 
 ## Arithmetic comparisons
 
-Prefer `(( ))` for arithmetic over `[[ ]]` with `-eq`, `-ne`, `-gt`, etc.:
+Prefer `((...))` for arithmetic over `[[ ]]` with `-eq`, `-ne`, `-gt`, etc.
+`shfmt` strips spaces immediately inside the outer parens, so write the
+short form to begin with and avoid format-check churn:
 
 ```bash
 # Good
+((${#array[@]} == 0))
+((count > 5))
+((BASH_VERSINFO[0] >= 4))
+
+# Bad: spaces inside outer parens — shfmt will rewrite these
 (( ${#array[@]} == 0 ))
 (( count > 5 ))
 
-# Bad
+# Bad: use arithmetic context, not [[ ]]
 [[ ${#array[@]} -eq 0 ]]
 [[ "${count}" -gt 5 ]]
 ```
