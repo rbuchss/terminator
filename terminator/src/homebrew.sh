@@ -84,11 +84,55 @@ function terminator::homebrew::cask::clean {
 }
 
 function terminator::homebrew::__enable__::bash_completion {
-  if terminator::homebrew::package::is_installed bash-completion; then
-    terminator::source "$(brew --prefix)/etc/bash_completion"
-  else
+  if ! terminator::homebrew::package::is_installed bash-completion; then
     terminator::logger::warning 'homebrew package bash-completion is not installed'
+    return
   fi
+
+  terminator::homebrew::__enable__::complete_nosort_shim
+  terminator::source "$(brew --prefix)/etc/bash_completion"
+}
+
+# Print arguments to `complete`, with any `-o nosort` pair removed.
+# Each surviving argument is written on its own line so callers can
+# read it back into an array.
+function terminator::homebrew::__strip_nosort_option__ {
+  local \
+    i \
+    arg \
+    next
+  for ((i = 1; i <= $#; i++)); do
+    arg="${!i}"
+    if [[ "${arg}" == "-o" ]] && ((i < $#)); then
+      next=$((i + 1))
+      if [[ "${!next}" == "nosort" ]]; then
+        ((i++)) || true
+        continue
+      fi
+    fi
+    printf '%s\n' "${arg}"
+  done
+}
+
+# Bash < 4.4 doesn't recognize `complete -o nosort`. Many homebrew
+# completion files use it, which spams login with errors. Wrap the
+# builtin so the option is stripped on old bash.
+function terminator::homebrew::__enable__::complete_nosort_shim {
+  if ((BASH_VERSINFO[0] > 4)) \
+    || ((BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] >= 4)); then
+    return
+  fi
+
+  # shellcheck disable=SC2317 # invoked indirectly via tab completion
+  complete() {
+    local \
+      args=() \
+      line
+    while IFS= read -r line; do
+      args+=("${line}")
+    done < <(terminator::homebrew::__strip_nosort_option__ "$@")
+    builtin complete "${args[@]}"
+  }
 }
 
 function terminator::homebrew::__export__ {
