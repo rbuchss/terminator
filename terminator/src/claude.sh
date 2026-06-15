@@ -210,7 +210,7 @@ function terminator::claude::mcp::add::atlassian {
   local \
     force \
     version \
-    desired_version='0.21.0' \
+    desired_version='0.21.1' \
     current_version
 
   terminator::claude::mcp::__parse_options__ force version "$@" || return 1
