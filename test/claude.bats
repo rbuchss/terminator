@@ -765,3 +765,550 @@ bats_require_minimum_version 1.5.0
 
   assert_success
 }
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::register
+@test "terminator::claude::plugin::register when-unknown-option" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  run terminator::claude::plugin::register \
+    --plugin greeter@my-plugins \
+    --marketplace rbuchss/my-plugins \
+    --bogus
+
+  assert_failure
+  assert_output --partial 'unknown option'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::register
+@test "terminator::claude::plugin::register with-version-delegates-to-sync" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'plugin list')
+        printf '  ❯ greeter@my-plugins\n    Version: 1.0.0\n    Scope: user\n    Status: ✔ enabled\n'
+        ;;
+      *)
+        echo "should not be called: $*"
+        return 1
+        ;;
+    esac
+  }
+
+  # Installed version matches the pin, so sync is a no-op (no marketplace or
+  # install calls).
+  run terminator::claude::plugin::register \
+    --plugin greeter@my-plugins \
+    --marketplace rbuchss/my-plugins \
+    --version 1.0.0
+
+  assert_success
+}
+
+################################################################################
+# terminator::claude::mcp::__parse_options__
+################################################################################
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::__parse_options__
+@test "terminator::claude::mcp::__parse_options__ defaults" {
+  local force version
+
+  terminator::claude::mcp::__parse_options__ force version
+
+  [[ "${force}" == 0 ]]
+  [[ -z "${version}" ]]
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::__parse_options__
+@test "terminator::claude::mcp::__parse_options__ captures-force-and-version" {
+  local force version
+
+  terminator::claude::mcp::__parse_options__ force version --force --version 1.2.3
+
+  [[ "${force}" == 1 ]]
+  [[ "${version}" == 1.2.3 ]]
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::__parse_options__
+@test "terminator::claude::mcp::__parse_options__ when-unknown-option" {
+  local force version
+
+  run terminator::claude::mcp::__parse_options__ force version --bogus
+
+  assert_failure
+  assert_output --partial 'unknown option'
+}
+
+################################################################################
+# terminator::claude::mcp::__sync__
+################################################################################
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::__sync__
+@test "terminator::claude::mcp::__sync__ skips-when-value-matches" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    echo 'should not be called'
+    return 1
+  }
+
+  run terminator::claude::mcp::__sync__ foo 1.0.0 1.0.0 0 -- cmd
+
+  assert_success
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::__sync__
+@test "terminator::claude::mcp::__sync__ readds-when-value-differs" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude { return 0; }
+
+  run terminator::claude::mcp::__sync__ foo 1.0.0 2.0.0 0 -- cmd
+
+  assert_success
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::__sync__
+@test "terminator::claude::mcp::__sync__ readds-when-current-empty" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude { return 0; }
+
+  run terminator::claude::mcp::__sync__ foo '' 2.0.0 0 -- cmd
+
+  assert_success
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::__sync__
+@test "terminator::claude::mcp::__sync__ force-readds-when-value-matches" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude { return 0; }
+
+  run terminator::claude::mcp::__sync__ foo 1.0.0 1.0.0 1 -- cmd
+
+  assert_success
+}
+
+################################################################################
+# terminator::claude::mcp::add::* --version override
+################################################################################
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::add::context7
+@test "terminator::claude::mcp::add::context7 version-override-readds-on-mismatch" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$1" in
+      mcp)
+        shift
+        case "$1" in
+          list) echo 'context7: bunx -y @upstash/context7-mcp@2.1.2' ;;
+          remove) return 0 ;;
+          add) return 0 ;;
+        esac
+        ;;
+    esac
+  }
+
+  run terminator::claude::mcp::add::context7 --version 9.9.9
+
+  assert_success
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::add::context7
+@test "terminator::claude::mcp::add::context7 version-override-skips-on-match" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$1" in
+      mcp)
+        shift
+        case "$1" in
+          list) echo 'context7: bunx -y @upstash/context7-mcp@9.9.9' ;;
+          remove)
+            echo 'should not be called'
+            return 1
+            ;;
+          add)
+            echo 'should not be called'
+            return 1
+            ;;
+        esac
+        ;;
+    esac
+  }
+
+  run terminator::claude::mcp::add::context7 --version 9.9.9
+
+  assert_success
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::add::serena
+@test "terminator::claude::mcp::add::serena version-override-readds-on-mismatch" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$1" in
+      mcp)
+        shift
+        case "$1" in
+          list) echo 'serena: uvx --from git+https://github.com/oraios/serena@2ab807a1ff13ffc08e82070e44c3d2bfc5aa75f8' ;;
+          remove) return 0 ;;
+          add) return 0 ;;
+        esac
+        ;;
+    esac
+  }
+
+  run terminator::claude::mcp::add::serena \
+    --version deadbeefdeadbeefdeadbeefdeadbeefdeadbeef
+
+  assert_success
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::add::atlassian
+@test "terminator::claude::mcp::add::atlassian version-override-readds-on-mismatch" {
+  export JIRA_URL='https://hill-valley.atlassian.net'
+  export JIRA_USERNAME='doc.brown@hill-valley.net'
+  export JIRA_API_TOKEN='1.21-gigawatts'
+  export CONFLUENCE_URL='https://hill-valley.atlassian.net/wiki'
+  export CONFLUENCE_USERNAME='doc.brown@hill-valley.net'
+  export CONFLUENCE_API_TOKEN='great-scott'
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$1" in
+      mcp)
+        shift
+        case "$1" in
+          list) echo 'atlassian: uvx mcp-atlassian==0.21.0' ;;
+          remove) return 0 ;;
+          add) return 0 ;;
+        esac
+        ;;
+    esac
+  }
+
+  run terminator::claude::mcp::add::atlassian --version 0.99.0
+
+  assert_success
+}
+
+################################################################################
+# terminator::claude::plugin::installed_version
+################################################################################
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::installed_version
+@test "terminator::claude::plugin::installed_version returns-version" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    printf '  ❯ greeter@my-plugins\n    Version: 1.2.3\n    Scope: user\n    Status: ✔ enabled\n'
+  }
+
+  run terminator::claude::plugin::installed_version greeter@my-plugins
+
+  assert_success
+  assert_output '1.2.3'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::installed_version
+@test "terminator::claude::plugin::installed_version when-not-installed" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude { echo ''; }
+
+  run terminator::claude::plugin::installed_version greeter@my-plugins
+
+  assert_success
+  assert_output ''
+}
+
+################################################################################
+# terminator::claude::plugin::installed_commit
+################################################################################
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::installed_commit
+@test "terminator::claude::plugin::installed_commit returns-sha" {
+  command -v jq >/dev/null 2>&1 || skip 'jq not available'
+
+  local temp_home
+  temp_home="$(mktemp -d)"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
+  mkdir -p "${temp_home}/.claude/plugins"
+  printf '{"plugins":{"greeter@my-plugins":[{"gitCommitSha":"abc1234def"}]}}\n' \
+    >"${temp_home}/.claude/plugins/installed_plugins.json"
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  run terminator::claude::plugin::installed_commit greeter@my-plugins
+
+  HOME="${original_home}"
+
+  assert_success
+  assert_output 'abc1234def'
+
+  rm -rf "${temp_home}"
+}
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::installed_commit
+@test "terminator::claude::plugin::installed_commit when-file-missing" {
+  local temp_home
+  temp_home="$(mktemp -d)"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
+  run terminator::claude::plugin::installed_commit greeter@my-plugins
+
+  HOME="${original_home}"
+
+  assert_success
+  assert_output ''
+
+  rm -rf "${temp_home}"
+}
+
+################################################################################
+# terminator::claude::plugin::sync
+################################################################################
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::sync
+@test "terminator::claude::plugin::sync semver-skips-when-version-matches" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'plugin list')
+        printf '  ❯ greeter@my-plugins\n    Version: 2.5.1\n    Scope: user\n    Status: ✔ enabled\n'
+        ;;
+      *)
+        echo "should not be called: $*"
+        return 1
+        ;;
+    esac
+  }
+
+  run terminator::claude::plugin::sync \
+    greeter@my-plugins rbuchss/my-plugins 2.5.1 0
+
+  assert_success
+}
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::sync
+@test "terminator::claude::plugin::sync semver-updates-when-version-differs" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'plugin list')
+        printf '  ❯ greeter@my-plugins\n    Version: 2.4.0\n    Scope: user\n    Status: ✔ enabled\n'
+        ;;
+      'plugin marketplace list')
+        printf '  ❯ my-plugins\n    Source: GitHub (rbuchss/my-plugins)\n'
+        ;;
+      *) return 0 ;;
+    esac
+  }
+
+  run terminator::claude::plugin::sync \
+    greeter@my-plugins rbuchss/my-plugins 2.5.1 0
+
+  assert_success
+}
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::sync
+@test "terminator::claude::plugin::sync sha-skips-when-commit-matches" {
+  command -v jq >/dev/null 2>&1 || skip 'jq not available'
+
+  local temp_home
+  temp_home="$(mktemp -d)"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
+  mkdir -p "${temp_home}/.claude/plugins"
+  printf '{"plugins":{"greeter@my-plugins":[{"gitCommitSha":"4913d94c903fbd1193cc6073d9331d28060f4156"}]}}\n' \
+    >"${temp_home}/.claude/plugins/installed_plugins.json"
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    echo "should not be called: $*"
+    return 1
+  }
+
+  run terminator::claude::plugin::sync \
+    greeter@my-plugins rbuchss/my-plugins 4913d94 0
+
+  HOME="${original_home}"
+
+  assert_success
+
+  rm -rf "${temp_home}"
+}
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::sync
+@test "terminator::claude::plugin::sync sha-reinstalls-when-commit-differs" {
+  command -v jq >/dev/null 2>&1 || skip 'jq not available'
+
+  local temp_home
+  temp_home="$(mktemp -d)"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
+  mkdir -p "${temp_home}/.claude/plugins"
+  printf '{"plugins":{"greeter@my-plugins":[{"gitCommitSha":"deadbeefdeadbeefdeadbeefdeadbeefdeadbeef"}]}}\n' \
+    >"${temp_home}/.claude/plugins/installed_plugins.json"
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'plugin marketplace list')
+        printf '  ❯ my-plugins\n    Source: GitHub (rbuchss/my-plugins)\n'
+        ;;
+      *) return 0 ;;
+    esac
+  }
+
+  run terminator::claude::plugin::sync \
+    greeter@my-plugins rbuchss/my-plugins 4913d94 0
+
+  HOME="${original_home}"
+
+  assert_success
+
+  rm -rf "${temp_home}"
+}
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::sync
+@test "terminator::claude::plugin::sync tag-skips-when-version-matches" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # A v-prefixed tag resolves to the plugin.json version without the leading v.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'plugin list')
+        printf '  ❯ greeter@my-plugins\n    Version: 3.1.2\n    Scope: user\n    Status: ✔ enabled\n'
+        ;;
+      *)
+        echo "should not be called: $*"
+        return 1
+        ;;
+    esac
+  }
+
+  run terminator::claude::plugin::sync \
+    greeter@my-plugins rbuchss/my-plugins v3.1.2 0
+
+  assert_success
+}
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::sync
+@test "terminator::claude::plugin::sync tag-reinstalls-when-version-differs" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'plugin list')
+        printf '  ❯ greeter@my-plugins\n    Version: 2.5.1\n    Scope: user\n    Status: ✔ enabled\n'
+        ;;
+      'plugin marketplace list')
+        printf '  ❯ my-plugins\n    Source: GitHub (rbuchss/my-plugins)\n'
+        ;;
+      *) return 0 ;;
+    esac
+  }
+
+  run terminator::claude::plugin::sync \
+    greeter@my-plugins rbuchss/my-plugins v3.1.2 0
+
+  assert_success
+}
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::sync
+@test "terminator::claude::plugin::sync tag-force-reinstalls-when-version-matches" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'plugin list')
+        printf '  ❯ greeter@my-plugins\n    Version: 3.1.2\n    Scope: user\n    Status: ✔ enabled\n'
+        ;;
+      'plugin marketplace list')
+        printf '  ❯ my-plugins\n    Source: GitHub (rbuchss/my-plugins)\n'
+        ;;
+      *) return 0 ;;
+    esac
+  }
+
+  run terminator::claude::plugin::sync \
+    greeter@my-plugins rbuchss/my-plugins v3.1.2 1
+
+  assert_success
+}
+
+################################################################################
+# terminator::claude::plugin::__pin_and_reinstall__
+################################################################################
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::__pin_and_reinstall__
+@test "terminator::claude::plugin::__pin_and_reinstall__ removes-existing-then-reinstalls" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'plugin marketplace list')
+        printf '  ❯ my-plugins\n    Source: GitHub (rbuchss/my-plugins)\n'
+        ;;
+      *) return 0 ;;
+    esac
+  }
+
+  run terminator::claude::plugin::__pin_and_reinstall__ \
+    rbuchss/my-plugins v3.1.2 greeter@my-plugins
+
+  assert_success
+}
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::__pin_and_reinstall__
+@test "terminator::claude::plugin::__pin_and_reinstall__ adds-when-marketplace-absent" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'plugin marketplace list') echo '' ;;
+      plugin\ marketplace\ remove\ *)
+        echo 'should not be called'
+        return 1
+        ;;
+      *) return 0 ;;
+    esac
+  }
+
+  run terminator::claude::plugin::__pin_and_reinstall__ \
+    rbuchss/my-plugins v3.1.2 greeter@my-plugins
+
+  assert_success
+}
