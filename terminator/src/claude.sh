@@ -345,7 +345,10 @@ function terminator::claude::plugin::install {
     claude plugin install "${plugin_id}"
   fi
 
-  claude plugin enable "${plugin_id}"
+  # `claude plugin install` enables the plugin by default, so only enable
+  # explicitly when it is still disabled (avoids an "already enabled" error).
+  terminator::claude::plugin::is_enabled "${plugin_id}" \
+    || claude plugin enable "${plugin_id}"
 }
 
 # Prints the resolved version of an installed plugin (the `Version:` field from
@@ -394,7 +397,11 @@ function terminator::claude::plugin::__pin_and_reinstall__ {
   claude plugin marketplace add "${marketplace_repo}#${ref}"
   claude plugin uninstall "${plugin_id}" 2>/dev/null || true
   claude plugin install "${plugin_id}"
-  claude plugin enable "${plugin_id}"
+
+  # `claude plugin install` enables the plugin by default, so only enable
+  # explicitly when it is still disabled (avoids an "already enabled" error).
+  terminator::claude::plugin::is_enabled "${plugin_id}" \
+    || claude plugin enable "${plugin_id}"
 }
 
 # Reconciles an installed plugin to a desired version or git ref, auto-detecting

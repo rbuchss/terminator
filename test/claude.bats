@@ -1312,3 +1312,100 @@ bats_require_minimum_version 1.5.0
 
   assert_success
 }
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::__pin_and_reinstall__
+@test "terminator::claude::plugin::__pin_and_reinstall__ skips-enable-when-already-enabled" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # `claude plugin install` enables the plugin, so the follow-up enable must be
+  # skipped rather than erroring with "already enabled".
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'plugin marketplace list')
+        printf '  ❯ my-plugins\n    Source: GitHub (rbuchss/my-plugins)\n'
+        ;;
+      'plugin list')
+        printf '  ❯ greeter@my-plugins\n    Version: 3.1.2\n    Scope: user\n    Status: ✔ enabled\n'
+        ;;
+      plugin\ enable\ *)
+        echo 'should not be called'
+        return 1
+        ;;
+      *) return 0 ;;
+    esac
+  }
+
+  run terminator::claude::plugin::__pin_and_reinstall__ \
+    rbuchss/my-plugins v3.1.2 greeter@my-plugins
+
+  assert_success
+}
+
+################################################################################
+# terminator::claude::plugin::install
+################################################################################
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::install
+@test "terminator::claude::plugin::install skips-redundant-enable-after-fresh-install" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # Simulate `claude plugin install` auto-enabling: plugin is absent and
+  # disabled until installed, then reported enabled. The follow-up enable must
+  # be skipped rather than erroring with "already enabled".
+  __installed__=false
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'plugin list')
+        if [[ "${__installed__}" == true ]]; then
+          printf '  ❯ greeter@my-plugins\n    Version: 3.1.2\n    Scope: user\n    Status: ✔ enabled\n'
+        else
+          echo ''
+        fi
+        ;;
+      plugin\ install\ *)
+        __installed__=true
+        return 0
+        ;;
+      plugin\ enable\ *)
+        echo 'should not be called'
+        return 1
+        ;;
+      *) return 0 ;;
+    esac
+  }
+
+  run terminator::claude::plugin::install greeter@my-plugins
+
+  assert_success
+}
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::install
+@test "terminator::claude::plugin::install enables-when-installed-but-disabled" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # Plugin is installed but disabled: enable must be called.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'plugin list')
+        printf '  ❯ greeter@my-plugins\n    Version: 3.1.2\n    Scope: user\n    Status: ✘ disabled\n'
+        ;;
+      plugin\ enable\ *) return 0 ;;
+      plugin\ install\ *)
+        echo 'should not be called'
+        return 1
+        ;;
+      *) return 0 ;;
+    esac
+  }
+
+  run terminator::claude::plugin::install greeter@my-plugins
+
+  assert_success
+}
