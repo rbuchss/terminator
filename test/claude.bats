@@ -367,7 +367,7 @@ bats_require_minimum_version 1.5.0
       mcp)
         shift
         case "$1" in
-          list) echo 'atlassian: uvx mcp-atlassian==0.21.0' ;;
+          list) echo 'atlassian: uvx mcp-atlassian==0.21.1' ;;
           remove)
             echo 'should not be called'
             return 1
@@ -401,7 +401,7 @@ bats_require_minimum_version 1.5.0
       mcp)
         shift
         case "$1" in
-          list) echo 'atlassian: uvx mcp-atlassian==0.21.0' ;;
+          list) echo 'atlassian: uvx mcp-atlassian==0.21.1' ;;
           remove) return 0 ;;
           add) return 0 ;;
         esac
