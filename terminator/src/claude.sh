@@ -58,18 +58,27 @@ function terminator::claude::__require_claude__ {
   return 1
 }
 
-# shellcheck disable=SC2120 # optional --force flag, called without args by default
-function terminator::claude::mcp::add::context7 {
-  terminator::claude::__require_claude__ 'context7' || return 1
-
+# Parses the options shared by every mcp::add function and writes the resolved
+# force flag (0/1) and version override (empty when unset) to the two
+# caller-provided variable names. Returns 1 on an unrecognized option so the
+# caller can propagate the failure.
+# Usage: terminator::claude::mcp::__parse_options__ FORCE_VAR VERSION_VAR "$@"
+function terminator::claude::mcp::__parse_options__ {
   local \
-    force=0 \
-    desired_version='2.1.2' \
-    current_version
+    __force_var__="$1" \
+    __version_var__="$2" \
+    __force__=0 \
+    __version__=''
+
+  shift 2
 
   while (($# > 0)); do
     case "$1" in
-      -f | --force) force=1 ;;
+      -f | --force) __force__=1 ;;
+      --version)
+        shift
+        __version__="$1"
+        ;;
       *)
         terminator::logger::warning "unknown option: $1"
         return 1
@@ -78,6 +87,47 @@ function terminator::claude::mcp::add::context7 {
     shift
   done
 
+  printf -v "${__force_var__}" '%s' "${__force__}"
+  printf -v "${__version_var__}" '%s' "${__version__}"
+}
+
+# Reconciles a user-scope MCP server to a desired value. When the installed
+# value already matches and force is unset, it is a no-op; otherwise the server
+# is removed and re-added. Everything after the force flag is passed verbatim as
+# the `claude mcp add` command (including its own `--` separator).
+# Usage: terminator::claude::mcp::__sync__ NAME CURRENT DESIRED FORCE <add args...>
+function terminator::claude::mcp::__sync__ {
+  local \
+    name="$1" \
+    current="$2" \
+    desired="$3" \
+    force="$4"
+
+  shift 4
+
+  if [[ -n "${current}" ]] \
+    && [[ "${current}" == "${desired}" ]] \
+    && ((force == 0)); then
+    return 0
+  fi
+
+  claude mcp remove --scope user "${name}" 2>/dev/null || true
+  claude mcp add --scope user "${name}" "$@"
+}
+
+# shellcheck disable=SC2120 # optional flags, called without args by default
+function terminator::claude::mcp::add::context7 {
+  terminator::claude::__require_claude__ 'context7' || return 1
+
+  local \
+    force \
+    version \
+    desired_version='2.1.2' \
+    current_version
+
+  terminator::claude::mcp::__parse_options__ force version "$@" || return 1
+  [[ -n "${version}" ]] && desired_version="${version}"
+
   current_version="$(
     claude mcp list \
       | grep 'context7' \
@@ -85,14 +135,9 @@ function terminator::claude::mcp::add::context7 {
       | cut -d@ -f3
   )"
 
-  if [[ -z "${current_version}" ]] \
-    || [[ "${current_version}" != "${desired_version}" ]] \
-    || ((force == 1)); then
-    claude mcp remove --scope user context7 2>/dev/null || true
-    claude mcp add \
-      --scope user context7 \
-      -- bunx -y @upstash/context7-mcp@${desired_version}
-  fi
+  terminator::claude::mcp::__sync__ \
+    context7 "${current_version}" "${desired_version}" "${force}" \
+    -- bunx -y "@upstash/context7-mcp@${desired_version}"
 }
 
 # Pinned to a git commit instead of a PyPI version because the latest PyPI
@@ -110,26 +155,19 @@ function terminator::claude::mcp::add::context7 {
 # .serena/project.yml in each repository. Global settings (language backend,
 # UI, tool defaults, logging) live in the auto-created
 # ~/.serena/serena_config.yml; CLI flags override it.
-# shellcheck disable=SC2120 # optional --force flag, called without args by default
+# shellcheck disable=SC2120 # optional flags, called without args by default
 function terminator::claude::mcp::add::serena {
   terminator::claude::__require_claude__ 'serena' || return 1
 
   local \
-    force=0 \
+    force \
+    version \
     desired_commit='2ab807a1ff13ffc08e82070e44c3d2bfc5aa75f8' \
     repo_url='https://github.com/oraios/serena' \
     current_commit
 
-  while (($# > 0)); do
-    case "$1" in
-      -f | --force) force=1 ;;
-      *)
-        terminator::logger::warning "unknown option: $1"
-        return 1
-        ;;
-    esac
-    shift
-  done
+  terminator::claude::mcp::__parse_options__ force version "$@" || return 1
+  [[ -n "${version}" ]] && desired_commit="${version}"
 
   current_commit="$(
     claude mcp list \
@@ -138,23 +176,19 @@ function terminator::claude::mcp::add::serena {
       | cut -d@ -f2
   )"
 
-  if [[ -z "${current_commit}" ]] \
-    || [[ "${current_commit}" != "${desired_commit}" ]] \
-    || ((force == 1)); then
-    claude mcp remove --scope user serena 2>/dev/null || true
-    claude mcp add \
-      --scope user serena \
-      -- uvx --from "git+${repo_url}@${desired_commit}" \
-      serena start-mcp-server --context claude-code --project-from-cwd \
-      --open-web-dashboard False
-  fi
+  terminator::claude::mcp::__sync__ \
+    serena "${current_commit}" "${desired_commit}" "${force}" \
+    -- uvx --from "git+${repo_url}@${desired_commit}" \
+    serena start-mcp-server --context claude-code --project-from-cwd \
+    --open-web-dashboard False
 }
 
 # Adds the mcp-atlassian MCP server (Jira + Confluence) at user scope.
 # Requires JIRA_* and CONFLUENCE_* env vars to be set for authentication.
 # Supports -f/--force to re-add even when the version matches, useful after
-# rotating secrets.
+# rotating secrets, and --version to override the pinned default.
 # See: https://github.com/sooperset/mcp-atlassian
+# shellcheck disable=SC2120 # optional flags, called without args by default
 function terminator::claude::mcp::add::atlassian {
   terminator::claude::__require_claude__ 'mcp-atlassian' || return 1
 
@@ -174,20 +208,13 @@ function terminator::claude::mcp::add::atlassian {
   fi
 
   local \
-    force=0 \
+    force \
+    version \
     desired_version='0.21.0' \
     current_version
 
-  while (($# > 0)); do
-    case "$1" in
-      -f | --force) force=1 ;;
-      *)
-        terminator::logger::warning "unknown option: $1"
-        return 1
-        ;;
-    esac
-    shift
-  done
+  terminator::claude::mcp::__parse_options__ force version "$@" || return 1
+  [[ -n "${version}" ]] && desired_version="${version}"
 
   current_version="$(
     claude mcp list \
@@ -196,20 +223,15 @@ function terminator::claude::mcp::add::atlassian {
       | cut -d= -f3
   )"
 
-  if [[ -z "${current_version}" ]] \
-    || [[ "${current_version}" != "${desired_version}" ]] \
-    || ((force == 1)); then
-    claude mcp remove --scope user atlassian 2>/dev/null || true
-    claude mcp add \
-      --scope user atlassian \
-      -e JIRA_URL="${JIRA_URL}" \
-      -e JIRA_USERNAME="${JIRA_USERNAME}" \
-      -e JIRA_API_TOKEN="${JIRA_API_TOKEN}" \
-      -e CONFLUENCE_URL="${CONFLUENCE_URL}" \
-      -e CONFLUENCE_USERNAME="${CONFLUENCE_USERNAME}" \
-      -e CONFLUENCE_API_TOKEN="${CONFLUENCE_API_TOKEN}" \
-      -- uvx mcp-atlassian==${desired_version}
-  fi
+  terminator::claude::mcp::__sync__ \
+    atlassian "${current_version}" "${desired_version}" "${force}" \
+    -e JIRA_URL="${JIRA_URL}" \
+    -e JIRA_USERNAME="${JIRA_USERNAME}" \
+    -e JIRA_API_TOKEN="${JIRA_API_TOKEN}" \
+    -e CONFLUENCE_URL="${CONFLUENCE_URL}" \
+    -e CONFLUENCE_USERNAME="${CONFLUENCE_USERNAME}" \
+    -e CONFLUENCE_API_TOKEN="${CONFLUENCE_API_TOKEN}" \
+    -- uvx "mcp-atlassian==${desired_version}"
 }
 
 # Merges open-source baseline settings into ~/.claude/settings.json.
@@ -326,10 +348,157 @@ function terminator::claude::plugin::install {
   claude plugin enable "${plugin_id}"
 }
 
+# Prints the resolved version of an installed plugin (the `Version:` field from
+# `claude plugin list`), or nothing when the plugin is not installed.
+function terminator::claude::plugin::installed_version {
+  local plugin_id="$1"
+
+  terminator::claude::__require_claude__ || return 1
+
+  claude plugin list 2>/dev/null \
+    | grep -A3 -F "${plugin_id}" \
+    | grep -m1 'Version:' \
+    | awk '{print $2}'
+}
+
+# Prints the git commit SHA an installed plugin was built from, read from
+# Claude Code's internal installed_plugins.json. Prints nothing when the file,
+# jq, or the plugin entry is missing.
+function terminator::claude::plugin::installed_commit {
+  local \
+    plugin_id="$1" \
+    installed_path="${HOME}/.claude/plugins/installed_plugins.json"
+
+  [[ -f "${installed_path}" ]] || return 0
+  terminator::command::exists jq || return 0
+
+  jq -r --arg id "${plugin_id}" \
+    '.plugins[$id][0].gitCommitSha // empty' \
+    "${installed_path}" 2>/dev/null
+}
+
+# Re-pins a marketplace to a git ref and reinstalls the plugin from it. Removing
+# the marketplace first is required because re-adding is the only way to change
+# the pinned ref of an already-registered marketplace.
+# Usage: __pin_and_reinstall__ MARKETPLACE_REPO REF PLUGIN_ID
+function terminator::claude::plugin::__pin_and_reinstall__ {
+  local \
+    marketplace_repo="$1" \
+    ref="$2" \
+    plugin_id="$3" \
+    marketplace_name="${1##*/}"
+
+  if terminator::claude::plugin::marketplace::exists "${marketplace_repo}"; then
+    claude plugin marketplace remove "${marketplace_name}" 2>/dev/null || true
+  fi
+  claude plugin marketplace add "${marketplace_repo}#${ref}"
+  claude plugin uninstall "${plugin_id}" 2>/dev/null || true
+  claude plugin install "${plugin_id}"
+  claude plugin enable "${plugin_id}"
+}
+
+# Reconciles an installed plugin to a desired version or git ref, auto-detecting
+# the form of the desired value:
+#
+#   * A git-SHA-like value (7-40 hex chars) pins the marketplace to that commit
+#     via the `repo#ref` source suffix and compares against the installed commit
+#     SHA, reinstalling on drift. This is the reproducible, GitHub-Actions-style
+#     pin and works fully for plugins that omit `version` (their resolved version
+#     is the commit SHA).
+#
+#   * A git tag or branch (anything that is neither a SHA nor a bare semver, for
+#     example `v3.1.2`) pins the marketplace to that ref. A v-prefixed semver tag
+#     resolves to the plugin's `plugin.json` version (the ref without the leading
+#     `v`), so the reconcile compares the installed version locally and skips work
+#     without a network round trip; other refs cannot be compared and reinstall.
+#
+#   * A bare semver (for example `2.5.1`) has no git ref to pin to, so it tracks
+#     whatever the marketplace currently publishes and pulls updates on drift. It
+#     can only move toward the marketplace's current version, and warns when the
+#     resolved version still differs after updating (for example a downgrade,
+#     which requires a tag or SHA instead).
+#
+# Usage: sync PLUGIN_ID MARKETPLACE_REPO DESIRED FORCE
+function terminator::claude::plugin::sync {
+  local \
+    plugin_id="$1" \
+    marketplace_repo="$2" \
+    desired="$3" \
+    force="$4" \
+    marketplace_name="${2##*/}" \
+    current \
+    expected
+
+  terminator::claude::__require_claude__ "${plugin_id}" || return 1
+
+  # Commit SHA: pin to the commit and compare the installed commit SHA.
+  if [[ "${desired}" =~ ^[0-9a-f]{7,40}$ ]]; then
+    current="$(terminator::claude::plugin::installed_commit "${plugin_id}")"
+
+    if [[ -n "${current}" ]] \
+      && [[ "${current}" == "${desired}"* ]] \
+      && ((force == 0)); then
+      return 0
+    fi
+
+    terminator::claude::plugin::__pin_and_reinstall__ \
+      "${marketplace_repo}" "${desired}" "${plugin_id}"
+    return
+  fi
+
+  # Bare semver: track the marketplace's published version and update on drift.
+  if [[ "${desired}" =~ ^[0-9]+(\.[0-9]+)+$ ]]; then
+    current="$(terminator::claude::plugin::installed_version "${plugin_id}")"
+
+    if [[ -n "${current}" ]] \
+      && [[ "${current}" == "${desired}" ]] \
+      && ((force == 0)); then
+      return 0
+    fi
+
+    terminator::claude::plugin::marketplace::add "${marketplace_repo}"
+    claude plugin marketplace update "${marketplace_name}" 2>/dev/null || true
+    terminator::claude::plugin::install "${plugin_id}"
+    claude plugin update "${plugin_id}" 2>/dev/null || true
+
+    current="$(terminator::claude::plugin::installed_version "${plugin_id}")"
+    if [[ -n "${current}" ]] && [[ "${current}" != "${desired}" ]]; then
+      terminator::logger::warning \
+        "${plugin_id}: pinned version ${desired} but marketplace resolved ${current}"
+    fi
+    return
+  fi
+
+  # Git tag or branch: pin the marketplace to the ref. A v-prefixed semver tag
+  # maps to the plugin.json version without the leading `v`, enabling a local,
+  # network-free idempotency check.
+  if [[ "${desired}" =~ ^v([0-9]+(\.[0-9]+)+)$ ]]; then
+    expected="${BASH_REMATCH[1]}"
+    current="$(terminator::claude::plugin::installed_version "${plugin_id}")"
+
+    if [[ -n "${current}" ]] \
+      && [[ "${current}" == "${expected}" ]] \
+      && ((force == 0)); then
+      return 0
+    fi
+  fi
+
+  terminator::claude::plugin::__pin_and_reinstall__ \
+    "${marketplace_repo}" "${desired}" "${plugin_id}"
+}
+
 # Registers a Claude Code plugin marketplace and installs/enables the plugin.
-# Usage: register --plugin PLUGIN_ID --marketplace GITHUB_REPO
+# With --version, the plugin is reconciled to a pinned version or git ref on
+# every call (see terminator::claude::plugin::sync); without it, the plugin is
+# installed at whatever version the marketplace currently publishes.
+# Usage: register --plugin PLUGIN_ID --marketplace GITHUB_REPO \
+#          [--version VERSION_OR_SHA] [-f|--force]
 function terminator::claude::plugin::register {
-  local plugin_id marketplace_repo
+  local \
+    plugin_id \
+    marketplace_repo \
+    version \
+    force=0
 
   while (($# != 0)); do
     case "$1" in
@@ -341,6 +510,11 @@ function terminator::claude::plugin::register {
         shift
         marketplace_repo="$1"
         ;;
+      --version)
+        shift
+        version="$1"
+        ;;
+      -f | --force) force=1 ;;
       *)
         terminator::logger::warning "unknown option: $1"
         return 1
@@ -361,12 +535,20 @@ function terminator::claude::plugin::register {
     return 1
   fi
 
+  if [[ -n "${version}" ]]; then
+    terminator::claude::plugin::sync \
+      "${plugin_id}" "${marketplace_repo}" "${version}" "${force}"
+    return
+  fi
+
   terminator::claude::plugin::marketplace::add "${marketplace_repo}"
   terminator::claude::plugin::install "${plugin_id}"
 }
 
 function terminator::claude::__export__ {
   export -f terminator::claude::__require_claude__
+  export -f terminator::claude::mcp::__parse_options__
+  export -f terminator::claude::mcp::__sync__
   export -f terminator::claude::mcp::add::context7
   export -f terminator::claude::mcp::add::serena
   export -f terminator::claude::mcp::add::atlassian
@@ -376,12 +558,18 @@ function terminator::claude::__export__ {
   export -f terminator::claude::plugin::exists
   export -f terminator::claude::plugin::is_enabled
   export -f terminator::claude::plugin::install
+  export -f terminator::claude::plugin::installed_version
+  export -f terminator::claude::plugin::installed_commit
+  export -f terminator::claude::plugin::__pin_and_reinstall__
+  export -f terminator::claude::plugin::sync
   export -f terminator::claude::plugin::register
 }
 
 # KCOV_EXCL_START
 function terminator::claude::__recall__ {
   export -fn terminator::claude::__require_claude__
+  export -fn terminator::claude::mcp::__parse_options__
+  export -fn terminator::claude::mcp::__sync__
   export -fn terminator::claude::mcp::add::context7
   export -fn terminator::claude::mcp::add::serena
   export -fn terminator::claude::mcp::add::atlassian
@@ -391,6 +579,10 @@ function terminator::claude::__recall__ {
   export -fn terminator::claude::plugin::exists
   export -fn terminator::claude::plugin::is_enabled
   export -fn terminator::claude::plugin::install
+  export -fn terminator::claude::plugin::installed_version
+  export -fn terminator::claude::plugin::installed_commit
+  export -fn terminator::claude::plugin::__pin_and_reinstall__
+  export -fn terminator::claude::plugin::sync
   export -fn terminator::claude::plugin::register
 }
 # KCOV_EXCL_STOP
