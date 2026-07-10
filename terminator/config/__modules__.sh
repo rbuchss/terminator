@@ -47,6 +47,7 @@ terminator::source \
   "${HOME}/.terminator/src/tree.sh" \
   "${HOME}/.terminator/src/vagrant.sh" \
   "${HOME}/.terminator/src/vim.sh" \
+  "${HOME}/.terminator/src/vpn.sh" \
   "${HOME}/.terminator/src/windsurf.sh" \
   "${HOME}/.terminator/src/workstation.sh"
 
@@ -95,6 +96,7 @@ __modules__=(
   terminator::tree
   terminator::vagrant
   terminator::vim
+  terminator::vpn
   terminator::windsurf
   terminator::workstation
 )
