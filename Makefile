@@ -50,9 +50,14 @@ DOCKER_DEBUG_CMD := $(DOCKER_IMAGE_BASH_PATH)
 # Compose runner
 # Usage: $(call compose-run,COMMAND)
 #
+# HOME=/tmp, not kyle-reese's home: --user runs as the host uid, which can't write /home/kyle-reese (owned 1000); /tmp is world-writable.
+#
 # :param $(1): Command to run inside the container
 define compose-run
-	docker compose run --rm tester $(DOCKER_IMAGE_BASH_PATH) -c \
+	docker compose run --rm \
+		--user "$$(id -u):$$(id -g)" \
+		-e HOME=/tmp \
+		tester $(DOCKER_IMAGE_BASH_PATH) -c \
 		'git config --global --add safe.directory "$$PWD" && $(1)'
 endef
 
