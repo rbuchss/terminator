@@ -317,3 +317,234 @@ bats_require_minimum_version 1.5.0
 
   rm -rf "${temp_dir}"
 }
+
+################################################################################
+# terminator::myjournal::autocreate_enabled
+################################################################################
+
+# bats test_tags=terminator::myjournal,terminator::myjournal::autocreate_enabled
+@test "terminator::myjournal::autocreate_enabled default-off" {
+  local original_autocreate="${TERMINATOR_MYJOURNAL_AUTOCREATE:-}"
+  unset TERMINATOR_MYJOURNAL_AUTOCREATE
+
+  run terminator::myjournal::autocreate_enabled
+
+  TERMINATOR_MYJOURNAL_AUTOCREATE="${original_autocreate}"
+
+  assert_failure
+}
+
+# bats test_tags=terminator::myjournal,terminator::myjournal::autocreate_enabled
+@test "terminator::myjournal::autocreate_enabled enabled-with-1" {
+  local original_autocreate="${TERMINATOR_MYJOURNAL_AUTOCREATE:-}"
+  TERMINATOR_MYJOURNAL_AUTOCREATE='1'
+
+  run terminator::myjournal::autocreate_enabled
+
+  TERMINATOR_MYJOURNAL_AUTOCREATE="${original_autocreate}"
+
+  assert_success
+}
+
+# bats test_tags=terminator::myjournal,terminator::myjournal::autocreate_enabled
+@test "terminator::myjournal::autocreate_enabled enabled-with-true" {
+  local original_autocreate="${TERMINATOR_MYJOURNAL_AUTOCREATE:-}"
+  TERMINATOR_MYJOURNAL_AUTOCREATE='true'
+
+  run terminator::myjournal::autocreate_enabled
+
+  TERMINATOR_MYJOURNAL_AUTOCREATE="${original_autocreate}"
+
+  assert_success
+}
+
+# bats test_tags=terminator::myjournal,terminator::myjournal::autocreate_enabled
+@test "terminator::myjournal::autocreate_enabled enabled-with-TRUE" {
+  local original_autocreate="${TERMINATOR_MYJOURNAL_AUTOCREATE:-}"
+  TERMINATOR_MYJOURNAL_AUTOCREATE='TRUE'
+
+  run terminator::myjournal::autocreate_enabled
+
+  TERMINATOR_MYJOURNAL_AUTOCREATE="${original_autocreate}"
+
+  assert_success
+}
+
+# bats test_tags=terminator::myjournal,terminator::myjournal::autocreate_enabled
+@test "terminator::myjournal::autocreate_enabled enabled-with-True" {
+  local original_autocreate="${TERMINATOR_MYJOURNAL_AUTOCREATE:-}"
+  TERMINATOR_MYJOURNAL_AUTOCREATE='True'
+
+  run terminator::myjournal::autocreate_enabled
+
+  TERMINATOR_MYJOURNAL_AUTOCREATE="${original_autocreate}"
+
+  assert_success
+}
+
+# bats test_tags=terminator::myjournal,terminator::myjournal::autocreate_enabled
+@test "terminator::myjournal::autocreate_enabled off-with-other-value" {
+  local original_autocreate="${TERMINATOR_MYJOURNAL_AUTOCREATE:-}"
+  TERMINATOR_MYJOURNAL_AUTOCREATE='yes'
+
+  run terminator::myjournal::autocreate_enabled
+
+  TERMINATOR_MYJOURNAL_AUTOCREATE="${original_autocreate}"
+
+  assert_failure
+}
+
+################################################################################
+# terminator::myjournal::invoke
+################################################################################
+
+# bats test_tags=terminator::myjournal,terminator::myjournal::invoke
+@test "terminator::myjournal::invoke opens-existing-file" {
+  local temp_dir
+  temp_dir="$(mktemp -d)"
+  local original_dir="${TERMINATOR_MYJOURNAL_DIR}"
+  TERMINATOR_MYJOURNAL_DIR="${temp_dir}"
+  mkdir -p "${temp_dir}/2025/12"
+  printf -- '---\nexisting\n---\n' >"${temp_dir}/2025/12/11.md"
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::vim::invoke { echo "vim called: $*"; }
+
+  run terminator::myjournal::invoke '2025/12/11'
+
+  TERMINATOR_MYJOURNAL_DIR="${original_dir}"
+
+  assert_success
+  assert_output --partial 'vim called'
+  assert_output --partial '2025/12/11.md'
+
+  rm -rf "${temp_dir}"
+}
+
+# bats test_tags=terminator::myjournal,terminator::myjournal::invoke
+@test "terminator::myjournal::invoke prompts-when-autocreate-off-and-file-missing" {
+  local temp_dir
+  temp_dir="$(mktemp -d)"
+  local original_dir="${TERMINATOR_MYJOURNAL_DIR}"
+  local original_autocreate="${TERMINATOR_MYJOURNAL_AUTOCREATE:-}"
+  TERMINATOR_MYJOURNAL_DIR="${temp_dir}"
+  unset TERMINATOR_MYJOURNAL_AUTOCREATE
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::prompt::ask {
+    echo "PROMPT:$*"
+    return 0
+  }
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::vim::invoke { echo "vim called: $*"; }
+
+  run terminator::myjournal::invoke '2025/12/11'
+
+  TERMINATOR_MYJOURNAL_DIR="${original_dir}"
+  TERMINATOR_MYJOURNAL_AUTOCREATE="${original_autocreate}"
+
+  assert_success
+  assert_output --partial 'PROMPT:Create new journal entry at'
+  [[ -f "${temp_dir}/2025/12/11.md" ]]
+  assert_output --partial 'vim called'
+  assert_output --partial '2025/12/11.md'
+
+  rm -rf "${temp_dir}"
+}
+
+# bats test_tags=terminator::myjournal,terminator::myjournal::invoke
+@test "terminator::myjournal::invoke skips-missing-when-prompt-declined" {
+  local temp_dir
+  temp_dir="$(mktemp -d)"
+  local original_dir="${TERMINATOR_MYJOURNAL_DIR}"
+  local original_autocreate="${TERMINATOR_MYJOURNAL_AUTOCREATE:-}"
+  TERMINATOR_MYJOURNAL_DIR="${temp_dir}"
+  unset TERMINATOR_MYJOURNAL_AUTOCREATE
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::prompt::ask {
+    echo "PROMPT:$*"
+    return 1
+  }
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::vim::invoke { echo "vim called: $*"; }
+
+  run terminator::myjournal::invoke '2025/12/11'
+
+  TERMINATOR_MYJOURNAL_DIR="${original_dir}"
+  TERMINATOR_MYJOURNAL_AUTOCREATE="${original_autocreate}"
+
+  assert_failure
+  assert_output --partial 'PROMPT:Create new journal entry at'
+  [[ ! -f "${temp_dir}/2025/12/11.md" ]]
+  refute_output --partial 'vim called'
+
+  rm -rf "${temp_dir}"
+}
+
+# bats test_tags=terminator::myjournal,terminator::myjournal::invoke
+@test "terminator::myjournal::invoke autocreates-without-prompting-when-enabled" {
+  local temp_dir
+  temp_dir="$(mktemp -d)"
+  local original_dir="${TERMINATOR_MYJOURNAL_DIR}"
+  local original_autocreate="${TERMINATOR_MYJOURNAL_AUTOCREATE:-}"
+  TERMINATOR_MYJOURNAL_DIR="${temp_dir}"
+  TERMINATOR_MYJOURNAL_AUTOCREATE='1'
+
+  # Prompt declines; autocreate must bypass it entirely.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::prompt::ask {
+    echo "PROMPT:$*"
+    return 1
+  }
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::vim::invoke { echo "vim called: $*"; }
+
+  run terminator::myjournal::invoke '2025/12/11'
+
+  TERMINATOR_MYJOURNAL_DIR="${original_dir}"
+  TERMINATOR_MYJOURNAL_AUTOCREATE="${original_autocreate}"
+
+  assert_success
+  [[ -f "${temp_dir}/2025/12/11.md" ]]
+  assert_output --partial 'vim called'
+  assert_output --partial '2025/12/11.md'
+  refute_output --partial 'PROMPT:'
+
+  rm -rf "${temp_dir}"
+}
+
+# bats test_tags=terminator::myjournal,terminator::myjournal::invoke
+@test "terminator::myjournal::invoke aborts-when-autocreate-fails" {
+  local temp_dir
+  temp_dir="$(mktemp -d)"
+  local original_dir="${TERMINATOR_MYJOURNAL_DIR}"
+  local original_autocreate="${TERMINATOR_MYJOURNAL_AUTOCREATE:-}"
+  # Point the journal root at a read-only dir so new_entry cannot create the file.
+  local readonly_dir="${temp_dir}/locked"
+  mkdir -p "${readonly_dir}"
+  chmod 000 "${readonly_dir}"
+  TERMINATOR_MYJOURNAL_DIR="${readonly_dir}"
+  TERMINATOR_MYJOURNAL_AUTOCREATE='1'
+
+  # If a failed autocreate fell through to the prompt, this would fire.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::prompt::ask {
+    echo "PROMPT:$*"
+    return 1
+  }
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::vim::invoke { echo "vim called: $*"; }
+
+  run terminator::myjournal::invoke '2025/12/11'
+
+  TERMINATOR_MYJOURNAL_DIR="${original_dir}"
+  TERMINATOR_MYJOURNAL_AUTOCREATE="${original_autocreate}"
+  chmod 755 "${readonly_dir}"
+
+  assert_failure
+  refute_output --partial 'PROMPT:'
+  refute_output --partial 'vim called'
+
+  rm -rf "${temp_dir}"
+}

@@ -69,8 +69,9 @@ function terminator::myjournal::invoke {
 
     if [[ -f "${journal_filepath}" ]]; then
       journal_filepaths+=("${journal_filepath}")
-    elif terminator::prompt::ask "Create new journal entry at: '${journal_filepath}' ?" \
-      && terminator::myjournal::new_entry "${journal_filepath}"; then
+    elif terminator::myjournal::autocreate_enabled \
+      || terminator::prompt::ask "Create new journal entry at: '${journal_filepath}' ?"; then
+      terminator::myjournal::new_entry "${journal_filepath}" || return 1
       journal_filepaths+=("${journal_filepath}")
     fi
   done
@@ -86,6 +87,21 @@ function terminator::myjournal::invoke {
 
 function terminator::myjournal::root_dir {
   echo "${TERMINATOR_MYJOURNAL_DIR:-${HOME}/vaults/chronicle/Journal}"
+}
+
+# Returns success (0) when new journal entries should be created without
+# prompting. Controlled by TERMINATOR_MYJOURNAL_AUTOCREATE ('1' or 'true',
+# case-insensitive); off by default, in which case a prompt asks for
+# confirmation.
+function terminator::myjournal::autocreate_enabled {
+  case "${TERMINATOR_MYJOURNAL_AUTOCREATE}" in
+    1 | [Tt][Rr][Uu][Ee])
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
 }
 
 function terminator::myjournal::valid_name {
@@ -277,6 +293,7 @@ function terminator::myjournal::__export__ {
 
   export -f terminator::myjournal::invoke
   export -f terminator::myjournal::root_dir
+  export -f terminator::myjournal::autocreate_enabled
   export -f terminator::myjournal::valid_name
   export -f terminator::myjournal::convert_keyword_to_date
   export -f terminator::myjournal::template
@@ -293,6 +310,7 @@ function terminator::myjournal::__recall__ {
 
   export -fn terminator::myjournal::invoke
   export -fn terminator::myjournal::root_dir
+  export -fn terminator::myjournal::autocreate_enabled
   export -fn terminator::myjournal::valid_name
   export -fn terminator::myjournal::convert_keyword_to_date
   export -fn terminator::myjournal::template
