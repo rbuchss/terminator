@@ -4,6 +4,13 @@ services:
       context: .
       target: terminator-tester-local
     working_dir: /cyberdyne
+    # No network needed - every network tool is mocked in the suite, so the
+    # container is hermetic. Skipping the bridge network sidesteps Docker pool
+    # exhaustion on long-lived hosts and any clash with VPN routes. For real
+    # egress, remove this line to use the default bridge (portable to Linux
+    # and macOS); network_mode: host is only a clean swap on Linux - on macOS
+    # it needs Docker Desktop 4.34+ and a manual settings toggle.
+    network_mode: none
     volumes:
       - .:/cyberdyne
     cap_drop:
