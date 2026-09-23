@@ -22,6 +22,7 @@ terminator::source \
   "${HOME}/.terminator/src/java.sh" \
   "${HOME}/.terminator/src/jenv.sh" \
   "${HOME}/.terminator/src/jetbrains.sh" \
+  "${HOME}/.terminator/src/krisp.sh" \
   "${HOME}/.terminator/src/kubectl.sh" \
   "${HOME}/.terminator/src/less.sh" \
   "${HOME}/.terminator/src/ls.sh" \
@@ -70,6 +71,7 @@ __modules__=(
   # jenv uses PROMPT_COMMAND as a hook (_jenv_export_hook) and is slow ~90ms
   # terminator::jenv
   terminator::jetbrains
+  terminator::krisp
   terminator::kubectl
   terminator::less
   terminator::ls
