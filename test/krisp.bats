@@ -288,17 +288,197 @@ _krisp_curl_ok() {
 }
 
 # bats test_tags=terminator::krisp,terminator::krisp::render_markdown
-@test "__render_markdown__ renders the header and the transcript" {
+@test "__render_markdown__ renders the frontmatter header and the transcript" {
   run terminator::krisp::__render_markdown__ "${KRISP_MEETING_JSON}"
 
   assert_success
-  assert_output "# Weekly sync
-2026-07-10T09:30:00Z (id aabbccddeeff00112233445566778899)
+  assert_output "---
+doc_type: transcript
+id: aabbccddeeff00112233445566778899
+title: \"Weekly sync\"
+started_at: 2026-07-10T09:30:00Z
+duration: 1h 0m 0s
+language: en
+---
+
+# Weekly sync
 
 Casey Rivera [00:00:05]: lets get started
 sam@example.com [00:00:11]: sounds good
 Speaker 3 [00:01:00]: unidentified voice
 Casey Rivera [01:02:05]: wrapping up"
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::render_markdown
+@test "__render_markdown__ renders a Hill Valley meeting from 1955" {
+  local delorean_body
+  # Millisecond started_at, a YAML-breaking title, and Doc and Marty.
+  delorean_body="$(jq --arg t 'Flux capacitor: getting the DeLorean to 88' '
+    .title = $t
+    | .started_at = "1955-11-12T22:04:00.000Z"
+    | .duration = 5280
+    | .transcript.speakers = {"1": {"first_name": "Emmett", "last_name": "Brown"}, "2": {"first_name": "Marty", "last_name": "McFly"}}
+    | .transcript.segments = [
+        {"speaker": 1, "text": "Great Scott!", "start": 1, "end": 2},
+        {"speaker": 2, "text": "Doc, this is heavy.", "start": 3, "end": 4},
+        {"speaker": 1, "text": "When this baby hits 88 miles per hour, you are gonna see some serious...", "start": 5, "end": 9},
+        {"speaker": 2, "text": "1.21 gigawatts?!", "start": 10, "end": 11}
+      ]
+  ' <<<"${KRISP_MEETING_JSON}")"
+
+  run terminator::krisp::__render_markdown__ "${delorean_body}"
+
+  assert_success
+  assert_output "---
+doc_type: transcript
+id: aabbccddeeff00112233445566778899
+title: \"Flux capacitor: getting the DeLorean to 88\"
+started_at: 1955-11-12T22:04:00Z
+duration: 1h 28m 0s
+language: en
+---
+
+# Flux capacitor: getting the DeLorean to 88
+
+Emmett Brown [00:00:01]: Great Scott!
+Marty McFly [00:00:03]: Doc, this is heavy.
+Emmett Brown [00:00:05]: When this baby hits 88 miles per hour, you are gonna see some serious...
+Marty McFly [00:00:10]: 1.21 gigawatts?!"
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::render_markdown
+@test "__render_markdown__ quotes a title with YAML-breaking characters" {
+  local special_body
+  special_body="$(jq --arg t 'RE: Corvex -> Helios Oppty <4Q26>' '.title = $t' <<<"${KRISP_MEETING_JSON}")"
+
+  run terminator::krisp::__render_markdown__ "${special_body}"
+
+  assert_success
+  # tojson quotes the title; the H1 keeps the raw title greppable.
+  assert_output --partial 'title: "RE: Corvex -> Helios Oppty <4Q26>"'
+  assert_output --partial '# RE: Corvex -> Helios Oppty <4Q26>'
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::render_markdown
+@test "__render_markdown__ omits duration and language when absent" {
+  local bare_body
+  bare_body="$(jq 'del(.duration) | del(.transcript.language)' <<<"${KRISP_MEETING_JSON}")"
+
+  run terminator::krisp::__render_markdown__ "${bare_body}"
+
+  assert_success
+  refute_output --partial 'duration:'
+  refute_output --partial 'language:'
+  assert_output --partial 'title: "Weekly sync"'
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::render_markdown
+@test "__render_markdown__ omits a zero duration" {
+  local zero_body
+  zero_body="$(jq '.duration = 0' <<<"${KRISP_MEETING_JSON}")"
+
+  run terminator::krisp::__render_markdown__ "${zero_body}"
+
+  assert_success
+  refute_output --partial 'duration:'
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::render_markdown
+@test "__render_markdown__ formats sub-hour and multi-hour durations" {
+  local \
+    short_body \
+    long_body
+
+  short_body="$(jq '.duration = 3135' <<<"${KRISP_MEETING_JSON}")"
+  long_body="$(jq '.duration = 7335' <<<"${KRISP_MEETING_JSON}")"
+
+  run terminator::krisp::__render_markdown__ "${short_body}"
+  assert_success
+  assert_output --partial 'duration: 52m 15s'
+
+  run terminator::krisp::__render_markdown__ "${long_body}"
+  assert_success
+  assert_output --partial 'duration: 2h 2m 15s'
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::render_markdown
+@test "__render_markdown__ floors a fractional duration" {
+  local frac_body
+  # 88 mph, and a half second to spare.
+  frac_body="$(jq '.duration = 88.5' <<<"${KRISP_MEETING_JSON}")"
+
+  run terminator::krisp::__render_markdown__ "${frac_body}"
+
+  assert_success
+  assert_output --partial 'duration: 1m 28s'
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::render_markdown
+@test "__render_markdown__ tolerates a non-object transcript" {
+  local stringy_body
+  stringy_body="$(jq '.transcript = "this is heavy"' <<<"${KRISP_MEETING_JSON}")"
+
+  run terminator::krisp::__render_markdown__ "${stringy_body}"
+
+  # The language guard must not abort the render; the entry stays complete.
+  assert_success
+  refute_output --partial 'language:'
+  assert_output --partial '# Weekly sync'
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::cache_entry_valid
+@test "__cache_entry_valid__ accepts frontmatter and legacy headers" {
+  local \
+    frontmatter_entry \
+    legacy_entry
+
+  frontmatter_entry='---
+doc_type: transcript
+id: aabbccddeeff00112233445566778899
+title: "Weekly sync"
+started_at: 2026-07-10T09:30:00Z
+duration: 1h 0m 0s
+language: en
+---
+
+# Weekly sync
+
+Casey Rivera [00:00:05]: lets get started'
+
+  legacy_entry='# Weekly sync
+2026-07-10T09:30:00Z (id aabbccddeeff00112233445566778899)
+
+Casey Rivera [00:00:05]: lets get started'
+
+  run terminator::krisp::__cache_entry_valid__ aabbccddeeff00112233445566778899 "${frontmatter_entry}"
+  assert_success
+
+  run terminator::krisp::__cache_entry_valid__ aabbccddeeff00112233445566778899 "${legacy_entry}"
+  assert_success
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::cache_entry_valid
+@test "__cache_entry_valid__ rejects a wrong id in either format" {
+  local \
+    frontmatter_entry \
+    legacy_entry
+
+  frontmatter_entry='---
+doc_type: transcript
+id: 99887766554433221100ffeeddccbbaa
+title: "Design review"
+---
+
+# Design review'
+
+  legacy_entry='# Design review
+2026-07-11T14:00:00Z (id 99887766554433221100ffeeddccbbaa)'
+
+  run terminator::krisp::__cache_entry_valid__ aabbccddeeff00112233445566778899 "${frontmatter_entry}"
+  assert_failure
+
+  run terminator::krisp::__cache_entry_valid__ aabbccddeeff00112233445566778899 "${legacy_entry}"
+  assert_failure
 }
 
 ################################################################################
@@ -518,7 +698,9 @@ Casey Rivera [01:02:05]: wrapping up"
 
   assert_success
   assert_output --partial '# Design review'
-  assert_output --partial '2026-07-11T14:00:00Z (id 99887766554433221100ffeeddccbbaa)'
+  assert_output --partial 'id: 99887766554433221100ffeeddccbbaa'
+  assert_output --partial 'started_at: 2026-07-11T14:00:00Z'
+  assert_output --partial 'duration: 30m 0s'
   assert_output --partial 'Dana Ng [00:00:03]: walking through the mockups'
   # The older Weekly sync meeting must not be served.
   refute_output --partial 'lets get started'
@@ -533,7 +715,9 @@ Casey Rivera [01:02:05]: wrapping up"
 
   assert_success
   assert_output --partial '# Weekly sync'
-  assert_output --partial '2026-07-10T09:30:00Z (id aabbccddeeff00112233445566778899)'
+  assert_output --partial 'id: aabbccddeeff00112233445566778899'
+  assert_output --partial 'started_at: 2026-07-10T09:30:00Z'
+  assert_output --partial 'duration: 1h 0m 0s'
   # Full name from the speakers map.
   assert_output --partial 'Casey Rivera [00:00:05]: lets get started'
   # No name -> email fallback.
@@ -741,8 +925,9 @@ Casey Rivera [01:02:05]: wrapping up"
   [[ -z "$(find "${TERMINATOR_KRISP_CACHE_DIR}" -name '*.tmp*')" ]]
   # The cached entry is the rendered markdown under its lexical name.
   [[ -f "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}" ]]
-  sed -n '1p' "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}" | grep -qx '# Weekly sync'
-  sed -n '2p' "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}" | grep -qx '2026-07-10T09:30:00Z (id aabbccddeeff00112233445566778899)'
+  sed -n '1p' "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}" | grep -qx -- '---'
+  sed -n '2p' "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}" | grep -qx 'doc_type: transcript'
+  sed -n '3p' "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}" | grep -qx 'id: aabbccddeeff00112233445566778899'
 }
 
 # bats test_tags=terminator::krisp,terminator::krisp::get
@@ -831,6 +1016,105 @@ Casey Rivera [01:02:05]: wrapping up"
 }
 
 # bats test_tags=terminator::krisp,terminator::krisp::get
+@test "terminator::krisp::get serves a frontmatter cache entry as-is" {
+  _krisp_env
+
+  # Any curl invocation fails the test: the cache must serve fully offline.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function curl {
+    echo "unexpected curl call: $*" >&2
+    return 1
+  }
+
+  printf '%s\n' \
+    '---' \
+    'doc_type: transcript' \
+    'id: aabbccddeeff00112233445566778899' \
+    'title: "Weekly sync"' \
+    'started_at: 2026-07-10T09:30:00Z' \
+    'duration: 1h 0m 0s' \
+    'language: en' \
+    '---' \
+    '' \
+    '# Weekly sync' \
+    '' \
+    'Casey Rivera [00:00:05]: lets get started' \
+    >"${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}"
+
+  run terminator::krisp::get aabbccdd
+
+  assert_success
+  assert_output '---
+doc_type: transcript
+id: aabbccddeeff00112233445566778899
+title: "Weekly sync"
+started_at: 2026-07-10T09:30:00Z
+duration: 1h 0m 0s
+language: en
+---
+
+# Weekly sync
+
+Casey Rivera [00:00:05]: lets get started'
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::get
+@test "terminator::krisp::get serves a legacy two-line-header cache entry as-is" {
+  _krisp_env
+
+  # Any curl invocation fails the test: the cache must serve fully offline.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function curl {
+    echo "unexpected curl call: $*" >&2
+    return 1
+  }
+
+  # The real pre-frontmatter shape: current filename, old two-line header.
+  printf '%s\n' \
+    '# Weekly sync' \
+    '2026-07-10T09:30:00Z (id aabbccddeeff00112233445566778899)' \
+    '' \
+    'Casey Rivera [00:00:05]: lets get started' \
+    >"${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}"
+
+  run terminator::krisp::get aabbccdd
+
+  assert_success
+  assert_output '# Weekly sync
+2026-07-10T09:30:00Z (id aabbccddeeff00112233445566778899)
+
+Casey Rivera [00:00:05]: lets get started'
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::get
+@test "terminator::krisp::get treats a wrong-id frontmatter entry as corrupt" {
+  _krisp_env
+
+  # Any curl invocation fails the test: a corrupt entry must never fetch.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function curl {
+    echo "unexpected curl call: $*" >&2
+    return 1
+  }
+
+  printf '%s\n' \
+    '---' \
+    'doc_type: transcript' \
+    'id: 99887766554433221100ffeeddccbbaa' \
+    'title: "Design review"' \
+    '---' \
+    '' \
+    '# Design review' \
+    >"${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}"
+
+  run terminator::krisp::get aabbccdd
+
+  assert_failure
+  assert_output --partial "cache entry for 'aabbccddeeff00112233445566778899' is corrupt"
+  assert_output --partial 're-fetch with --refresh'
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::get
 @test "terminator::krisp::get serves a cached prefix without jq" {
   _krisp_env
   _seed_cache "${KRISP_MEETING_JSON}"
@@ -851,6 +1135,7 @@ Casey Rivera [01:02:05]: wrapping up"
   run terminator::krisp::get aabbccdd
 
   assert_success
+  assert_output --partial 'id: aabbccddeeff00112233445566778899'
   assert_output --partial '# Weekly sync'
   assert_output --partial 'Casey Rivera [00:00:05]: lets get started'
 }
@@ -1342,6 +1627,7 @@ Casey Rivera [01:02:05]: wrapping up"
     terminator::krisp::__cache_path__ \
     terminator::krisp::__cache_write__ \
     terminator::krisp::__cache_read__ \
+    terminator::krisp::__cache_entry_valid__ \
     terminator::krisp::__format_transcript__ \
     terminator::krisp::__cache_filename__ \
     terminator::krisp::__render_markdown__ \

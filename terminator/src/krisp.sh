@@ -317,6 +317,33 @@ function terminator::krisp::__cache_read__ {
   esac
 }
 
+# Validates a cache entry body against a meeting id. Both the current
+# frontmatter format and the older two-line header pass, so pre-existing
+# entries keep serving.
+# Usage: __cache_entry_valid__ ID BODY
+function terminator::krisp::__cache_entry_valid__ {
+  local \
+    id="$1" \
+    body="$2" \
+    line1 \
+    line2 \
+    front
+
+  line1="${body%%$'\n'*}"
+  if [[ "${line1}" == '---' ]]; then
+    # Everything up to the closing delimiter.
+    front="${body%%$'\n---'*}"
+    case "${front}" in
+      *$'\n'"id: ${id}"$'\n'* | *$'\n'"id: ${id}") return 0 ;;
+      *) return 1 ;;
+    esac
+  fi
+
+  line2="${body#*$'\n'}"
+  line2="${line2%%$'\n'*}"
+  [[ "${line1}" == '# '* ]] && [[ "${line2}" == *"(id ${id})"* ]]
+}
+
 # Formats a meeting API response as one line per segment:
 #   Name [hh:mm:ss]: text
 # Speaker names come from the transcript.speakers map (keyed by diarization
@@ -371,8 +398,8 @@ function terminator::krisp::__cache_filename__ {
   esac
 }
 
-# Renders a meeting response as the markdown cache entry: a title line, a
-# timestamp/id line, a blank line, then the formatted transcript. The cache
+# Renders a meeting response as the markdown cache entry: a frontmatter
+# block, the title, a blank line, then the formatted transcript. The cache
 # entry and krisp-get stdout are byte-identical.
 # Usage: __render_markdown__ BODY [OUTPUT_VAR]
 function terminator::krisp::__render_markdown__ {
@@ -381,10 +408,24 @@ function terminator::krisp::__render_markdown__ {
     __render_markdown_header__
 
   __render_markdown_header__="$(jq -r '
+    def hms($d):
+      (if $d >= 3600 then "\($d / 3600 | floor)h " else "" end)
+      + "\($d / 60 % 60 | floor)m \($d % 60 | floor)s";
     (if ((.started_at // "") | length) >= 19
       then (.started_at | .[0:19])
       else "1970-01-01T00:00:00" end) as $iso
-    | "# \(.title // "(untitled)")\n\($iso)Z (id \(.id // ""))"
+    | ((.duration | numbers) // 0) as $d
+    | ((.transcript // {} | .language? // "" | strings // "")) as $lang
+    | "---",
+      "doc_type: transcript",
+      "id: \(.id // "")",
+      "title: \(.title // "(untitled)" | tojson)",
+      "started_at: \($iso)Z",
+      (if $d > 0 then "duration: \(hms($d))" else empty end),
+      (if $lang != "" then "language: \($lang)" else empty end),
+      "---",
+      "",
+      "# \(.title // "(untitled)")"
   ' <<<"$1" 2>/dev/null)"
 
   __render_markdown_result__="${__render_markdown_header__}
@@ -566,7 +607,10 @@ Usage: krisp-get [OPTIONS] [PREFIX]
     -h, --help                Show this help
 
   Cache entries are markdown files named YYYY-MM-DDTHH-MM-SSZ__id__slug.md,
-  so the cache dir doubles as a browsable transcript library.
+  so the cache dir doubles as a browsable transcript library. Each entry
+  opens with a YAML frontmatter block (doc_type, id, title, started_at,
+  duration, language), then the title heading, then one line per spoken
+  segment.
 
   Cache dir: ${TERMINATOR_KRISP_CACHE_DIR}
 USAGE_TEXT
@@ -700,9 +744,7 @@ function terminator::krisp::get {
     body \
     code \
     entry \
-    candidates=() \
-    header \
-    line2
+    candidates=()
 
   while (($# != 0)); do
     case "$1" in
@@ -775,15 +817,12 @@ function terminator::krisp::get {
   fi
 
   # Cache hit: the entry is pre-rendered markdown, so serving needs no key,
-  # curl, or jq. A readable entry that fails header validation is corrupt
-  # and is never silently re-fetched.
+  # curl, or jq. A readable entry that fails validation is corrupt and is
+  # never silently re-fetched.
   if ((json == 0)) && ((refresh == 0)) && terminator::krisp::__cache_path__ "${id}" path; then
     terminator::krisp::__cache_read__ "${path}" body
 
-    header="${body%%$'\n'*}"
-    line2="${body#*$'\n'}"
-    line2="${line2%%$'\n'*}"
-    if [[ "${header}" != '# '* ]] || [[ "${line2}" != *"(id ${id})"* ]]; then
+    if ! terminator::krisp::__cache_entry_valid__ "${id}" "${body}"; then
       terminator::logger::error "cache entry for '${id}' is corrupt; re-fetch with --refresh"
       return 1
     fi
@@ -1053,6 +1092,7 @@ function terminator::krisp::__export__ {
   export -f terminator::krisp::__cache_path__
   export -f terminator::krisp::__cache_write__
   export -f terminator::krisp::__cache_read__
+  export -f terminator::krisp::__cache_entry_valid__
   export -f terminator::krisp::__format_transcript__
   export -f terminator::krisp::__cache_filename__
   export -f terminator::krisp::__render_markdown__
@@ -1081,6 +1121,7 @@ function terminator::krisp::__recall__ {
   export -fn terminator::krisp::__cache_path__
   export -fn terminator::krisp::__cache_write__
   export -fn terminator::krisp::__cache_read__
+  export -fn terminator::krisp::__cache_entry_valid__
   export -fn terminator::krisp::__format_transcript__
   export -fn terminator::krisp::__cache_filename__
   export -fn terminator::krisp::__render_markdown__
