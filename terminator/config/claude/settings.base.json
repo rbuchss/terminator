@@ -4,5 +4,6 @@
     "command": "bunx -y ccstatusline@2.0.28",
     "padding": 0
   },
-  "effortLevel": "xhigh"
+  "effortLevel": "xhigh",
+  "verbose": false
 }
