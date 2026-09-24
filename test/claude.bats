@@ -566,6 +566,75 @@ bats_require_minimum_version 1.5.0
   rm -rf "${temp_home}"
 }
 
+# bats test_tags=terminator::claude,terminator::claude::settings::merge_baseline
+@test "terminator::claude::settings::merge_baseline leaves-file-untouched-on-invalid-json" {
+  command -v jq >/dev/null 2>&1 || skip 'jq not available'
+
+  local temp_home
+  temp_home="$(mktemp -d)"
+  local original_home="${HOME}"
+  local original_root="${TERMINATOR_MODULE_ROOT_DIR}"
+  HOME="${temp_home}"
+
+  mkdir -p "${temp_home}/.terminator/config/claude"
+  printf '{"statusLine":{"type":"command","command":"default"}}\n' \
+    >"${temp_home}/.terminator/config/claude/settings.base.json"
+  TERMINATOR_MODULE_ROOT_DIR="${temp_home}/.terminator"
+
+  mkdir -p "${temp_home}/.claude"
+  # Truncated (invalid) JSON, as left behind by an interrupted writer
+  local original_content='{"statusLine":{"type":"command","command":"custom"'
+  printf '%s\n' "${original_content}" >"${temp_home}/.claude/settings.json"
+
+  run terminator::claude::settings::merge_baseline
+
+  HOME="${original_home}"
+  TERMINATOR_MODULE_ROOT_DIR="${original_root}"
+
+  assert_failure 1
+
+  # invalid content is left byte-for-byte intact rather than clobbered
+  local content
+  content="$(cat "${temp_home}/.claude/settings.json")"
+  [[ "${content}" == "${original_content}" ]]
+
+  rm -rf "${temp_home}"
+}
+
+# bats test_tags=terminator::claude,terminator::claude::settings::merge_baseline
+@test "terminator::claude::settings::merge_baseline seeds-empty-file-from-baseline" {
+  command -v jq >/dev/null 2>&1 || skip 'jq not available'
+
+  local temp_home
+  temp_home="$(mktemp -d)"
+  local original_home="${HOME}"
+  local original_root="${TERMINATOR_MODULE_ROOT_DIR}"
+  HOME="${temp_home}"
+
+  mkdir -p "${temp_home}/.terminator/config/claude"
+  printf '{"statusLine":{"type":"command","command":"default"}}\n' \
+    >"${temp_home}/.terminator/config/claude/settings.base.json"
+  TERMINATOR_MODULE_ROOT_DIR="${temp_home}/.terminator"
+
+  mkdir -p "${temp_home}/.claude"
+  printf '\n' >"${temp_home}/.claude/settings.json"
+
+  run terminator::claude::settings::merge_baseline
+
+  HOME="${original_home}"
+  TERMINATOR_MODULE_ROOT_DIR="${original_root}"
+
+  assert_success
+
+  # empty file has nothing to preserve; baseline seeds it
+  local content
+  content="$(cat "${temp_home}/.claude/settings.json")"
+  [[ "${content}" == *'"statusLine"'* ]]
+  [[ "${content}" == *'"default"'* ]]
+
+  rm -rf "${temp_home}"
+}
+
 ################################################################################
 # terminator::claude::plugin::marketplace::exists
 ################################################################################

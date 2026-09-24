@@ -272,7 +272,16 @@ function terminator::claude::settings::merge_baseline {
     return 0
   fi
 
-  merged="$(jq -s '.[0] * .[1]' "${baseline_path}" "${settings_path}")"
+  # An empty settings file slurps as null, so merge it as {} and let the
+  # baseline seed it. Invalid JSON fails the merge; the guard leaves the
+  # file untouched instead of clobbering it with the empty result.
+  if ! merged="$(jq -s '.[0] * (.[1] // {})' \
+    "${baseline_path}" "${settings_path}" 2>/dev/null)"; then
+    terminator::logger::warning \
+      "claude settings merge failed; leaving ${settings_path} untouched"
+    return 1
+  fi
+
   current="$(cat "${settings_path}")"
 
   if [[ "${merged}" == "${current}" ]]; then
