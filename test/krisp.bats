@@ -1876,11 +1876,11 @@ aabbccddeeff00112233445566778899
 ################################################################################
 
 # bats test_tags=terminator::krisp,terminator::krisp::get
-@test "terminator::krisp::get with no arg targets the most recent meeting" {
+@test "terminator::krisp::get --latest targets the most recent meeting" {
   _krisp_env
   _krisp_curl_ok
 
-  run terminator::krisp::get
+  run terminator::krisp::get --latest
 
   assert_success
   assert_output "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING2_MD}"
@@ -2088,7 +2088,7 @@ aabbccddeeff00112233445566778899
     esac
   }
 
-  run terminator::krisp::get
+  run terminator::krisp::get --latest
 
   assert_failure
   assert_output --partial 'still processing'
@@ -2132,7 +2132,7 @@ aabbccddeeff00112233445566778899
     esac
   }
 
-  run terminator::krisp::get
+  run terminator::krisp::get --latest
 
   assert_failure
   assert_output --partial 'no transcript in response'
@@ -2323,6 +2323,9 @@ aabbccddeeff00112233445566778899
 
   assert_success
   assert_output --partial 'Usage: krisp-get'
+  assert_output --partial 'multi-select picker over the 100 newest'
+  assert_output --partial '--latest                  Pull the most recent meeting, no picker'
+  assert_output --partial 'PREFIX, --latest, --on, and --since/--until are exclusive addressing'
 }
 
 # bats test_tags=terminator::krisp,terminator::krisp::get
@@ -2421,6 +2424,111 @@ aabbccddeeff00112233445566778899
 }
 
 # bats test_tags=terminator::krisp,terminator::krisp::get
+@test "terminator::krisp::get rejects --latest combined with the other addressing forms" {
+  _krisp_env
+
+  run terminator::krisp::get --latest aabbccdd
+
+  assert_failure
+  assert_output --partial 'exclusive addressing forms'
+
+  run terminator::krisp::get --latest --on 2026-07-10
+
+  assert_failure
+  assert_output --partial 'exclusive addressing forms'
+
+  run terminator::krisp::get --latest --since 2026-07-10
+
+  assert_failure
+  assert_output --partial 'exclusive addressing forms'
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::get
+@test "terminator::krisp::get --json with --latest is contradictory" {
+  _krisp_env
+
+  run terminator::krisp::get --json --latest
+
+  assert_failure
+  assert_output --partial 'contradictory'
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::get
+@test "terminator::krisp::get guards name --latest when the picker would open" {
+  _krisp_env
+
+  # fzf missing: the error names the non-interactive form.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 1; }
+
+  run terminator::krisp::get
+
+  assert_failure
+  assert_output --partial 'krisp-get requires fzf for its picker; pass --latest to target the most recent meeting without a picker'
+
+  # stdin is not a terminal: the same form is named.
+  _krisp_env
+
+  run terminator::krisp::get </dev/null
+
+  assert_failure
+  assert_output --partial 'krisp-get requires a terminal for its picker; pass --latest to target the most recent meeting without a picker'
+
+  # Bare --tag and bare --refresh resolve through the same picker.
+  run terminator::krisp::get --tag work </dev/null
+
+  assert_failure
+  assert_output --partial 'krisp-get requires a terminal for its picker'
+
+  run terminator::krisp::get --refresh </dev/null
+
+  assert_failure
+  assert_output --partial 'krisp-get requires a terminal for its picker'
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::get
+@test "terminator::krisp::get --latest serves a cached target with no detail fetch" {
+  _krisp_env
+  _seed_cache "${KRISP_MEETING2_JSON}"
+
+  # Any detail fetch fails the test: the list call resolves the target and
+  # the cached entry serves.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function curl {
+    case "$*" in
+      *'/meetings?'*)
+        printf '%s\n%s\n' "${KRISP_LIST_JSON}" '200'
+        ;;
+      *)
+        echo "unexpected curl call: $*" >&2
+        return 1
+        ;;
+    esac
+  }
+
+  run terminator::krisp::get --latest
+
+  assert_success
+  assert_output "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING2_MD}"
+  grep -q 'walking through the mockups' "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING2_MD}"
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::get
+@test "terminator::krisp::get --latest --refresh forces a refetch and preserves tags" {
+  _krisp_env
+  _seed_cache "${KRISP_MEETING2_JSON}" 'client'
+  _krisp_curl_ok
+
+  run terminator::krisp::get --latest --refresh
+
+  assert_success
+  assert_output "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING2_MD}"
+  # The refetched entry keeps its tag and gains the fresh content.
+  grep -qxF 'tags: [client]' "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING2_MD}"
+  grep -q 'walking through the mockups' "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING2_MD}"
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::get
 @test "terminator::krisp::get rejects a calendar-invalid --on date" {
   _krisp_env
 
@@ -2511,11 +2619,11 @@ aabbccddeeff00112233445566778899
 }
 
 # bats test_tags=terminator::krisp,terminator::krisp::get
-@test "terminator::krisp::get bare with --tag targets the most recent meeting" {
+@test "terminator::krisp::get --latest with --tag targets the most recent meeting" {
   _krisp_env
   _krisp_curl_ok
 
-  run terminator::krisp::get --tag work
+  run terminator::krisp::get --latest --tag work
 
   assert_success
   assert_output "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING2_MD}"
@@ -3162,19 +3270,32 @@ ${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}" ]]
 }
 
 # bats test_tags=terminator::krisp,terminator::krisp::pick_entries
-@test "__pick_entries__ cancels on empty output and nonzero fzf exits" {
+@test "__pick_entries__ no-op rounds, cancels, and rejects unresolvable ids" {
   _krisp_env
   _seed_cache "${KRISP_MEETING_JSON}" 'work'
 
   local selection="${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}"
   local picked
 
-  # An accept with nothing marked prints nothing.
+  # An accept with nothing marked is a no-op round: rc 0, empty output.
   # shellcheck disable=SC2317 # invoked indirectly
   function fzf { cat >/dev/null; }
   picked='sentinel'
-  if terminator::krisp::__pick_entries__ picked "${selection}"; then
-    fail 'expected empty output to cancel'
+  if ! terminator::krisp::__pick_entries__ picked "${selection}"; then
+    fail 'expected an empty accept to be a no-op round'
+  fi
+  [[ "${picked}" == '' ]]
+
+  # Enter on a filter that matches nothing (fzf exit 1) is also a no-op
+  # round: rc 0, empty output.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function fzf {
+    cat >/dev/null
+    return 1
+  }
+  picked='sentinel'
+  if ! terminator::krisp::__pick_entries__ picked "${selection}"; then
+    fail 'expected a no-match enter to be a no-op round'
   fi
   [[ "${picked}" == '' ]]
 
@@ -3191,7 +3312,8 @@ ${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}" ]]
   fi
   [[ "${picked}" == '' ]]
 
-  # A row whose id resolves to no cache entry cancels the whole pick.
+  # A row whose id resolves to no cache entry logs the error and returns 2;
+  # the output is discarded.
   # shellcheck disable=SC2317 # invoked indirectly
   function fzf {
     cat >/dev/null
@@ -3199,9 +3321,329 @@ ${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}" ]]
   }
   picked='sentinel'
   if terminator::krisp::__pick_entries__ picked "${selection}"; then
-    fail 'expected an unresolvable id to cancel'
+    fail 'expected an unresolvable id to fail'
   fi
   [[ "${picked}" == '' ]]
+
+  run --separate-stderr terminator::krisp::__pick_entries__ picked "${selection}"
+  assert_failure 2
+  grep -q "krisp: no cached transcript for id 'ffffffffffffffffffffffffffffffff'" <<<"${stderr}"
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::pick_entries
+@test "__pick_entries__ feeds the picker latest first" {
+  _krisp_env
+  _seed_cache "${KRISP_MEETING_JSON}" 'work'
+  _seed_cache "${KRISP_MEETING2_JSON}"
+
+  local selection="${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}
+${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING2_MD}"
+  local stdin_file
+  stdin_file="$(mktemp)"
+
+  # fzf captures its feed; the rows reach it newest first.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function fzf {
+    cat >"${stdin_file}"
+    printf '%s\n' '2026-07-10T09:30Z  aabbccddeeff00112233445566778899  1.2K  [work]  Weekly-sync'
+  }
+
+  local picked
+  terminator::krisp::__pick_entries__ picked "${selection}"
+
+  [[ "$(head -n 1 "${stdin_file}")" == '2026-07-11T14:00Z  99887766554433221100ffeeddccbbaa  '* ]]
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::pick_meetings
+@test "__pick_meetings__ rows the feed newest first with the processing marker" {
+  _krisp_env
+
+  local meetings
+  meetings="$(jq -c '.meetings' <<<"${KRISP_LIST_JSON}")"
+
+  local stdin_file
+  stdin_file="$(mktemp)"
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function fzf {
+    cat >"${stdin_file}"
+    printf '%s\n' '2026-07-11T14:00Z  99887766554433221100ffeeddccbbaa  Design review'
+  }
+
+  local picked
+  terminator::krisp::__pick_meetings__ picked "${meetings}"
+
+  [[ "$(cat "${stdin_file}")" == '2026-07-11T14:00Z  99887766554433221100ffeeddccbbaa  Design review
+2026-07-10T09:30Z  aabbccddeeff00112233445566778899  Weekly sync
+2026-07-09T16:00Z  5566778899aabbccddeeff0011223344  Retro  [processing]' ]]
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::pick_meetings
+@test "__pick_meetings__ omits meetings without an id" {
+  _krisp_env
+
+  local meetings
+  meetings="$(jq -c '.meetings + [{"title":"Ghost meeting","started_at":"2026-07-12T10:00:00Z","status":"ready"}]' <<<"${KRISP_LIST_JSON}")"
+
+  local stdin_file
+  stdin_file="$(mktemp)"
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function fzf {
+    cat >"${stdin_file}"
+    printf '%s\n' '2026-07-11T14:00Z  99887766554433221100ffeeddccbbaa  Design review'
+  }
+
+  local picked
+  terminator::krisp::__pick_meetings__ picked "${meetings}"
+
+  [[ "$(cat "${stdin_file}")" == '2026-07-11T14:00Z  99887766554433221100ffeeddccbbaa  Design review
+2026-07-10T09:30Z  aabbccddeeff00112233445566778899  Weekly sync
+2026-07-09T16:00Z  5566778899aabbccddeeff0011223344  Retro  [processing]' ]]
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::pick_meetings
+@test "__pick_meetings__ maps marked rows to TSV in feed order" {
+  _krisp_env
+
+  local meetings
+  meetings="$(jq -c '.meetings' <<<"${KRISP_LIST_JSON}")"
+
+  # Marks the Weekly sync row, then the Design review row: the output TSV
+  # keeps feed order, newest first.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function fzf {
+    cat >/dev/null
+    printf '%s\n%s\n' \
+      '2026-07-10T09:30Z  aabbccddeeff00112233445566778899  Weekly sync' \
+      '2026-07-11T14:00Z  99887766554433221100ffeeddccbbaa  Design review'
+  }
+
+  local picked
+  terminator::krisp::__pick_meetings__ picked "${meetings}"
+
+  [[ "${picked}" == "$(printf '%s\tready\tDesign review\n%s\tready\tWeekly sync' \
+    '99887766554433221100ffeeddccbbaa' \
+    'aabbccddeeff00112233445566778899')" ]]
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::pick_meetings
+@test "__pick_meetings__ skips an unmappable marked row with a notice" {
+  _krisp_env
+
+  local meetings
+  meetings="$(jq -c '.meetings' <<<"${KRISP_LIST_JSON}")"
+
+  # A title continuation line marked alongside a real row: the continuation
+  # matches no feed meeting, so only the real row lands in the TSV.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function fzf {
+    cat >/dev/null
+    printf '%s\n%s\n' \
+      '2026-07-10T09:30Z  aabbccddeeff00112233445566778899  Weekly sync' \
+      'continued  from  a  wrapped  title'
+  }
+
+  local picked
+  terminator::krisp::__pick_meetings__ picked "${meetings}"
+
+  [[ "${picked}" == "$(printf '%s\tready\tWeekly sync' 'aabbccddeeff00112233445566778899')" ]]
+
+  run --separate-stderr terminator::krisp::__pick_meetings__ picked "${meetings}"
+  assert_success
+  grep -q "krisp: skipped 'continued  from  a  wrapped  title': no meeting matches the row" <<<"${stderr}"
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::pick_meetings
+@test "__pick_meetings__ cancels on esc and empty accepts" {
+  _krisp_env
+
+  local meetings
+  meetings="$(jq -c '.meetings' <<<"${KRISP_LIST_JSON}")"
+
+  # Esc aborts with status 130; the marked rows are discarded.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function fzf {
+    cat >/dev/null
+    printf '%s\n' '2026-07-11T14:00Z  99887766554433221100ffeeddccbbaa  Design review'
+    return 130
+  }
+  local picked='sentinel'
+  if terminator::krisp::__pick_meetings__ picked "${meetings}"; then
+    fail 'expected a nonzero fzf exit to cancel'
+  fi
+  [[ "${picked}" == '' ]]
+
+  # An accept with nothing marked also cancels.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function fzf { cat >/dev/null; }
+  picked='sentinel'
+  if terminator::krisp::__pick_meetings__ picked "${meetings}"; then
+    fail 'expected an empty accept to cancel'
+  fi
+  [[ "${picked}" == '' ]]
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::picker_pull
+@test "__picker_pull__ feeds the picker the 100 newest meetings" {
+  _krisp_env
+  query_log="$(mktemp)"
+  stdin_file="$(mktemp)"
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function curl {
+    printf '%s\n' "$*" >>"${query_log}"
+    printf '%s\n%s\n' "${KRISP_LIST_JSON}" '200'
+  }
+  # Esc aborts with status 130 after the rows are read.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function fzf {
+    cat >"${stdin_file}"
+    return 130
+  }
+
+  run terminator::krisp::__picker_pull__ 0 ''
+
+  assert_success
+  assert_output --partial 'krisp: cancelled'
+  # One list call, newest first, capped at 100; the cursorless mock page
+  # leaves nothing to page through, and esc precedes every detail fetch.
+  (($(wc -l <"${query_log}") == 1))
+  grep -q -- 'order=newest&limit=100' "${query_log}"
+  # The picker opened with the newest meeting first.
+  [[ "$(sed -n '1p' "${stdin_file}")" == '2026-07-11T14:00Z  99887766554433221100ffeeddccbbaa  Design review' ]]
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::picker_pull
+@test "__picker_pull__ pulls a mixed selection from cache and API" {
+  _krisp_env
+  _seed_cache "${KRISP_MEETING_JSON}"
+  _krisp_curl_ok
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function fzf {
+    printf '%s\n' \
+      '2026-07-11T14:00Z  99887766554433221100ffeeddccbbaa  Design review' \
+      '2026-07-10T09:30Z  aabbccddeeff00112233445566778899  Weekly sync' \
+      '2026-07-09T16:00Z  5566778899aabbccddeeff0011223344  Retro  [processing]'
+  }
+
+  run --separate-stderr terminator::krisp::__picker_pull__ 0 ''
+
+  assert_success
+  # Oldest first: the cached Weekly sync serves, the uncached Design review
+  # fetches, and the still-processing Retro skips with a notice.
+  assert_output "$(printf '%s\n%s' \
+    "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}" \
+    "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING2_MD}")"
+  grep -q 'transcription still processing' <<<"${stderr}"
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::picker_pull
+@test "__picker_pull__ refreshes a cached pick and preserves its tags" {
+  _krisp_env
+  _seed_cache "${KRISP_MEETING_JSON}" 'client'
+  _krisp_curl_ok
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function fzf {
+    printf '%s\n' '2026-07-10T09:30Z  aabbccddeeff00112233445566778899  Weekly sync'
+  }
+
+  run terminator::krisp::__picker_pull__ 1 ''
+
+  assert_success
+  assert_output "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}"
+  # The refetched entry keeps its tag and gains the fresh content.
+  grep -qxF 'tags: [client]' "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}"
+  grep -q 'lets get started' "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}"
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::picker_pull
+@test "__picker_pull__ tags cached and fetched picks" {
+  _krisp_env
+  _seed_cache "${KRISP_MEETING_JSON}"
+  _krisp_curl_ok
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function fzf {
+    printf '%s\n' \
+      '2026-07-11T14:00Z  99887766554433221100ffeeddccbbaa  Design review' \
+      '2026-07-10T09:30Z  aabbccddeeff00112233445566778899  Weekly sync'
+  }
+
+  run terminator::krisp::__picker_pull__ 0 'work'
+
+  assert_success
+  assert_output "$(printf '%s\n%s' \
+    "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}" \
+    "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING2_MD}")"
+  # The tag lands on the served cache entry and the fetched one alike.
+  grep -qxF 'tags: [work]' "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}"
+  grep -qxF 'tags: [work]' "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING2_MD}"
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::picker_pull
+@test "__picker_pull__ cancels an empty pick without fetching" {
+  _krisp_env
+  query_log="$(mktemp)"
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function curl {
+    printf '%s\n' "$*" >>"${query_log}"
+    printf '%s\n%s\n' "${KRISP_LIST_JSON}" '200'
+  }
+  # An accept with nothing marked cancels the pull.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function fzf { cat >/dev/null; }
+
+  run terminator::krisp::__picker_pull__ 0 ''
+
+  assert_success
+  assert_output --partial 'krisp: cancelled'
+  # The pick precedes every fetch: the list call is the only call.
+  (($(wc -l <"${query_log}") == 1))
+  grep -q -- '/meetings?' "${query_log}"
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::picker_pull
+@test "__picker_pull__ reports an empty feed without opening the picker" {
+  _krisp_env
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function curl { printf '%s\n%s\n' "${KRISP_EMPTY_LIST_JSON}" '200'; }
+  # A picker that ran would flip the output to a cancellation notice.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function fzf {
+    echo 'fzf must not open on an empty feed' >&2
+    return 1
+  }
+
+  run --separate-stderr terminator::krisp::__picker_pull__ 0 ''
+
+  assert_success
+  assert_output ''
+  grep -q 'krisp: no meetings to pull' <<<"${stderr}"
+  run ! grep -q 'fzf must not open' <<<"${stderr}"
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::picker_pull
+@test "__picker_pull__ skips an all-not-ready pick with empty output" {
+  _krisp_env
+  _krisp_curl_ok
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function fzf {
+    printf '%s\n' '2026-07-09T16:00Z  5566778899aabbccddeeff0011223344  Retro  [processing]'
+  }
+
+  run --separate-stderr terminator::krisp::__picker_pull__ 0 ''
+
+  assert_success
+  # Every picked meeting is still processing: a valid empty result with no
+  # blank line.
+  assert_output ''
+  grep -q 'transcription still processing' <<<"${stderr}"
 }
 
 # bats test_tags=terminator::krisp,terminator::krisp::pick_tags
@@ -3325,6 +3767,289 @@ team' 'pick tags'; then
     fail 'expected an empty typed query on fzf exit 1 to cancel'
   fi
   [[ "${picked}" == '' ]]
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::tag_session
+@test "__tag_session__ applies rounds until esc" {
+  _krisp_env
+  _seed_cache "${KRISP_MEETING_JSON}"
+
+  fzf_calls="$(mktemp)"
+  # Each round reopens the entry picker; rounds two and four pick tags.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function fzf {
+    printf 'call\n' >>"${fzf_calls}"
+    cat >/dev/null
+    case "$(wc -l <"${fzf_calls}")" in
+      1 | 3)
+        printf '%s\n' '2026-07-10T09:30Z  aabbccddeeff00112233445566778899  1.2K  Weekly-sync'
+        ;;
+      2) printf '%s\n%s\n' '' 'team' ;;
+      4) printf '%s\n%s\n' '' 'work' ;;
+      *) return 130 ;;
+    esac
+  }
+
+  run --separate-stderr terminator::krisp::__tag_session__ add '' "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}"
+
+  assert_success
+  assert_output "$(printf '%s\n%s' \
+    "Tagged 1 transcript with 'team'" \
+    "Tagged 1 transcript with 'work'")"
+  grep -q 'krisp: cancelled' <<<"${stderr}"
+  grep -qxF 'tags: [team, work]' "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}"
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::tag_session
+@test "__tag_session__ ends immediately on esc with nothing applied" {
+  _krisp_env
+  _seed_cache "${KRISP_MEETING_JSON}"
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function fzf {
+    cat >/dev/null
+    return 130
+  }
+
+  run --separate-stderr terminator::krisp::__tag_session__ add '' "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}"
+
+  assert_success
+  assert_output ''
+  grep -q 'krisp: cancelled' <<<"${stderr}"
+  (($(grep -c 'tags:' "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}") == 0))
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::tag_session
+@test "__tag_session__ no-op rounds reopen the entry picker" {
+  _krisp_env
+  _seed_cache "${KRISP_MEETING_JSON}"
+
+  fzf_calls="$(mktemp)"
+  # An empty accept, then a no-match filter (fzf exit 1): no-op rounds.
+  # An empty tags accept cancels the round, not the session.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function fzf {
+    printf 'call\n' >>"${fzf_calls}"
+    cat >/dev/null
+    case "$(wc -l <"${fzf_calls}")" in
+      1) ;;
+      2) return 1 ;;
+      3) printf '%s\n' '2026-07-10T09:30Z  aabbccddeeff00112233445566778899  1.2K  Weekly-sync' ;;
+      4) printf '\n' ;;
+      *) return 130 ;;
+    esac
+  }
+
+  run --separate-stderr terminator::krisp::__tag_session__ add '' "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}"
+
+  assert_success
+  assert_output ''
+  grep -q 'krisp: cancelled' <<<"${stderr}"
+  # Five calls prove every no-op round reopened the entry picker.
+  (($(wc -l <"${fzf_calls}") == 5))
+  (($(grep -c 'tags:' "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}") == 0))
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::tag_session
+@test "__tag_session__ esc at the tags picker cancels the round only" {
+  _krisp_env
+  _seed_cache "${KRISP_MEETING_JSON}"
+
+  fzf_calls="$(mktemp)"
+  # shellcheck disable=SC2317 # invoked indirectly
+  function fzf {
+    printf 'call\n' >>"${fzf_calls}"
+    cat >/dev/null
+    case "$(wc -l <"${fzf_calls}")" in
+      1) printf '%s\n' '2026-07-10T09:30Z  aabbccddeeff00112233445566778899  1.2K  Weekly-sync' ;;
+      *) return 130 ;;
+    esac
+  }
+
+  run --separate-stderr terminator::krisp::__tag_session__ add '' "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}"
+
+  assert_success
+  assert_output ''
+  # Exactly one cancel notice: the tags-picker esc reopens the entry
+  # picker; only the entry-picker esc ends the session.
+  (($(grep -c 'krisp: cancelled' <<<"${stderr}") == 1))
+  (($(wc -l <"${fzf_calls}") == 3))
+  (($(grep -c 'tags:' "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}") == 0))
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::tag_session
+@test "__tag_session__ rerenders rows with applied tags and no drop-off" {
+  _krisp_env
+  _seed_cache "${KRISP_MEETING_JSON}"
+  _seed_cache "${KRISP_MEETING2_JSON}"
+
+  local selection="${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}
+${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING2_MD}"
+  fzf_calls="$(mktemp)"
+  fzf_stdin="$(mktemp)"
+  # shellcheck disable=SC2317 # invoked indirectly
+  function fzf {
+    printf 'call\n' >>"${fzf_calls}"
+    cat >"${fzf_stdin}.$(wc -l <"${fzf_calls}")"
+    case "$(wc -l <"${fzf_calls}")" in
+      1) printf '%s\n' '2026-07-10T09:30Z  aabbccddeeff00112233445566778899  1.2K  Weekly-sync' ;;
+      2) printf '%s\n%s\n' '' 'team' ;;
+      3) printf '%s\n' '2026-07-11T14:00Z  99887766554433221100ffeeddccbbaa  1.2K  Design-review' ;;
+      4) printf '%s\n%s\n' '' 'work' ;;
+      *) return 130 ;;
+    esac
+  }
+
+  run --separate-stderr terminator::krisp::__tag_session__ add '' "${selection}"
+
+  assert_success
+  assert_output "$(printf '%s\n%s' \
+    "Tagged 1 transcript with 'team'" \
+    "Tagged 1 transcript with 'work'")"
+  # Round two's entry picker: both rows stay listed and the round-one tag
+  # renders on the row it was applied to.
+  grep -q 'aabbccddeeff00112233445566778899' "${fzf_stdin}.3"
+  grep -q '99887766554433221100ffeeddccbbaa' "${fzf_stdin}.3"
+  grep -qF '[team]' "${fzf_stdin}.3"
+  grep -qxF 'tags: [team]' "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}"
+  grep -qxF 'tags: [work]' "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING2_MD}"
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::tag_session
+@test "__tag_session__ pre-supplied tags skip the tags picker" {
+  _krisp_env
+  _seed_cache "${KRISP_MEETING_JSON}"
+
+  fzf_calls="$(mktemp)"
+  # shellcheck disable=SC2317 # invoked indirectly
+  function fzf {
+    printf 'call\n' >>"${fzf_calls}"
+    cat >/dev/null
+    case "$(wc -l <"${fzf_calls}")" in
+      1) printf '%s\n' '2026-07-10T09:30Z  aabbccddeeff00112233445566778899  1.2K  Weekly-sync' ;;
+      *) return 130 ;;
+    esac
+  }
+
+  run --separate-stderr terminator::krisp::__tag_session__ add 'work' "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}"
+
+  assert_success
+  assert_output "Tagged 1 transcript with 'work'"
+  # Two calls: the entry picker each round, never a tags picker.
+  (($(wc -l <"${fzf_calls}") == 2))
+  grep -qxF 'tags: [work]' "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}"
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::tag_session
+@test "__tag_session__ rm offers each round's picked entries' tags" {
+  _krisp_env
+  _seed_cache "${KRISP_MEETING_JSON}" 'team, work'
+  _seed_cache "${KRISP_MEETING2_JSON}" 'work'
+
+  local selection="${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}
+${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING2_MD}"
+  fzf_calls="$(mktemp)"
+  fzf_stdin="$(mktemp)"
+  # shellcheck disable=SC2317 # invoked indirectly
+  function fzf {
+    printf 'call\n' >>"${fzf_calls}"
+    cat >"${fzf_stdin}.$(wc -l <"${fzf_calls}")"
+    case "$(wc -l <"${fzf_calls}")" in
+      1) printf '%s\n' '2026-07-10T09:30Z  aabbccddeeff00112233445566778899  1.2K  [team, work]  Weekly-sync' ;;
+      2) printf '%s\n%s\n' '' 'team' ;;
+      3) printf '%s\n' '2026-07-11T14:00Z  99887766554433221100ffeeddccbbaa  1.2K  [work]  Design-review' ;;
+      4) printf '%s\n%s\n' '' 'work' ;;
+      *) return 130 ;;
+    esac
+  }
+
+  run --separate-stderr terminator::krisp::__tag_session__ rm '' "${selection}"
+
+  assert_success
+  assert_output "$(printf '%s\n%s' \
+    "Removed 'team' from 1 transcript" \
+    "Removed 'work' from 1 transcript")"
+  # Round one offers the first pick's tags only; round two reflects the
+  # round-one removal.
+  [[ "$(cat "${fzf_stdin}.2")" == 'team
+work' ]]
+  [[ "$(cat "${fzf_stdin}.4")" == 'work' ]]
+  grep -qxF 'tags: [work]' "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}"
+  (($(grep -c 'tags:' "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING2_MD}") == 0))
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::tag_session
+@test "__tag_session__ rm reopens the picker when the pick carries no tags" {
+  _krisp_env
+  _seed_cache "${KRISP_MEETING_JSON}"
+
+  fzf_calls="$(mktemp)"
+  # shellcheck disable=SC2317 # invoked indirectly
+  function fzf {
+    printf 'call\n' >>"${fzf_calls}"
+    cat >/dev/null
+    case "$(wc -l <"${fzf_calls}")" in
+      1) printf '%s\n' '2026-07-10T09:30Z  aabbccddeeff00112233445566778899  1.2K  Weekly-sync' ;;
+      *) return 130 ;;
+    esac
+  }
+
+  run --separate-stderr terminator::krisp::__tag_session__ rm '' "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}"
+
+  assert_success
+  assert_output ''
+  grep -q 'the picked entries carry no tags' <<<"${stderr}"
+  grep -q 'krisp: cancelled' <<<"${stderr}"
+  # The notice reopened the entry picker; no tags picker ever opened.
+  (($(wc -l <"${fzf_calls}") == 2))
+  (($(grep -c 'tags:' "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}") == 0))
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::tag_session
+@test "__tag_session__ skips a malformed entry, continues, and fails the session" {
+  _krisp_env
+  _seed_cache "${KRISP_MEETING_JSON}" 'work'
+  printf '%s\n' \
+    '---' \
+    'doc_type: transcript' \
+    'id: 99887766554433221100ffeeddccbbaa' \
+    'title: "Design review"' \
+    'started_at: 2026-07-11T14:00:00Z' \
+    'tags: [bad tag!]' \
+    '---' \
+    '' \
+    'Dana Ng [00:00:03]: walking through the mockups' \
+    >"${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING2_MD}"
+
+  local selection="${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}
+${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING2_MD}"
+  fzf_calls="$(mktemp)"
+  # shellcheck disable=SC2317 # invoked indirectly
+  function fzf {
+    printf 'call\n' >>"${fzf_calls}"
+    cat >/dev/null
+    case "$(wc -l <"${fzf_calls}")" in
+      1)
+        printf '%s\n' \
+          '2026-07-10T09:30Z  aabbccddeeff00112233445566778899  1.2K  [work]  Weekly-sync' \
+          '2026-07-11T14:00Z  99887766554433221100ffeeddccbbaa  1.2K  Design-review'
+        ;;
+      2) printf '%s\n%s\n' '' 'team' ;;
+      *) return 130 ;;
+    esac
+  }
+
+  run --separate-stderr terminator::krisp::__tag_session__ add '' "${selection}"
+
+  assert_failure
+  assert_output "Tagged 1 transcript with 'team'"
+  grep -q "cannot retag '${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING2_MD}'" <<<"${stderr}"
+  grep -q 'krisp: cancelled' <<<"${stderr}"
+  # The failed round continued the session: esc ended it.
+  (($(wc -l <"${fzf_calls}") == 3))
+  grep -qxF 'tags: [team, work]' "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING_MD}"
+  # The malformed entry is left untouched.
+  grep -qxF 'tags: [bad tag!]' "${TERMINATOR_KRISP_CACHE_DIR}/${KRISP_MEETING2_MD}"
 }
 
 # bats test_tags=terminator::krisp,terminator::krisp::cache
@@ -4260,6 +4985,8 @@ team' 'pick tags'; then
 
   assert_success
   assert_output --partial 'Usage: krisp-tag'
+  assert_output --partial 'each applied round reopens the entry picker'
+  assert_output --partial 'until esc or ctrl-c ends the session, earlier rounds kept'
 }
 
 # bats test_tags=terminator::krisp,terminator::krisp::tag
@@ -4336,6 +5063,7 @@ team' 'pick tags'; then
   COMP_CWORD=1
   COMPREPLY=()
   terminator::krisp::__completion__
+  [[ " ${COMPREPLY[*]} " == *' --latest '* ]]
   [[ " ${COMPREPLY[*]} " == *' --refresh '* ]]
   [[ " ${COMPREPLY[*]} " == *' --tag '* ]]
   [[ " ${COMPREPLY[*]} " == *' -t '* ]]
@@ -4409,6 +5137,20 @@ team' 'pick tags'; then
 
   COMP_WORDS=(krisp-get --on 2026-07-10 '')
   COMP_CWORD=3
+  COMPREPLY=()
+  terminator::krisp::__completion__
+
+  ((${#COMPREPLY[@]} == 0))
+}
+
+# bats test_tags=terminator::krisp,terminator::krisp::completion
+@test "__completion__ offers no ids for krisp-get past --latest" {
+  _krisp_env
+  _seed_cache "${KRISP_MEETING_JSON}"
+
+  # --latest takes no value, so cur lands right after it.
+  COMP_WORDS=(krisp-get --latest '')
+  COMP_CWORD=2
   COMPREPLY=()
   terminator::krisp::__completion__
 
@@ -4565,7 +5307,9 @@ team' 'pick tags'; then
     terminator::krisp::__migrate_cache_names__ \
     terminator::krisp::__json_pull__ \
     terminator::krisp::__single_pull__ \
+    terminator::krisp::__rows_pull__ \
     terminator::krisp::__range_pull__ \
+    terminator::krisp::__picker_pull__ \
     terminator::krisp::__cache_select__ \
     terminator::krisp::__cache_rm__ \
     terminator::krisp::__cache_clear__ \
@@ -4574,7 +5318,9 @@ team' 'pick tags'; then
     terminator::krisp::__cache_view_rows__ \
     terminator::krisp::__cache_view__ \
     terminator::krisp::__pick_entries__ \
+    terminator::krisp::__pick_meetings__ \
     terminator::krisp::__pick_tags__ \
+    terminator::krisp::__tag_session__ \
     terminator::krisp::__usage__ \
     terminator::krisp::list \
     terminator::krisp::get \
