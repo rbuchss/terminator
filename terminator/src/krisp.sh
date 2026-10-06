@@ -1258,9 +1258,11 @@ function terminator::krisp::__migrate_cache_names__ {
   printf -v "${__migrate_names_out__}" '%s' "${__migrate_names_count__}"
 }
 
-# Serves krisp-get --json: resolves the target when ID is empty (TOKEN, or
-# the most recent meeting when both are empty), fetches it live, and prints
-# the raw response. Never touches the cache, so the API guards always apply.
+# Serves krisp-get --json: resolves the target when ID is empty (TOKEN
+# cache-first, or the most recent meeting through one API list call when
+# both are empty), fetches it live, and prints the raw response. The cache
+# is read only to resolve the target, never written, so the fetch is
+# always live and the API guards always apply.
 # Usage: __json_pull__ ID TOKEN
 function terminator::krisp::__json_pull__ {
   local \
@@ -1305,9 +1307,12 @@ function terminator::krisp::__json_pull__ {
 
 # Serves krisp-get's single-target mode: the PREFIX meeting when ID is
 # pre-resolved, else TOKEN resolves it, else the most recent meeting when
-# both are empty. Prints the target's absolute cache path; a cached
-# meeting serves fully offline. REFRESH (0 or 1) forces a refetch,
-# preserving existing tags and merging TAG into them.
+# both are empty. Prints the target's absolute cache path. A pre-resolved
+# ID serves fully offline; an empty ID resolves after the key, curl, and
+# jq guards: TOKEN cache-first, a live list only when nothing is cached,
+# no TOKEN through one API list call. A cached target then serves with no
+# detail fetch. REFRESH (0 or 1) forces a refetch, preserving existing
+# tags and merging TAG into them.
 # Usage: __single_pull__ ID TOKEN REFRESH TAG
 function terminator::krisp::__single_pull__ {
   local \
@@ -1321,7 +1326,7 @@ function terminator::krisp::__single_pull__ {
     code \
     tags \
     existing
-  # Single-target mode: PREFIX, or the most recent meeting when bare.
+  # Single-target mode: PREFIX, or the most recent meeting via --latest.
   if [[ -z "${id}" ]]; then
     terminator::krisp::__require_api_key__ || return 1
     terminator::krisp::__require_curl__ || return 1
@@ -1405,29 +1410,23 @@ function terminator::krisp::__single_pull__ {
   printf '%s\n' "${path}"
 }
 
-# Serves krisp-get's range mode (--on, --since/--until): pulls every
-# meeting in [SINCE, UNTIL) into the cache and prints each entry's
-# absolute cache path, oldest first. The in-range set is the union of
-# API-listed meetings and cached in-range entries, so a cached entry the
-# API no longer lists still prints. Fetches only meetings missing from
-# the cache unless REFRESH (0 or 1) forces refetches; existing tags are
-# preserved and TAG merged into every targeted entry. Expected skips
-# log a notice; returns 1 when any unexpected failure occurred.
-# Usage: __range_pull__ SINCE UNTIL REFRESH TAG
-function terminator::krisp::__range_pull__ {
+# Pulls the API meetings in ROWS (TSV lines of id, status, title) into the
+# cache and writes the newline-joined absolute cache paths, feed order, to
+# OUTPUT_VAR. Cached entries serve unless REFRESH (0 or 1) forces refetches;
+# existing tags are preserved and TAG merged into every targeted entry.
+# Expected skips log a notice; returns 1 when any unexpected failure
+# occurred.
+# Usage: __rows_pull__ OUTPUT_VAR ROWS REFRESH TAG
+function terminator::krisp::__rows_pull__ {
   local \
-    since="$1" \
-    until="$2" \
+    __rows_pull_out__="$1" \
+    rows="$2" \
     refresh="$3" \
     tag="$4" \
-    meetings \
-    cached_entries \
-    rows \
     id \
     status \
     title \
     seen_ids="" \
-    paths="" \
     failure=0 \
     path \
     body \
@@ -1435,22 +1434,10 @@ function terminator::krisp::__range_pull__ {
     tags \
     new_path \
     fetch_rc \
-    filename
-  # Range mode: the API is always consulted, and the in-range set is the union
-  # of listed meetings and cached in-range entries, so a cached entry the API
-  # no longer lists still prints.
-  terminator::krisp::__require_api_key__ || return 1
-  terminator::krisp::__require_curl__ || return 1
-  terminator::krisp::__require_jq__ || return 1
+    __rows_pull_result__=""
 
-  terminator::krisp::__meetings__ meetings 0 "${since}" "${until}" || return 1
-
-  terminator::krisp::__cache_entries_in_range__ cached_entries "${since}" "${until}"
-
-  rows="$(jq -r '.[] | [(.id // ""), (.status // "ready"), (.title // "(untitled)")] | @tsv' <<<"${meetings}")"
-
-  # API-listed meetings, newest first; the collected paths are sorted oldest
-  # first at the end.
+  # API rows, feed order; the collected paths keep feed order and the caller
+  # sorts.
   while IFS=$'\t' read -r id status title; do
     [[ -n "${id}" ]] || continue
     seen_ids=":${id}${seen_ids}"
@@ -1478,7 +1465,7 @@ function terminator::krisp::__range_pull__ {
           failure=1
         fi
 
-        paths+="${paths:+$'\n'}${path}"
+        __rows_pull_result__+="${__rows_pull_result__:+$'\n'}${path}"
         continue
       fi
 
@@ -1503,10 +1490,61 @@ function terminator::krisp::__range_pull__ {
     fetch_rc=0
     terminator::krisp::__range_fetch__ new_path "${id}" "${title}" "${tags}" || fetch_rc=$?
     if ((fetch_rc == 0)); then
-      paths+="${paths:+$'\n'}${new_path}"
+      __rows_pull_result__+="${__rows_pull_result__:+$'\n'}${new_path}"
     elif ((fetch_rc == 2)); then
       failure=1
     fi
+  done <<<"${rows}"
+
+  printf -v "${__rows_pull_out__}" '%s' "${__rows_pull_result__}"
+  ((failure == 0))
+}
+
+# Serves krisp-get's range mode (--on, --since/--until): pulls every
+# meeting in [SINCE, UNTIL) into the cache and prints each entry's
+# absolute cache path, oldest first. The in-range set is the union of
+# API-listed meetings and cached in-range entries, so a cached entry the
+# API no longer lists still prints. Fetches only meetings missing from
+# the cache unless REFRESH (0 or 1) forces refetches; existing tags are
+# preserved and TAG merged into every targeted entry. Expected skips
+# log a notice; returns 1 when any unexpected failure occurred.
+# Usage: __range_pull__ SINCE UNTIL REFRESH TAG
+function terminator::krisp::__range_pull__ {
+  local \
+    since="$1" \
+    until="$2" \
+    refresh="$3" \
+    tag="$4" \
+    meetings \
+    cached_entries \
+    rows \
+    id \
+    seen_ids="" \
+    paths="" \
+    failure=0 \
+    path \
+    body \
+    filename
+  # Range mode: the API is always consulted, and the in-range set is the union
+  # of listed meetings and cached in-range entries, so a cached entry the API
+  # no longer lists still prints.
+  terminator::krisp::__require_api_key__ || return 1
+  terminator::krisp::__require_curl__ || return 1
+  terminator::krisp::__require_jq__ || return 1
+
+  terminator::krisp::__meetings__ meetings 0 "${since}" "${until}" || return 1
+
+  terminator::krisp::__cache_entries_in_range__ cached_entries "${since}" "${until}"
+
+  rows="$(jq -r '.[] | [(.id // ""), (.status // "ready"), (.title // "(untitled)")] | @tsv' <<<"${meetings}")"
+
+  terminator::krisp::__rows_pull__ paths "${rows}" "${refresh}" "${tag}" || failure=1
+
+  # API ids the rows loop handled, re-derived from the same TSV with the
+  # same skip-empty rule, so union exclusion matches the loop exactly.
+  while IFS=$'\t' read -r id _; do
+    [[ -n "${id}" ]] || continue
+    seen_ids=":${id}${seen_ids}"
   done <<<"${rows}"
 
   # Cached in-range entries the API no longer lists: the cache is the library
@@ -1536,6 +1574,49 @@ function terminator::krisp::__range_pull__ {
 
   # Absolute paths, oldest first.
   [[ -n "${paths}" ]] && printf '%s\n' "${paths}" | LC_ALL=C sort
+  ((failure == 0))
+}
+
+# Pulls the API meetings picked in an interactive multi-select fzf into the
+# cache and prints each entry's absolute cache path, oldest first. The feed
+# is the 100 newest API meetings; picked meetings missing from the cache
+# fetch incrementally while REFRESH (0 or 1) forces refetches, preserving
+# existing tags and merging TAG into every targeted entry. Esc, ctrl-c, or
+# an empty pick cancels with nothing fetched; an empty feed is a valid empty
+# result. Returns 1 when any unexpected failure occurred.
+# Usage: __picker_pull__ REFRESH TAG
+function terminator::krisp::__picker_pull__ {
+  local \
+    refresh="$1" \
+    tag="$2" \
+    feed \
+    count \
+    tsv \
+    pulled \
+    failure=0
+
+  terminator::krisp::__require_api_key__ || return 1
+  terminator::krisp::__require_curl__ || return 1
+  terminator::krisp::__require_jq__ || return 1
+
+  terminator::krisp::__meetings__ feed 100 || return 1
+  count="$(jq 'length' <<<"${feed}")"
+  if ((count == 0)); then
+    terminator::logger::info 'krisp: no meetings to pull'
+    return 0
+  fi
+
+  if ! terminator::krisp::__pick_meetings__ tsv "${feed}"; then
+    # Esc, ctrl-c, or an empty pick: the pick precedes every fetch, so
+    # nothing was fetched and nothing prints.
+    terminator::logger::info 'krisp: cancelled'
+    return 0
+  fi
+
+  terminator::krisp::__rows_pull__ pulled "${tsv}" "${refresh}" "${tag}" || failure=1
+
+  # Absolute paths, oldest first; an all-not-ready pick prints nothing.
+  [[ -n "${pulled}" ]] && printf '%s\n' "${pulled}" | LC_ALL=C sort
   ((failure == 0))
 }
 
@@ -1753,17 +1834,22 @@ function terminator::krisp::__cache_view__ {
 }
 
 # Opens the transcript picker over SELECTION (absolute cache paths, one per
-# line): the plain view rows, no header or footer, in fzf with multi-mark.
-# A zero fzf exit with at least one marked row resolves each row's id
-# (fields 1-2 of the row) back to its cache path and writes the
-# newline-joined paths to OUTPUT_VAR, returning 0. Empty output or any
-# nonzero fzf exit cancels with the output discarded: returns 1. An
-# unresolvable id also cancels.
+# line): the plain view rows, no header or footer, latest first, in fzf
+# with multi-mark. A zero fzf exit accepts the marked rows, or the
+# highlighted row on plain enter with none marked: each accepted row's
+# id (field 2 of the row) resolves back to its cache path and the
+# newline-joined paths, in the order fzf printed them, are written to
+# OUTPUT_VAR, returning 0. A no-match filter (fzf exit 1) writes empty
+# output and returns 0: a no-op round. Esc or ctrl-c (fzf 130), or any
+# other nonzero fzf exit, cancels with the output discarded: returns 1.
+# A row whose id resolves to no cache entry logs an error and returns 2.
 # Usage: __pick_entries__ OUTPUT_VAR SELECTION
 function terminator::krisp::__pick_entries__ {
   local \
     __pick_entries_out__="$1" \
     entries="$2" \
+    reversed \
+    pick_rc \
     chosen \
     row \
     when \
@@ -1771,14 +1857,23 @@ function terminator::krisp::__pick_entries__ {
     path \
     __pick_entries_result__=""
 
-  if ! chosen="$(terminator::krisp::__cache_view_rows__ "${entries}" 0 \
-    | fzf --multi --header='tab: mark, enter: continue, esc: cancel')"; then
+  # Latest first: filenames start with the timestamp, so the reversed feed
+  # leads with the newest entry.
+  reversed="$(printf '%s\n' "${entries}" | LC_ALL=C sort -r)"
+
+  pick_rc=0
+  chosen="$(terminator::krisp::__cache_view_rows__ "${reversed}" 0 \
+    | fzf --multi --header='tab: mark, enter: continue, esc: end session')" || pick_rc=$?
+
+  if ((pick_rc > 1)); then
+    # esc, ctrl-c (130), or an fzf error: cancelled, the output discarded.
     printf -v "${__pick_entries_out__}" '%s' ''
     return 1
   fi
   if [[ -z "${chosen}" ]]; then
+    # A no-match filter (fzf exit 1): a no-op round.
     printf -v "${__pick_entries_out__}" '%s' ''
-    return 1
+    return 0
   fi
 
   while IFS= read -r row; do
@@ -1786,8 +1881,9 @@ function terminator::krisp::__pick_entries__ {
     # Rows join fields with double spaces; read collapses them.
     read -r when id _ <<<"${row}"
     if ! terminator::krisp::__cache_path__ "${id}" path; then
+      terminator::logger::error "krisp: no cached transcript for id '${id}'"
       printf -v "${__pick_entries_out__}" '%s' ''
-      return 1
+      return 2
     fi
     __pick_entries_result__+="${__pick_entries_result__:+$'\n'}${path}"
   done <<<"${chosen}"
@@ -1795,16 +1891,104 @@ function terminator::krisp::__pick_entries__ {
   printf -v "${__pick_entries_out__}" '%s' "${__pick_entries_result__}"
 }
 
+# Opens the meeting picker over MEETINGS_JSON (an API meetings array,
+# newest first): the krisp-list row grammar in fzf with multi-mark. A
+# feed meeting without an id renders no row. A zero fzf exit accepts the
+# marked rows, or the highlighted row on plain enter with none marked:
+# each accepted row's id (field 2 of the row) maps back to its feed
+# meeting and the newline-joined TSV id, status, title rows, feed order,
+# are written to OUTPUT_VAR, returning 0. An accepted row whose id
+# matches no feed meeting (a title continuation line) is skipped with a
+# notice and the rest proceed. When every accepted row is unmappable,
+# OUTPUT_VAR is left empty, returning 0. An empty fzf output or any
+# nonzero fzf exit cancels with fzf's output discarded: returns 1.
+# Usage: __pick_meetings__ OUTPUT_VAR MEETINGS_JSON
+function terminator::krisp::__pick_meetings__ {
+  local \
+    __pick_meetings_out__="$1" \
+    meetings="$2" \
+    rows \
+    pick_rc \
+    chosen \
+    row \
+    when \
+    id \
+    feed \
+    feed_id \
+    entry \
+    found \
+    marked="" \
+    __pick_meetings_result__=""
+
+  # The krisp-list row grammar; meetings without an id render no row.
+  rows="$(jq -r '
+    .[] |
+    select((.id // "") != "") |
+    (.started_at // "") as $st |
+    (if $st == "" then "-" else ($st[0:10] + "T" + $st[11:16] + "Z") end) as $when |
+    (if (.status // "ready") != "ready" then "  [\(.status)]" else "" end) as $status |
+    "\($when)  \(.id)  \(.title // "(untitled)")\($status)"
+  ' <<<"${meetings}")"
+
+  pick_rc=0
+  chosen="$(printf '%s\n' "${rows}" \
+    | fzf --multi --header='tab: mark, enter: pull, esc: cancel')" || pick_rc=$?
+  if ((pick_rc != 0)); then
+    # esc, ctrl-c (130), a no-match filter (exit 1), or an fzf error:
+    # cancelled, the output discarded.
+    printf -v "${__pick_meetings_out__}" '%s' ''
+    return 1
+  fi
+  if [[ -z "${chosen}" ]]; then
+    printf -v "${__pick_meetings_out__}" '%s' ''
+    return 1
+  fi
+
+  # The feed in TSV, the same id normalization as the range rows.
+  feed="$(jq -r '.[] | [(.id // ""), (.status // "ready"), (.title // "(untitled)")] | @tsv' <<<"${meetings}")"
+
+  while IFS= read -r row; do
+    [[ -n "${row}" ]] || continue
+    # Rows join fields with double spaces; read collapses them.
+    read -r when id _ <<<"${row}"
+    found=0
+    while IFS=$'\t' read -r feed_id _; do
+      [[ -n "${feed_id}" ]] || continue
+      [[ "${feed_id}" == "${id}" ]] || continue
+      found=1
+      break
+    done <<<"${feed}"
+    if ((found == 0)); then
+      terminator::logger::warning "krisp: skipped '${row}': no meeting matches the row"
+      continue
+    fi
+    [[ ":${marked}:" == *":${id}:"* ]] || marked=":${id}${marked}"
+  done <<<"${chosen}"
+
+  # Feed order: walk the feed and keep the accepted ids.
+  while IFS= read -r entry; do
+    [[ -n "${entry}" ]] || continue
+    feed_id="${entry%%$'\t'*}"
+    [[ -n "${feed_id}" ]] || continue
+    [[ ":${marked}:" == *":${feed_id}:"* ]] || continue
+    __pick_meetings_result__+="${__pick_meetings_result__:+$'\n'}${entry}"
+  done <<<"${feed}"
+
+  printf -v "${__pick_meetings_out__}" '%s' "${__pick_meetings_result__}"
+}
+
 # Opens the tag picker over VOCABULARY (one tag per line) with HEADER:
 # fzf with multi-mark and --print-query, so the first output line is the
-# typed query and the rest the marked tags. A zero fzf exit accepts: the
-# query splits on commas and whitespace, empty tolerated, and joins with
-# the marked tags into the comma-joined, deduped tag list written to
-# OUTPUT_VAR. fzf also exits 1 on enter with no match but still prints
-# the typed query: a non-empty query is the typed-tag accept (an empty
-# one cancels). Any other nonzero fzf exit (esc, ctrl-c 130; error 2)
-# cancels with the output discarded: returns 1. Every token is validated
-# before any mutation: an invalid one logs the tag error and returns 2.
+# typed query and the rest the accepted tags (the marked rows, or the
+# highlighted row on plain enter with none marked). A zero fzf exit
+# accepts: the query splits on commas and whitespace, empty tolerated,
+# and joins with the accepted tags into the comma-joined, deduped tag
+# list written to OUTPUT_VAR. fzf also exits 1 on enter with no match
+# but still prints the typed query: a non-empty query is the typed-tag
+# accept (an empty one cancels). Any other nonzero fzf exit (esc, ctrl-c
+# 130; error 2) cancels with the output discarded: returns 1. Every
+# token is validated before any mutation: an invalid one logs the tag
+# error and returns 2.
 # Usage: __pick_tags__ OUTPUT_VAR VOCABULARY HEADER
 function terminator::krisp::__pick_tags__ {
   local \
@@ -1839,7 +2023,7 @@ function terminator::krisp::__pick_tags__ {
     printf -v "${__pick_tags_out__}" '%s' ''
     return 1
   else
-    # Line 1 is the query; the rest are the marked tags.
+    # Line 1 is the query; the rest are the accepted tags.
     query="${chosen%%$'\n'*}"
     if [[ "${chosen}" == *$'\n'* ]]; then
       marked="${chosen#*$'\n'}"
@@ -1866,6 +2050,88 @@ function terminator::krisp::__pick_tags__ {
   )
 
   printf -v "${__pick_tags_out__}" '%s' "${__pick_tags_result__}"
+}
+
+# Runs the krisp-tag picker session: entry rounds until esc. Each round
+# reopens the entry picker over SELECTION (absolute paths, one per line),
+# never filtered between rounds, so every entry stays listed and rows
+# re-render with freshly applied tags. Esc or ctrl-c at the entry picker
+# ends the session, earlier rounds kept; a no-match filter is a no-op
+# round. With no TAGS pre-supplied, the tags picker follows: VERB rm
+# offers the round's picked entries' tags (an empty vocabulary reopens
+# the entry picker), add offers the whole library. Esc or ctrl-c at the
+# tags picker cancels the round back to the entry picker. Applies each
+# round via __tag_apply__ and continues on a failed round. Returns 0
+# when the session ended cleanly, 1 when any round failed, an invalid
+# tag, or an entry id resolved to no cache entry.
+# Usage: __tag_session__ VERB TAGS SELECTION
+function terminator::krisp::__tag_session__ {
+  local \
+    verb="$1" \
+    tags="$2" \
+    selection="$3" \
+    round_selected \
+    round_tags \
+    vocabulary \
+    header \
+    pick_rc \
+    session_failure=0
+
+  while true; do
+    pick_rc=0
+    terminator::krisp::__pick_entries__ round_selected "${selection}" || pick_rc=$?
+    case "${pick_rc}" in
+      1)
+        # Esc or ctrl-c: the session ends, earlier rounds kept.
+        terminator::logger::info 'krisp: cancelled'
+        return "${session_failure}"
+        ;;
+      2)
+        # An id resolving to no cache entry: an error round.
+        return 1
+        ;;
+    esac
+    if [[ -z "${round_selected}" ]]; then
+      # A no-match filter: a no-op round.
+      continue
+    fi
+
+    round_tags="${tags}"
+    if [[ -z "${round_tags}" ]]; then
+      if [[ "${verb}" == rm ]]; then
+        terminator::krisp::__tag_vocabulary__ vocabulary "${round_selected}"
+        if [[ -z "${vocabulary}" ]]; then
+          terminator::logger::info 'the picked entries carry no tags'
+          continue
+        fi
+        header='type or tab tags to remove: enter: continue, esc: cancel'
+      else
+        terminator::krisp::__tag_vocabulary__ vocabulary
+        header='type or tab tags to add: enter: continue, esc: cancel'
+      fi
+
+      pick_rc=0
+      terminator::krisp::__pick_tags__ round_tags "${vocabulary}" "${header}" || pick_rc=$?
+      case "${pick_rc}" in
+        0) ;;
+        2)
+          # An invalid tag: an error round.
+          return 1
+          ;;
+        *)
+          # Esc or ctrl-c at the tags picker: the round is cancelled and
+          # the entry picker reopens.
+          continue
+          ;;
+      esac
+      if [[ -z "${round_tags}" ]]; then
+        # An empty tags result: a cancelled round.
+        continue
+      fi
+    fi
+
+    terminator::krisp::__tag_apply__ "${verb}" "${round_tags}" "${round_selected}" || session_failure=1
+  done
 }
 
 # Prints usage for a krisp command. Usage: __usage__ COMMAND
@@ -1895,27 +2161,33 @@ Usage: krisp-get [OPTIONS] [PREFIX]
 
   Pull Krisp meeting transcripts into the cache and print each target's
   absolute cache path, one per line, oldest first. With no PREFIX and no
-  dates, targets the most recent meeting. A cached meeting resolves and
-  serves fully offline.
+  dates, opens an interactive multi-select picker over the 100 newest
+  meetings; esc, ctrl-c, or an empty pick cancels with nothing fetched.
+  A cached PREFIX resolves and serves fully offline. The picker and
+  --latest resolve the target through the API list; a cached target
+  then serves with no detail fetch.
 
   Arguments:
     PREFIX                    Meeting id prefix (from krisp-list or cache)
 
   Options:
+    --latest                  Pull the most recent meeting, no picker
     --on DATE                 Pull a single day (YYYY-MM-DD)
     --since DATE              Pull meetings from DATE on (YYYY-MM-DD)
     --until DATE              Pull meetings before DATE (YYYY-MM-DD)
     --refresh                 Force refetches, preserving existing tags
-    -t, --tag TAG             Merge TAG into every targeted entry at
-                              fetch; krisp-cache --tag filters instead
+    -t, --tag TAG             Merge TAG into every targeted entry, cached
+                              and fetched alike; with no addressing form
+                              it composes with the picker
     --json [PREFIX]           Print one raw API response instead; always
-                              fetches live and never touches the cache
+                              fetches live, reading the cache only to
+                              resolve the target
     -h, --help                Show this help
 
-  PREFIX, --on, and --since/--until are exclusive addressing forms. A
-  range pull fetches only meetings missing from the cache; --refresh
-  refetches everything in range. Meetings still processing are skipped
-  with a stderr notice and do not fail the run.
+  PREFIX, --latest, --on, and --since/--until are exclusive addressing
+  forms. A range pull fetches only meetings missing from the cache;
+  --refresh refetches everything in range. Meetings still processing
+  are skipped with a stderr notice and do not fail the run.
 
   Tags are managed with krisp-tag.
 
@@ -1998,9 +2270,12 @@ Usage: krisp-tag [OPTIONS] [TAG...]
     --tag TAG                 Only entries tagged TAG (exact match)
     -h, --help                Show this help
 
-  Interactive flow: pick entries (selectors narrow the list), then, when
-  no TAGs were given, type or pick tags. --rm offers only the tags the
-  picked entries carry. Cancelling any picker changes nothing.
+  Interactive flow: rounds of picking entries (selectors narrow the
+  list, newest first) and, when no TAGs were given, typing or picking
+  tags; each applied round reopens the entry picker with fresh rows
+  until esc or ctrl-c ends the session, earlier rounds kept. --rm
+  offers only the tags the picked entries carry; esc or ctrl-c at the
+  tags picker cancels that round back to the entry picker.
 
   Selectors narrow the interactive list and define the -x batch: --id
   takes exactly one entry and is exclusive with the others; the date and
@@ -2138,15 +2413,18 @@ function terminator::krisp::list {
 }
 
 # Pulls Krisp meeting transcripts into the cache and prints each target's
-# absolute cache path, one per line, oldest first. With no PREFIX, targets the
-# most recent meeting; a cached meeting resolves and serves fully offline (no
-# key, curl, or jq). --on DATE pulls a single day; --since/--until pull a date
-# range (strict bounds: from SINCE on, before UNTIL). A range pull fetches
-# only meetings missing from the cache, unioning the API list with cached
-# in-range entries so an entry the API no longer lists still prints.
+# absolute cache path, one per line, oldest first. With no PREFIX, opens an
+# interactive multi-select picker over the 100 newest API meetings and pulls
+# the picked ones; esc, ctrl-c, or an empty pick cancels with nothing
+# fetched. --latest targets the most recent meeting instead; the API list
+# resolves the target, and a cached one serves with no detail fetch.
+# --on DATE pulls a single day; --since/--until pull a date range (strict
+# bounds: from SINCE on, before UNTIL). A range pull fetches only meetings
+# missing from the cache, unioning the API list with cached in-range
+# entries so an entry the API no longer lists still prints.
 # --refresh forces refetches while preserving each entry's existing tags.
 # -t/--tag TAG merges a tag into every targeted entry. --json prints one raw
-# API response instead: live fetch, never touching the cache.
+# API response instead: live fetch, the cache read only to resolve the target.
 function terminator::krisp::get {
   local \
     token="" \
@@ -2156,6 +2434,7 @@ function terminator::krisp::get {
     since="" \
     until="" \
     on="" \
+    latest=0 \
     forms=0 \
     id="" \
     date \
@@ -2169,6 +2448,9 @@ function terminator::krisp::get {
         ;;
       --refresh)
         refresh=1
+        ;;
+      --latest)
+        latest=1
         ;;
       -t | --tag)
         shift
@@ -2221,12 +2503,14 @@ function terminator::krisp::get {
     shift
   done
 
-  # PREFIX, --on, and --since/--until are exclusive addressing forms.
+  # PREFIX, --latest, --on, and --since/--until are exclusive addressing
+  # forms.
   [[ -n "${token}" ]] && ((forms += 1))
+  ((latest == 1)) && ((forms += 1))
   [[ -n "${on}" ]] && ((forms += 1))
   [[ -n "${since}" || -n "${until}" ]] && ((forms += 1))
   if ((forms > 1)); then
-    terminator::logger::error 'krisp-get PREFIX, --on, and --since/--until are exclusive addressing forms'
+    terminator::logger::error 'krisp-get PREFIX, --latest, --on, and --since/--until are exclusive addressing forms'
     return 1
   fi
 
@@ -2237,6 +2521,10 @@ function terminator::krisp::get {
     fi
     if [[ -n "${tag}" ]]; then
       terminator::logger::error 'krisp-get --json and --tag are contradictory'
+      return 1
+    fi
+    if ((latest == 1)); then
+      terminator::logger::error 'krisp-get --json and --latest are contradictory'
       return 1
     fi
     if [[ -n "${on}" || -n "${since}" || -n "${until}" ]]; then
@@ -2286,8 +2574,24 @@ function terminator::krisp::get {
     return
   fi
 
-  if [[ -z "${since}" && -z "${until}" ]]; then
+  # PREFIX and --latest are single-target pulls; --latest keeps the prior
+  # bare-get behavior and targets the most recent meeting.
+  if [[ -n "${token}" ]] || ((latest == 1)); then
     terminator::krisp::__single_pull__ "${id}" "${token}" "${refresh}" "${tag}"
+    return
+  fi
+
+  if [[ -z "${since}" && -z "${until}" ]]; then
+    # Bare get is an interactive multi-select picker over recent meetings.
+    if ! terminator::command::exists fzf; then
+      terminator::logger::error 'krisp-get requires fzf for its picker; pass --latest to target the most recent meeting without a picker'
+      return 1
+    fi
+    if [[ ! -t 0 ]]; then
+      terminator::logger::error 'krisp-get requires a terminal for its picker; pass --latest to target the most recent meeting without a picker'
+      return 1
+    fi
+    terminator::krisp::__picker_pull__ "${refresh}" "${tag}"
     return
   fi
 
@@ -2525,8 +2829,10 @@ function terminator::krisp::cache {
 # A piece the invocation leaves out is picked with fzf: entries first, then,
 # when no TAGs were given, tags (the --rm vocabulary is the picked entries'
 # tags; the add vocabulary is the whole library). A valued --rename has
-# nothing to pick and runs direct in both modes. Cancelling a picker is a
-# no-op. Works fully offline: no API, no key.
+# nothing to pick and runs direct in both modes. Cancelling a picker
+# applies nothing: esc or ctrl-c at the entry picker ends the session,
+# earlier rounds kept; esc or ctrl-c at the tags picker cancels the round.
+# Works fully offline: no API, no key.
 function terminator::krisp::tag {
   local \
     rm=0 \
@@ -2543,7 +2849,6 @@ function terminator::krisp::tag {
     vocabulary="" \
     old="" \
     new="" \
-    header="" \
     pick_rc \
     one \
     resolved \
@@ -2839,44 +3144,7 @@ function terminator::krisp::tag {
     return 1
   fi
 
-  if ! terminator::krisp::__pick_entries__ selected "${selected}"; then
-    terminator::logger::info 'krisp: cancelled'
-    return 0
-  fi
-
-  # Stage 2 runs only when no TAG positionals were given: --rm offers the
-  # union of the picked entries' tags; add offers the whole library
-  # vocabulary, empty included, since typed tags are the point.
-  if [[ -z "${tags}" ]]; then
-    if ((rm == 1)); then
-      terminator::krisp::__tag_vocabulary__ vocabulary "${selected}"
-      if [[ -z "${vocabulary}" ]]; then
-        terminator::logger::info 'the picked entries carry no tags'
-        return 0
-      fi
-      header='type or tab tags to remove: enter: continue, esc: cancel'
-    else
-      terminator::krisp::__tag_vocabulary__ vocabulary
-      header='type or tab tags to add: enter: continue, esc: cancel'
-    fi
-
-    pick_rc=0
-    terminator::krisp::__pick_tags__ tags "${vocabulary}" "${header}" || pick_rc=$?
-    case "${pick_rc}" in
-      0) ;;
-      2) return 1 ;;
-      *)
-        terminator::logger::info 'krisp: cancelled'
-        return 0
-        ;;
-    esac
-    if [[ -z "${tags}" ]]; then
-      terminator::logger::info 'krisp: cancelled'
-      return 0
-    fi
-  fi
-
-  terminator::krisp::__tag_apply__ "${verb}" "${tags}" "${selected}"
+  terminator::krisp::__tag_session__ "${verb}" "${tags}" "${selected}"
 }
 
 ################################################################################
@@ -2885,8 +3153,8 @@ function terminator::krisp::tag {
 
 # Tab completion for krisp-list/get/cache/tag: each command's flags on a
 # dash, and offline value completions where they exist (never an API call).
-# krisp-get earns cached ids before any date flag; krisp-tag completes ids
-# after --id and the tag vocabulary everywhere else.
+# krisp-get earns cached ids before any addressing form; krisp-tag completes
+# ids after --id and the tag vocabulary everywhere else.
 function terminator::krisp::__completion__ {
   local \
     cur \
@@ -2896,7 +3164,7 @@ function terminator::krisp::__completion__ {
     vocabulary \
     flags \
     i=1 \
-    seen_date=0 \
+    seen_form=0 \
     seen_positional=0
 
   cur="${COMP_WORDS[COMP_CWORD]}"
@@ -2905,7 +3173,7 @@ function terminator::krisp::__completion__ {
   if [[ "${cur}" == -* ]]; then
     case "${COMP_WORDS[0]}" in
       krisp-list) flags='-l --limit --on --since --until -h --help' ;;
-      krisp-get) flags='--since --until --on --json --refresh --tag -t -h --help' ;;
+      krisp-get) flags='--latest --since --until --on --json --refresh --tag -t -h --help' ;;
       krisp-cache) flags='--rm --clear --path --since --until --on --tag --color --no-color -h --help' ;;
       krisp-tag) flags='-x --exec --rm --rename --id --on --since --until --tag -h --help' ;;
       *) flags='-h --help' ;;
@@ -2968,9 +3236,13 @@ function terminator::krisp::__completion__ {
     word="${COMP_WORDS[i]}"
     case "${word}" in
       --since | --until | --on)
-        seen_date=1
+        seen_form=1
         i=$((i + 2))
         continue
+        ;;
+      --latest)
+        # An addressing form that takes no value.
+        seen_form=1
         ;;
       -t | --tag)
         i=$((i + 2))
@@ -2986,7 +3258,7 @@ function terminator::krisp::__completion__ {
     i=$((i + 1))
   done
 
-  if ((seen_date == 0)) && ((seen_positional == 0)); then
+  if ((seen_form == 0)) && ((seen_positional == 0)); then
     while IFS='' read -r completion; do
       COMPREPLY+=("${completion}")
     done < <(terminator::krisp::__cache_candidates__ "${cur}")
@@ -3033,7 +3305,9 @@ function terminator::krisp::__export__ {
   export -f terminator::krisp::__migrate_cache_names__
   export -f terminator::krisp::__json_pull__
   export -f terminator::krisp::__single_pull__
+  export -f terminator::krisp::__rows_pull__
   export -f terminator::krisp::__range_pull__
+  export -f terminator::krisp::__picker_pull__
   export -f terminator::krisp::__cache_select__
   export -f terminator::krisp::__cache_rm__
   export -f terminator::krisp::__cache_clear__
@@ -3042,7 +3316,9 @@ function terminator::krisp::__export__ {
   export -f terminator::krisp::__cache_view_rows__
   export -f terminator::krisp::__cache_view__
   export -f terminator::krisp::__pick_entries__
+  export -f terminator::krisp::__pick_meetings__
   export -f terminator::krisp::__pick_tags__
+  export -f terminator::krisp::__tag_session__
   export -f terminator::krisp::__usage__
   export -f terminator::krisp::list
   export -f terminator::krisp::get
@@ -3088,7 +3364,9 @@ function terminator::krisp::__recall__ {
   export -fn terminator::krisp::__migrate_cache_names__
   export -fn terminator::krisp::__json_pull__
   export -fn terminator::krisp::__single_pull__
+  export -fn terminator::krisp::__rows_pull__
   export -fn terminator::krisp::__range_pull__
+  export -fn terminator::krisp::__picker_pull__
   export -fn terminator::krisp::__cache_select__
   export -fn terminator::krisp::__cache_rm__
   export -fn terminator::krisp::__cache_clear__
@@ -3097,7 +3375,9 @@ function terminator::krisp::__recall__ {
   export -fn terminator::krisp::__cache_view_rows__
   export -fn terminator::krisp::__cache_view__
   export -fn terminator::krisp::__pick_entries__
+  export -fn terminator::krisp::__pick_meetings__
   export -fn terminator::krisp::__pick_tags__
+  export -fn terminator::krisp::__tag_session__
   export -fn terminator::krisp::__usage__
   export -fn terminator::krisp::list
   export -fn terminator::krisp::get
