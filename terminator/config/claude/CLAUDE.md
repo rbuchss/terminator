@@ -15,12 +15,16 @@ Always follow my technical preferences and favorite usage patterns.
 - Internal posts build consensus: personal. Team-facing docs and updates: team voice, less personal.
 - PR comment replies stay friendly and specific: acknowledge the suggestion, then what changed. No blunt "Fixed." style replies.
 - Docs, comments, PR descs, and READMEs describe the current state, never how it got there. No session history, revision narratives, or as-we-discussed commentary: readers were not in the session and it confuses them.
+- No AI filler: no chatbot openers or closers, just the answer.
 
 ## Git and PR Workflow
 - Open PRs as drafts by default; ready only when Russ asks. Keep commit messages brief, casual, and to the point.
+- Never add AI attribution to anything. No `🤖 Generated with Claude Code` on PR descriptions or comments, and no `Co-Authored-By` trailers in commit messages.
+- Never post replies to PR comments directly. Draft every reply under `__context__/` first and confer with me before posting. This includes trivial one-line acks.
 
 ## Scratch Docs
 - Untracked scratch and handoff docs live under the repo's `__context__/` dir, named `YYYY-MM-DD-desc-slug.md`. Create the dir if missing. Never reference them from tracked files.
+- When you hit tooling friction, setup problems, or tech debt during a session, log it to `__context__/<ticket-slug>/tooling-issues.md`, one entry per issue: short title, Encountered date, Context, Issue, Workaround, Suggested fix. At the end of a session, review the log and surface anything worth tracking. Do not file tickets in external trackers.
 
 ## Preferred Tools and Workflows
 
