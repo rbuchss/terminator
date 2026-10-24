@@ -131,7 +131,7 @@ bats_require_minimum_version 1.5.0
       mcp)
         shift
         case "$1" in
-          list) echo 'context7: bunx -y @upstash/context7-mcp@2.1.2' ;;
+          list) echo 'context7: bunx -y @upstash/context7-mcp@4.4.4' ;;
           remove)
             echo 'should not be called'
             return 1
@@ -158,7 +158,7 @@ bats_require_minimum_version 1.5.0
       mcp)
         shift
         case "$1" in
-          list) echo 'context7: bunx -y @upstash/context7-mcp@2.1.2' ;;
+          list) echo 'context7: bunx -y @upstash/context7-mcp@4.4.4' ;;
           remove) return 0 ;;
           add) return 0 ;;
         esac
@@ -205,7 +205,7 @@ bats_require_minimum_version 1.5.0
       mcp)
         shift
         case "$1" in
-          list) echo 'serena: uvx --from git+https://github.com/oraios/serena@2ab807a1ff13ffc08e82070e44c3d2bfc5aa75f8' ;;
+          list) echo 'serena: uvx --from serena-agent==2.1.0 serena start-mcp-server --context claude-code --project-from-cwd --open-web-dashboard False' ;;
           remove)
             echo 'should not be called'
             return 1
@@ -232,7 +232,7 @@ bats_require_minimum_version 1.5.0
       mcp)
         shift
         case "$1" in
-          list) echo 'serena: uvx --from git+https://github.com/oraios/serena@2ab807a1ff13ffc08e82070e44c3d2bfc5aa75f8' ;;
+          list) echo 'serena: uvx --from serena-agent==2.1.0 serena start-mcp-server --context claude-code --project-from-cwd --open-web-dashboard False' ;;
           remove) return 0 ;;
           add) return 0 ;;
         esac
@@ -367,7 +367,7 @@ bats_require_minimum_version 1.5.0
       mcp)
         shift
         case "$1" in
-          list) echo 'atlassian: uvx mcp-atlassian==0.21.1' ;;
+          list) echo 'atlassian: uvx mcp-atlassian==0.23.1' ;;
           remove)
             echo 'should not be called'
             return 1
@@ -401,7 +401,7 @@ bats_require_minimum_version 1.5.0
       mcp)
         shift
         case "$1" in
-          list) echo 'atlassian: uvx mcp-atlassian==0.21.1' ;;
+          list) echo 'atlassian: uvx mcp-atlassian==0.23.1' ;;
           remove) return 0 ;;
           add) return 0 ;;
         esac
@@ -970,7 +970,7 @@ bats_require_minimum_version 1.5.0
       mcp)
         shift
         case "$1" in
-          list) echo 'context7: bunx -y @upstash/context7-mcp@2.1.2' ;;
+          list) echo 'context7: bunx -y @upstash/context7-mcp@4.4.4' ;;
           remove) return 0 ;;
           add) return 0 ;;
         esac
@@ -1018,7 +1018,7 @@ bats_require_minimum_version 1.5.0
       mcp)
         shift
         case "$1" in
-          list) echo 'serena: uvx --from git+https://github.com/oraios/serena@2ab807a1ff13ffc08e82070e44c3d2bfc5aa75f8' ;;
+          list) echo 'serena: uvx --from serena-agent==2.1.0 serena start-mcp-server --context claude-code --project-from-cwd --open-web-dashboard False' ;;
           remove) return 0 ;;
           add) return 0 ;;
         esac
