@@ -122,7 +122,7 @@ function terminator::claude::mcp::add::context7 {
   local \
     force \
     version \
-    desired_version='2.1.2' \
+    desired_version='4.4.4' \
     current_version
 
   terminator::claude::mcp::__parse_options__ force version "$@" || return 1
@@ -140,10 +140,9 @@ function terminator::claude::mcp::add::context7 {
     -- bunx -y "@upstash/context7-mcp@${desired_version}"
 }
 
-# Pinned to a git commit instead of a PyPI version because the latest PyPI
-# release (serena-agent 0.1.4) does not include the claude-code context, which
-# disables tools that duplicate Claude Code's built-in capabilities. The
-# claude-code context and --project-from-cwd flag are only available on main.
+# The claude-code context disables Serena tools that duplicate Claude
+# Code's built-in capabilities, and --project-from-cwd scopes the server
+# to the current project. Serena is GPL-3.0-or-later.
 #
 # LSP support is built-in. Serena bundles or auto-downloads language servers
 # for most common languages (Python, JS/TS, Bash, Java) with no extra config.
@@ -162,23 +161,22 @@ function terminator::claude::mcp::add::serena {
   local \
     force \
     version \
-    desired_commit='2ab807a1ff13ffc08e82070e44c3d2bfc5aa75f8' \
-    repo_url='https://github.com/oraios/serena' \
-    current_commit
+    desired_version='2.1.0' \
+    current_version
 
   terminator::claude::mcp::__parse_options__ force version "$@" || return 1
-  [[ -n "${version}" ]] && desired_commit="${version}"
+  [[ -n "${version}" ]] && desired_version="${version}"
 
-  current_commit="$(
+  current_version="$(
     claude mcp list \
       | grep 'serena' \
-      | grep -o 'oraios/serena@[0-9a-f]*' \
-      | cut -d@ -f2
+      | grep -o 'serena-agent==[0-9.]*' \
+      | cut -d= -f3
   )"
 
   terminator::claude::mcp::__sync__ \
-    serena "${current_commit}" "${desired_commit}" "${force}" \
-    -- uvx --from "git+${repo_url}@${desired_commit}" \
+    serena "${current_version}" "${desired_version}" "${force}" \
+    -- uvx --from "serena-agent==${desired_version}" \
     serena start-mcp-server --context claude-code --project-from-cwd \
     --open-web-dashboard False
 }
@@ -210,7 +208,7 @@ function terminator::claude::mcp::add::atlassian {
   local \
     force \
     version \
-    desired_version='0.21.1' \
+    desired_version='0.23.1' \
     current_version
 
   terminator::claude::mcp::__parse_options__ force version "$@" || return 1
