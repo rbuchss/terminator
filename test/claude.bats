@@ -78,6 +78,103 @@ bats_require_minimum_version 1.5.0
   rm -rf "${temp_home}"
 }
 
+# bats test_tags=terminator::claude,terminator::claude::__enable__
+@test "terminator::claude::__enable__ removes-user-scope-serena" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::claude::settings::merge_baseline { return 0; }
+
+  # The context7 version matches so its sync is a no-op, leaving the serena
+  # removal as the only mcp mutation.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$1" in
+      mcp)
+        shift
+        case "$1" in
+          list) echo 'context7: bunx -y @upstash/context7-mcp@4.4.4' ;;
+          remove)
+            echo "removed: $*"
+            return 0
+            ;;
+          add)
+            echo 'should not be called'
+            return 1
+            ;;
+        esac
+        ;;
+    esac
+  }
+
+  local temp_home
+  temp_home="$(mktemp -d)"
+  mkdir -p "${temp_home}/.local/bin"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
+  run terminator::claude::__enable__
+
+  HOME="${original_home}"
+  rm -rf "${temp_home}"
+
+  assert_success
+  assert_output --partial 'removed: remove --scope user serena'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::__enable__
+@test "terminator::claude::__enable__ user-scope-removal-never-touches-other-scopes" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::claude::settings::merge_baseline { return 0; }
+
+  # Only the user-scope serena removal may run: local and project scope opt-ins
+  # are user data and must survive the self-migration.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$1" in
+      mcp)
+        shift
+        case "$1" in
+          list) echo 'context7: bunx -y @upstash/context7-mcp@4.4.4' ;;
+          remove)
+            if [[ "$*" == 'remove --scope user serena' ]]; then
+              return 0
+            fi
+            echo "should not be called: $*"
+            return 1
+            ;;
+          *)
+            echo "should not be called: $*"
+            return 1
+            ;;
+        esac
+        ;;
+      *)
+        echo "should not be called: $*"
+        return 1
+        ;;
+    esac
+  }
+
+  local temp_home
+  temp_home="$(mktemp -d)"
+  mkdir -p "${temp_home}/.local/bin"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
+  run terminator::claude::__enable__
+
+  HOME="${original_home}"
+  rm -rf "${temp_home}"
+
+  assert_success
+  refute_output --partial 'should not be called'
+}
+
 ################################################################################
 # terminator::claude::__disable__
 ################################################################################
@@ -90,41 +187,41 @@ bats_require_minimum_version 1.5.0
 }
 
 ################################################################################
-# terminator::claude
+# terminator::claude::mcp::enable::context7
 ################################################################################
 
-# bats test_tags=terminator::claude,terminator::claude::mcp::add::context7
-@test "terminator::claude::mcp::add::context7 function-exists" {
-  run type -t terminator::claude::mcp::add::context7
+# bats test_tags=terminator::claude,terminator::claude::mcp::enable::context7
+@test "terminator::claude::mcp::enable::context7 function-exists" {
+  run type -t terminator::claude::mcp::enable::context7
 
   assert_success
   assert_output 'function'
 }
 
-# bats test_tags=terminator::claude,terminator::claude::mcp::add::context7
-@test "terminator::claude::mcp::add::context7 when-claude-missing" {
+# bats test_tags=terminator::claude,terminator::claude::mcp::enable::context7
+@test "terminator::claude::mcp::enable::context7 when-claude-missing" {
   # shellcheck disable=SC2317 # invoked indirectly
   function terminator::command::exists { return 1; }
 
-  run terminator::claude::mcp::add::context7
+  run terminator::claude::mcp::enable::context7
 
   assert_failure
   assert_output --partial 'context7'
 }
 
-# bats test_tags=terminator::claude,terminator::claude::mcp::add::context7
-@test "terminator::claude::mcp::add::context7 when-unknown-option" {
+# bats test_tags=terminator::claude,terminator::claude::mcp::enable::context7
+@test "terminator::claude::mcp::enable::context7 when-unknown-option" {
   # shellcheck disable=SC2317 # invoked indirectly
   function terminator::command::exists { return 0; }
 
-  run terminator::claude::mcp::add::context7 --bogus
+  run terminator::claude::mcp::enable::context7 --bogus
 
   assert_failure
   assert_output --partial 'unknown option'
 }
 
-# bats test_tags=terminator::claude,terminator::claude::mcp::add::context7
-@test "terminator::claude::mcp::add::context7 skips-when-version-matches" {
+# bats test_tags=terminator::claude,terminator::claude::mcp::enable::context7
+@test "terminator::claude::mcp::enable::context7 skips-when-version-matches" {
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
     case "$1" in
@@ -145,13 +242,13 @@ bats_require_minimum_version 1.5.0
     esac
   }
 
-  run terminator::claude::mcp::add::context7
+  run terminator::claude::mcp::enable::context7
 
   assert_success
 }
 
-# bats test_tags=terminator::claude,terminator::claude::mcp::add::context7
-@test "terminator::claude::mcp::add::context7 force-readds-when-version-matches" {
+# bats test_tags=terminator::claude,terminator::claude::mcp::enable::context7
+@test "terminator::claude::mcp::enable::context7 force-readds-when-version-matches" {
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
     case "$1" in
@@ -166,117 +263,817 @@ bats_require_minimum_version 1.5.0
     esac
   }
 
-  run terminator::claude::mcp::add::context7 --force
+  run terminator::claude::mcp::enable::context7 --force
 
   assert_success
 }
 
-################################################################################
-# terminator::claude::mcp::add::serena
-################################################################################
-
-# bats test_tags=terminator::claude,terminator::claude::mcp::add::serena
-@test "terminator::claude::mcp::add::serena when-claude-missing" {
-  # shellcheck disable=SC2317 # invoked indirectly
-  function terminator::command::exists { return 1; }
-
-  run terminator::claude::mcp::add::serena
-
-  assert_failure
-  assert_output --partial 'serena'
-}
-
-# bats test_tags=terminator::claude,terminator::claude::mcp::add::serena
-@test "terminator::claude::mcp::add::serena when-unknown-option" {
+# bats test_tags=terminator::claude,terminator::claude::mcp::enable::context7
+@test "terminator::claude::mcp::enable::context7 adds-at-user-scope-by-default" {
   # shellcheck disable=SC2317 # invoked indirectly
   function terminator::command::exists { return 0; }
 
-  run terminator::claude::mcp::add::serena --bogus
-
-  assert_failure
-  assert_output --partial 'unknown option'
-}
-
-# bats test_tags=terminator::claude,terminator::claude::mcp::add::serena
-@test "terminator::claude::mcp::add::serena skips-when-commit-matches" {
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
     case "$1" in
       mcp)
         shift
         case "$1" in
-          list) echo 'serena: uvx --from serena-agent==2.1.0 serena start-mcp-server --context claude-code --project-from-cwd --open-web-dashboard False' ;;
+          list) echo '' ;;
           remove)
-            echo 'should not be called'
-            return 1
+            echo "removed: $*"
+            return 0
             ;;
           add)
-            echo 'should not be called'
-            return 1
+            echo "added: $*"
+            return 0
             ;;
         esac
         ;;
     esac
   }
 
-  run terminator::claude::mcp::add::serena
+  run terminator::claude::mcp::enable::context7
 
   assert_success
+  assert_output --partial 'added: add --scope user context7 -- bunx -y @upstash/context7-mcp@4.4.4'
 }
 
-# bats test_tags=terminator::claude,terminator::claude::mcp::add::serena
-@test "terminator::claude::mcp::add::serena force-readds-when-commit-matches" {
+# bats test_tags=terminator::claude,terminator::claude::mcp::enable::context7
+@test "terminator::claude::mcp::enable::context7 adds-at-project-scope-with-flag" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
     case "$1" in
       mcp)
         shift
         case "$1" in
-          list) echo 'serena: uvx --from serena-agent==2.1.0 serena start-mcp-server --context claude-code --project-from-cwd --open-web-dashboard False' ;;
+          list) echo '' ;;
           remove) return 0 ;;
-          add) return 0 ;;
+          add)
+            echo "added: $*"
+            return 0
+            ;;
         esac
         ;;
     esac
   }
 
-  run terminator::claude::mcp::add::serena --force
+  run terminator::claude::mcp::enable::context7 --project
 
   assert_success
+  assert_output --partial 'added: add --scope project context7 -- bunx -y @upstash/context7-mcp@4.4.4'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::enable::context7
+@test "terminator::claude::mcp::enable::context7 fails-outside-repo-for-project-scope" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    echo 'should not be called'
+    return 1
+  }
+
+  local \
+    temp_dir \
+    original_dir="${PWD}"
+  temp_dir="$(mktemp -d)"
+  cd "${temp_dir}"
+
+  run terminator::claude::mcp::enable::context7 --project
+
+  cd "${original_dir}"
+  rm -rf "${temp_dir}"
+
+  assert_failure
+  assert_output --partial 'not inside a git repo'
+  refute_output --partial 'should not be called'
 }
 
 ################################################################################
-# terminator::claude::mcp::add::atlassian
+# terminator::claude::mcp::disable::context7
 ################################################################################
 
-# bats test_tags=terminator::claude,terminator::claude::mcp::add::atlassian
-@test "terminator::claude::mcp::add::atlassian function-exists" {
-  run type -t terminator::claude::mcp::add::atlassian
+# bats test_tags=terminator::claude,terminator::claude::mcp::disable::context7
+@test "terminator::claude::mcp::disable::context7 function-exists" {
+  run type -t terminator::claude::mcp::disable::context7
 
   assert_success
   assert_output 'function'
 }
 
-# bats test_tags=terminator::claude,terminator::claude::mcp::add::atlassian
-@test "terminator::claude::mcp::add::atlassian when-claude-missing" {
+# bats test_tags=terminator::claude,terminator::claude::mcp::disable::context7
+@test "terminator::claude::mcp::disable::context7 when-claude-missing" {
   # shellcheck disable=SC2317 # invoked indirectly
   function terminator::command::exists { return 1; }
 
-  run terminator::claude::mcp::add::atlassian
+  run terminator::claude::mcp::disable::context7
+
+  assert_failure
+  assert_output --partial 'context7'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::disable::context7
+@test "terminator::claude::mcp::disable::context7 when-unknown-option" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # Only --project is accepted; --version has no meaning for a removal.
+  run terminator::claude::mcp::disable::context7 --version 4.4.4
+
+  assert_failure
+  assert_output --partial 'unknown option'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::disable::context7
+@test "terminator::claude::mcp::disable::context7 removes-user-scope-by-default" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'mcp remove --scope user context7') echo 'removed user context7' ;;
+      *)
+        echo "should not be called: $*"
+        return 1
+        ;;
+    esac
+  }
+
+  run terminator::claude::mcp::disable::context7
+
+  assert_success
+  assert_output 'removed user context7'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::disable::context7
+@test "terminator::claude::mcp::disable::context7 removes-project-scope-with-flag" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'mcp remove --scope project context7') echo 'removed project context7' ;;
+      *)
+        echo "should not be called: $*"
+        return 1
+        ;;
+    esac
+  }
+
+  run terminator::claude::mcp::disable::context7 --project
+
+  assert_success
+  assert_output 'removed project context7'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::disable::context7
+@test "terminator::claude::mcp::disable::context7 fails-outside-repo-for-project-scope" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    echo 'should not be called'
+    return 1
+  }
+
+  local \
+    temp_dir \
+    original_dir="${PWD}"
+  temp_dir="$(mktemp -d)"
+  cd "${temp_dir}"
+
+  run terminator::claude::mcp::disable::context7 --project
+
+  cd "${original_dir}"
+  rm -rf "${temp_dir}"
+
+  assert_failure
+  assert_output --partial 'not inside a git repo'
+  refute_output --partial 'should not be called'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::disable::context7
+@test "terminator::claude::mcp::disable::context7 succeeds-when-not-registered" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # The removal is idempotent: `claude mcp remove` fails when the server is
+  # not registered at the scope, and the failure is swallowed.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude { return 1; }
+
+  run terminator::claude::mcp::disable::context7
+
+  assert_success
+}
+
+################################################################################
+# terminator::claude::mcp::__parse_scope_options__
+################################################################################
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::__parse_scope_options__
+@test "terminator::claude::mcp::__parse_scope_options__ defaults-to-passed-scope" {
+  local force version scope
+
+  terminator::claude::mcp::__parse_scope_options__ force version scope local
+
+  [[ "${force}" == 0 ]]
+  [[ -z "${version}" ]]
+  [[ "${scope}" == 'local' ]]
+
+  terminator::claude::mcp::__parse_scope_options__ force version scope user
+
+  [[ "${force}" == 0 ]]
+  [[ -z "${version}" ]]
+  [[ "${scope}" == 'user' ]]
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::__parse_scope_options__
+@test "terminator::claude::mcp::__parse_scope_options__ captures-force-version-and-project" {
+  local force version scope
+
+  terminator::claude::mcp::__parse_scope_options__ force version scope local \
+    --project --force --version 1.2.3
+
+  [[ "${force}" == 1 ]]
+  [[ "${version}" == 1.2.3 ]]
+  [[ "${scope}" == 'project' ]]
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::__parse_scope_options__
+@test "terminator::claude::mcp::__parse_scope_options__ when-unknown-option" {
+  local force version scope
+
+  run terminator::claude::mcp::__parse_scope_options__ force version scope local --bogus
+
+  assert_failure
+  assert_output --partial 'unknown option'
+}
+
+################################################################################
+# terminator::claude::mcp::__parse_scope_flag__
+################################################################################
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::__parse_scope_flag__
+@test "terminator::claude::mcp::__parse_scope_flag__ defaults-to-passed-scope" {
+  local scope
+
+  terminator::claude::mcp::__parse_scope_flag__ scope local
+  [[ "${scope}" == 'local' ]]
+
+  terminator::claude::mcp::__parse_scope_flag__ scope user
+  [[ "${scope}" == 'user' ]]
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::__parse_scope_flag__
+@test "terminator::claude::mcp::__parse_scope_flag__ project-flag-overrides-default" {
+  local scope
+
+  terminator::claude::mcp::__parse_scope_flag__ scope user --project
+
+  [[ "${scope}" == 'project' ]]
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::__parse_scope_flag__
+@test "terminator::claude::mcp::__parse_scope_flag__ when-unknown-option" {
+  local scope
+
+  # Force and version have no meaning for a removal.
+  run terminator::claude::mcp::__parse_scope_flag__ scope user --version 1.2.3
+
+  assert_failure
+  assert_output --partial 'unknown option'
+}
+
+################################################################################
+# terminator::claude::mcp::__remove__
+################################################################################
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::__remove__
+@test "terminator::claude::mcp::__remove__ calls-remove-with-scope" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'mcp remove --scope local serena') echo 'removed serena' ;;
+      *)
+        echo "should not be called: $*"
+        return 1
+        ;;
+    esac
+  }
+
+  run terminator::claude::mcp::__remove__ serena local
+
+  assert_success
+  assert_output 'removed serena'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::__remove__
+@test "terminator::claude::mcp::__remove__ succeeds-when-server-absent" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # `claude mcp remove` fails when the server is not registered at the scope;
+  # the removal must still succeed so callers can use it for idempotent
+  # cleanup.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude { return 1; }
+
+  run terminator::claude::mcp::__remove__ serena local
+
+  assert_success
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::__remove__
+@test "terminator::claude::mcp::__remove__ when-claude-missing" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 1; }
+
+  run terminator::claude::mcp::__remove__ serena local
+
+  assert_failure
+  assert_output --partial 'serena'
+}
+
+################################################################################
+# terminator::claude::mcp::__project_root__
+################################################################################
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::__project_root__
+@test "terminator::claude::mcp::__project_root__ returns-repo-root-inside-repo" {
+  local expected
+  expected="$(git rev-parse --show-toplevel)"
+
+  run terminator::claude::mcp::__project_root__ local
+
+  assert_success
+  assert_output "${expected}"
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::__project_root__
+@test "terminator::claude::mcp::__project_root__ falls-back-to-pwd-outside-repo" {
+  local \
+    temp_dir \
+    original_dir="${PWD}"
+  temp_dir="$(mktemp -d)"
+  cd "${temp_dir}"
+
+  run terminator::claude::mcp::__project_root__ local
+
+  assert_success
+  assert_output "${temp_dir}"
+
+  cd "${original_dir}"
+  rm -rf "${temp_dir}"
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::__project_root__
+@test "terminator::claude::mcp::__project_root__ fails-outside-repo-for-project-scope" {
+  local \
+    temp_dir \
+    original_dir="${PWD}"
+  temp_dir="$(mktemp -d)"
+  cd "${temp_dir}"
+
+  run terminator::claude::mcp::__project_root__ project
+
+  assert_failure
+  assert_output --partial 'not inside a git repo'
+
+  cd "${original_dir}"
+  rm -rf "${temp_dir}"
+}
+
+################################################################################
+# terminator::claude::mcp::enable::serena
+################################################################################
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::enable::serena
+@test "terminator::claude::mcp::enable::serena function-exists" {
+  run type -t terminator::claude::mcp::enable::serena
+
+  assert_success
+  assert_output 'function'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::enable::serena
+@test "terminator::claude::mcp::enable::serena when-claude-missing" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 1; }
+
+  run terminator::claude::mcp::enable::serena
+
+  assert_failure
+  assert_output --partial 'serena'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::enable::serena
+@test "terminator::claude::mcp::enable::serena when-unknown-option" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  run terminator::claude::mcp::enable::serena --bogus
+
+  assert_failure
+  assert_output --partial 'unknown option'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::enable::serena
+@test "terminator::claude::mcp::enable::serena adds-at-local-scope-by-default" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$1" in
+      mcp)
+        shift
+        case "$1" in
+          list) echo '' ;;
+          remove)
+            echo "removed: $*"
+            return 0
+            ;;
+          add)
+            echo "added: $*"
+            return 0
+            ;;
+        esac
+        ;;
+    esac
+  }
+
+  run terminator::claude::mcp::enable::serena
+
+  assert_success
+  assert_output --partial 'removed: remove --scope user serena'
+  assert_output --partial 'added: add --scope local serena -- uvx --from serena-agent==2.1.0'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::enable::serena
+@test "terminator::claude::mcp::enable::serena skips-when-version-matches" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # The user-scope cleanup still runs so the opted-in scope owns the entry.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$1" in
+      mcp)
+        shift
+        case "$1" in
+          list)
+            echo 'serena: uvx --from serena-agent==2.1.0 serena start-mcp-server --context claude-code --project-from-cwd --open-web-dashboard False'
+            ;;
+          remove)
+            if [[ "$*" == 'remove --scope user serena' ]]; then
+              return 0
+            fi
+            echo 'should not be called'
+            return 1
+            ;;
+          add)
+            echo 'should not be called'
+            return 1
+            ;;
+        esac
+        ;;
+    esac
+  }
+
+  run terminator::claude::mcp::enable::serena
+
+  assert_success
+  refute_output --partial 'should not be called'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::enable::serena
+@test "terminator::claude::mcp::enable::serena force-readds-when-version-matches" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$1" in
+      mcp)
+        shift
+        case "$1" in
+          list)
+            echo 'serena: uvx --from serena-agent==2.1.0 serena start-mcp-server --context claude-code --project-from-cwd --open-web-dashboard False'
+            ;;
+          remove) return 0 ;;
+          add)
+            echo "added: $*"
+            return 0
+            ;;
+        esac
+        ;;
+    esac
+  }
+
+  run terminator::claude::mcp::enable::serena --force
+
+  assert_success
+  assert_output --partial 'added: add --scope local serena -- uvx --from serena-agent==2.1.0'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::enable::serena
+@test "terminator::claude::mcp::enable::serena version-override-readds-on-mismatch" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$1" in
+      mcp)
+        shift
+        case "$1" in
+          list)
+            echo 'serena: uvx --from serena-agent==2.1.0 serena start-mcp-server --context claude-code --project-from-cwd --open-web-dashboard False'
+            ;;
+          remove) return 0 ;;
+          add)
+            echo "added: $*"
+            return 0
+            ;;
+        esac
+        ;;
+    esac
+  }
+
+  run terminator::claude::mcp::enable::serena --version 9.9.9
+
+  assert_success
+  assert_output --partial 'added: add --scope local serena -- uvx --from serena-agent==9.9.9'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::enable::serena
+@test "terminator::claude::mcp::enable::serena removes-user-scope-remnant-first" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # `claude mcp list` shows every visible scope, so a user-scope remnant would
+  # report its version and mask the local entry during detection. Once the
+  # user-scope entry is removed first, the list reports the local 2.1.0 entry
+  # and the sync skips; without the early removal the 9.9.9 remnant forces a
+  # re-add.
+  __user_removed__=false
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$1" in
+      mcp)
+        shift
+        case "$1" in
+          list)
+            if [[ "${__user_removed__}" == true ]]; then
+              echo 'serena: uvx --from serena-agent==2.1.0 serena start-mcp-server --context claude-code --project-from-cwd --open-web-dashboard False'
+            else
+              echo 'serena: uvx --from serena-agent==9.9.9 serena start-mcp-server --context claude-code --project-from-cwd --open-web-dashboard False'
+            fi
+            ;;
+          remove)
+            if [[ "$*" == 'remove --scope user serena' ]]; then
+              __user_removed__=true
+              return 0
+            fi
+            echo 'should not be called'
+            return 1
+            ;;
+          add)
+            echo 'should not be called'
+            return 1
+            ;;
+        esac
+        ;;
+    esac
+  }
+
+  run terminator::claude::mcp::enable::serena
+
+  assert_success
+  refute_output --partial 'should not be called'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::enable::serena
+@test "terminator::claude::mcp::enable::serena adds-at-project-scope-with-flag" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$1" in
+      mcp)
+        shift
+        case "$1" in
+          list) echo '' ;;
+          remove) return 0 ;;
+          add)
+            echo "added: $*"
+            return 0
+            ;;
+        esac
+        ;;
+    esac
+  }
+
+  run terminator::claude::mcp::enable::serena --project
+
+  assert_success
+  assert_output --partial 'added: add --scope project serena -- uvx --from serena-agent==2.1.0'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::enable::serena
+@test "terminator::claude::mcp::enable::serena fails-outside-repo-for-project-scope" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    echo 'should not be called'
+    return 1
+  }
+
+  local \
+    temp_dir \
+    original_dir="${PWD}"
+  temp_dir="$(mktemp -d)"
+  cd "${temp_dir}"
+
+  run terminator::claude::mcp::enable::serena --project
+
+  cd "${original_dir}"
+  rm -rf "${temp_dir}"
+
+  assert_failure
+  assert_output --partial 'not inside a git repo'
+  refute_output --partial 'should not be called'
+}
+
+################################################################################
+# terminator::claude::mcp::disable::serena
+################################################################################
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::disable::serena
+@test "terminator::claude::mcp::disable::serena function-exists" {
+  run type -t terminator::claude::mcp::disable::serena
+
+  assert_success
+  assert_output 'function'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::disable::serena
+@test "terminator::claude::mcp::disable::serena when-claude-missing" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 1; }
+
+  run terminator::claude::mcp::disable::serena
+
+  assert_failure
+  assert_output --partial 'serena'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::disable::serena
+@test "terminator::claude::mcp::disable::serena when-unknown-option" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # Only --project is accepted; --version has no meaning for a removal.
+  run terminator::claude::mcp::disable::serena --version 2.1.0
+
+  assert_failure
+  assert_output --partial 'unknown option'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::disable::serena
+@test "terminator::claude::mcp::disable::serena removes-local-scope-by-default" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'mcp remove --scope local serena') echo 'removed local serena' ;;
+      *)
+        echo "should not be called: $*"
+        return 1
+        ;;
+    esac
+  }
+
+  run terminator::claude::mcp::disable::serena
+
+  assert_success
+  assert_output 'removed local serena'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::disable::serena
+@test "terminator::claude::mcp::disable::serena removes-project-scope-with-flag" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'mcp remove --scope project serena') echo 'removed project serena' ;;
+      *)
+        echo "should not be called: $*"
+        return 1
+        ;;
+    esac
+  }
+
+  run terminator::claude::mcp::disable::serena --project
+
+  assert_success
+  assert_output 'removed project serena'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::disable::serena
+@test "terminator::claude::mcp::disable::serena fails-outside-repo-for-project-scope" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    echo 'should not be called'
+    return 1
+  }
+
+  local \
+    temp_dir \
+    original_dir="${PWD}"
+  temp_dir="$(mktemp -d)"
+  cd "${temp_dir}"
+
+  run terminator::claude::mcp::disable::serena --project
+
+  cd "${original_dir}"
+  rm -rf "${temp_dir}"
+
+  assert_failure
+  assert_output --partial 'not inside a git repo'
+  refute_output --partial 'should not be called'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::disable::serena
+@test "terminator::claude::mcp::disable::serena succeeds-when-not-registered" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # The removal is idempotent: `claude mcp remove` fails when the server is
+  # not registered at the scope, and the failure is swallowed.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude { return 1; }
+
+  run terminator::claude::mcp::disable::serena
+
+  assert_success
+}
+
+################################################################################
+# terminator::claude::mcp::enable::atlassian
+################################################################################
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::enable::atlassian
+@test "terminator::claude::mcp::enable::atlassian function-exists" {
+  run type -t terminator::claude::mcp::enable::atlassian
+
+  assert_success
+  assert_output 'function'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::enable::atlassian
+@test "terminator::claude::mcp::enable::atlassian when-claude-missing" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 1; }
+
+  run terminator::claude::mcp::enable::atlassian
 
   assert_failure
   assert_output --partial 'mcp-atlassian'
 }
 
-# bats test_tags=terminator::claude,terminator::claude::mcp::add::atlassian
-@test "terminator::claude::mcp::add::atlassian when-all-env-vars-missing" {
+# bats test_tags=terminator::claude,terminator::claude::mcp::enable::atlassian
+@test "terminator::claude::mcp::enable::atlassian when-all-env-vars-missing" {
   # shellcheck disable=SC2317 # invoked indirectly
   function terminator::command::exists { return 0; }
 
   unset JIRA_URL JIRA_USERNAME JIRA_API_TOKEN \
     CONFLUENCE_URL CONFLUENCE_USERNAME CONFLUENCE_API_TOKEN
 
-  run terminator::claude::mcp::add::atlassian
+  run terminator::claude::mcp::enable::atlassian
 
   assert_failure
   assert_output --partial 'missing env vars'
@@ -284,8 +1081,8 @@ bats_require_minimum_version 1.5.0
   assert_output --partial 'CONFLUENCE_API_TOKEN'
 }
 
-# bats test_tags=terminator::claude,terminator::claude::mcp::add::atlassian
-@test "terminator::claude::mcp::add::atlassian when-partial-env-vars-missing" {
+# bats test_tags=terminator::claude,terminator::claude::mcp::enable::atlassian
+@test "terminator::claude::mcp::enable::atlassian when-partial-env-vars-missing" {
   # shellcheck disable=SC2317 # invoked indirectly
   function terminator::command::exists { return 0; }
 
@@ -295,7 +1092,7 @@ bats_require_minimum_version 1.5.0
   export CONFLUENCE_URL='https://hill-valley.atlassian.net/wiki'
   unset CONFLUENCE_USERNAME CONFLUENCE_API_TOKEN
 
-  run terminator::claude::mcp::add::atlassian
+  run terminator::claude::mcp::enable::atlassian
 
   assert_failure
   assert_output --partial 'missing env vars'
@@ -304,8 +1101,8 @@ bats_require_minimum_version 1.5.0
   refute_output --partial 'JIRA_URL'
 }
 
-# bats test_tags=terminator::claude,terminator::claude::mcp::add::atlassian
-@test "terminator::claude::mcp::add::atlassian when-unknown-option" {
+# bats test_tags=terminator::claude,terminator::claude::mcp::enable::atlassian
+@test "terminator::claude::mcp::enable::atlassian when-unknown-option" {
   # shellcheck disable=SC2317 # invoked indirectly
   function terminator::command::exists { return 0; }
 
@@ -316,14 +1113,14 @@ bats_require_minimum_version 1.5.0
   export CONFLUENCE_USERNAME='doc.brown@hill-valley.net'
   export CONFLUENCE_API_TOKEN='great-scott'
 
-  run terminator::claude::mcp::add::atlassian --bogus
+  run terminator::claude::mcp::enable::atlassian --bogus
 
   assert_failure
   assert_output --partial 'unknown option'
 }
 
-# bats test_tags=terminator::claude,terminator::claude::mcp::add::atlassian
-@test "terminator::claude::mcp::add::atlassian adds-when-not-installed" {
+# bats test_tags=terminator::claude,terminator::claude::mcp::enable::atlassian
+@test "terminator::claude::mcp::enable::atlassian adds-when-not-installed" {
   export JIRA_URL='https://hill-valley.atlassian.net'
   export JIRA_USERNAME='doc.brown@hill-valley.net'
   export JIRA_API_TOKEN='1.21-gigawatts'
@@ -347,13 +1144,13 @@ bats_require_minimum_version 1.5.0
     esac
   }
 
-  run terminator::claude::mcp::add::atlassian
+  run terminator::claude::mcp::enable::atlassian
 
   assert_success
 }
 
-# bats test_tags=terminator::claude,terminator::claude::mcp::add::atlassian
-@test "terminator::claude::mcp::add::atlassian skips-when-version-matches" {
+# bats test_tags=terminator::claude,terminator::claude::mcp::enable::atlassian
+@test "terminator::claude::mcp::enable::atlassian skips-when-version-matches" {
   export JIRA_URL='https://hill-valley.atlassian.net'
   export JIRA_USERNAME='doc.brown@hill-valley.net'
   export JIRA_API_TOKEN='1.21-gigawatts'
@@ -381,13 +1178,13 @@ bats_require_minimum_version 1.5.0
     esac
   }
 
-  run terminator::claude::mcp::add::atlassian
+  run terminator::claude::mcp::enable::atlassian
 
   assert_success
 }
 
-# bats test_tags=terminator::claude,terminator::claude::mcp::add::atlassian
-@test "terminator::claude::mcp::add::atlassian force-readds-when-version-matches" {
+# bats test_tags=terminator::claude,terminator::claude::mcp::enable::atlassian
+@test "terminator::claude::mcp::enable::atlassian force-readds-when-version-matches" {
   export JIRA_URL='https://hill-valley.atlassian.net'
   export JIRA_USERNAME='doc.brown@hill-valley.net'
   export JIRA_API_TOKEN='1.21-gigawatts'
@@ -409,13 +1206,13 @@ bats_require_minimum_version 1.5.0
     esac
   }
 
-  run terminator::claude::mcp::add::atlassian --force
+  run terminator::claude::mcp::enable::atlassian --force
 
   assert_success
 }
 
-# bats test_tags=terminator::claude,terminator::claude::mcp::add::atlassian
-@test "terminator::claude::mcp::add::atlassian updates-when-version-mismatches" {
+# bats test_tags=terminator::claude,terminator::claude::mcp::enable::atlassian
+@test "terminator::claude::mcp::enable::atlassian updates-when-version-mismatches" {
   export JIRA_URL='https://hill-valley.atlassian.net'
   export JIRA_USERNAME='doc.brown@hill-valley.net'
   export JIRA_API_TOKEN='1.21-gigawatts'
@@ -437,7 +1234,132 @@ bats_require_minimum_version 1.5.0
     esac
   }
 
-  run terminator::claude::mcp::add::atlassian
+  run terminator::claude::mcp::enable::atlassian
+
+  assert_success
+}
+
+################################################################################
+# terminator::claude::mcp::disable::atlassian
+################################################################################
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::disable::atlassian
+@test "terminator::claude::mcp::disable::atlassian function-exists" {
+  run type -t terminator::claude::mcp::disable::atlassian
+
+  assert_success
+  assert_output 'function'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::disable::atlassian
+@test "terminator::claude::mcp::disable::atlassian when-claude-missing" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 1; }
+
+  run terminator::claude::mcp::disable::atlassian
+
+  assert_failure
+  assert_output --partial 'mcp-atlassian'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::disable::atlassian
+@test "terminator::claude::mcp::disable::atlassian when-unknown-option" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # Only --project is accepted; --version has no meaning for a removal.
+  run terminator::claude::mcp::disable::atlassian --version 0.23.1
+
+  assert_failure
+  assert_output --partial 'unknown option'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::disable::atlassian
+@test "terminator::claude::mcp::disable::atlassian removes-user-scope-by-default" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # No env vars are needed for a removal.
+  unset JIRA_URL JIRA_USERNAME JIRA_API_TOKEN \
+    CONFLUENCE_URL CONFLUENCE_USERNAME CONFLUENCE_API_TOKEN
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'mcp remove --scope user atlassian') echo 'removed user atlassian' ;;
+      *)
+        echo "should not be called: $*"
+        return 1
+        ;;
+    esac
+  }
+
+  run terminator::claude::mcp::disable::atlassian
+
+  assert_success
+  assert_output 'removed user atlassian'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::disable::atlassian
+@test "terminator::claude::mcp::disable::atlassian removes-project-scope-with-flag" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'mcp remove --scope project atlassian') echo 'removed project atlassian' ;;
+      *)
+        echo "should not be called: $*"
+        return 1
+        ;;
+    esac
+  }
+
+  run terminator::claude::mcp::disable::atlassian --project
+
+  assert_success
+  assert_output 'removed project atlassian'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::disable::atlassian
+@test "terminator::claude::mcp::disable::atlassian fails-outside-repo-for-project-scope" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    echo 'should not be called'
+    return 1
+  }
+
+  local \
+    temp_dir \
+    original_dir="${PWD}"
+  temp_dir="$(mktemp -d)"
+  cd "${temp_dir}"
+
+  run terminator::claude::mcp::disable::atlassian --project
+
+  cd "${original_dir}"
+  rm -rf "${temp_dir}"
+
+  assert_failure
+  assert_output --partial 'not inside a git repo'
+  refute_output --partial 'should not be called'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::disable::atlassian
+@test "terminator::claude::mcp::disable::atlassian succeeds-when-not-registered" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # The removal is idempotent: `claude mcp remove` fails when the server is
+  # not registered at the scope, and the failure is swallowed.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude { return 1; }
+
+  run terminator::claude::mcp::disable::atlassian
 
   assert_success
 }
@@ -754,6 +1676,85 @@ bats_require_minimum_version 1.5.0
 }
 
 ################################################################################
+# terminator::claude::plugin::__settle_disabled__
+################################################################################
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::__settle_disabled__
+@test "terminator::claude::plugin::__settle_disabled__ disables-when-enabled" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'plugin list')
+        printf '  ❯ greeter@my-plugins\n    Version: 1.0.0\n    Scope: user\n    Status: ✔ enabled\n'
+        ;;
+      'plugin disable greeter@my-plugins')
+        echo 'disable called'
+        return 0
+        ;;
+      *)
+        echo "should not be called: $*"
+        return 1
+        ;;
+    esac
+  }
+
+  run terminator::claude::plugin::__settle_disabled__ greeter@my-plugins
+
+  assert_success
+  assert_output --partial 'disable called'
+  refute_output --partial 'should not be called'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::__settle_disabled__
+@test "terminator::claude::plugin::__settle_disabled__ noops-when-disabled" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'plugin list')
+        printf '  ❯ greeter@my-plugins\n    Version: 1.0.0\n    Scope: user\n    Status: ✘ disabled\n'
+        ;;
+      *)
+        echo "should not be called: $*"
+        return 1
+        ;;
+    esac
+  }
+
+  run terminator::claude::plugin::__settle_disabled__ greeter@my-plugins
+
+  assert_success
+  refute_output --partial 'should not be called'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::__settle_disabled__
+@test "terminator::claude::plugin::__settle_disabled__ noops-when-not-installed" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'plugin list') echo '' ;;
+      *)
+        echo "should not be called: $*"
+        return 1
+        ;;
+    esac
+  }
+
+  run terminator::claude::plugin::__settle_disabled__ greeter@my-plugins
+
+  assert_success
+  refute_output --partial 'should not be called'
+}
+
+################################################################################
 # terminator::claude::plugin::register
 ################################################################################
 
@@ -877,6 +1878,89 @@ bats_require_minimum_version 1.5.0
   assert_success
 }
 
+# bats test_tags=terminator::claude,terminator::claude::plugin::register
+@test "terminator::claude::plugin::register without-version-delegates-to-install-disabled" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # Simulate `claude plugin install` auto-enabling: the plugin is absent until
+  # installed, then reported enabled. The disabled reconcile must disable it
+  # after the install instead of leaving it enabled.
+  __installed__=false
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'plugin marketplace list') echo '' ;;
+      plugin\ marketplace\ add\ *) return 0 ;;
+      'plugin list')
+        if [[ "${__installed__}" == true ]]; then
+          printf '  ❯ greeter@my-plugins\n    Version: 1.0.0\n    Scope: user\n    Status: ✔ enabled\n'
+        else
+          echo ''
+        fi
+        ;;
+      plugin\ install\ *)
+        __installed__=true
+        return 0
+        ;;
+      plugin\ disable\ *)
+        echo 'disable called'
+        return 0
+        ;;
+      plugin\ enable\ *)
+        echo 'should not be called'
+        return 1
+        ;;
+      *) return 0 ;;
+    esac
+  }
+
+  run terminator::claude::plugin::register \
+    --plugin greeter@my-plugins \
+    --marketplace rbuchss/my-plugins \
+    --disabled
+
+  assert_success
+  assert_output --partial 'disable called'
+  refute_output --partial 'should not be called'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::register
+@test "terminator::claude::plugin::register with-version-settles-disabled-without-reinstall" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # The installed version matches the pin, so only the disabled reconcile runs;
+  # no marketplace, install, or enable calls.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'plugin list')
+        printf '  ❯ greeter@my-plugins\n    Version: 1.0.0\n    Scope: user\n    Status: ✔ enabled\n'
+        ;;
+      plugin\ disable\ *)
+        echo 'disable called'
+        return 0
+        ;;
+      *)
+        echo "should not be called: $*"
+        return 1
+        ;;
+    esac
+  }
+
+  run terminator::claude::plugin::register \
+    --plugin greeter@my-plugins \
+    --marketplace rbuchss/my-plugins \
+    --version 1.0.0 \
+    --disabled
+
+  assert_success
+  assert_output --partial 'disable called'
+  refute_output --partial 'should not be called'
+}
+
 ################################################################################
 # terminator::claude::mcp::__parse_options__
 ################################################################################
@@ -918,12 +2002,15 @@ bats_require_minimum_version 1.5.0
 # bats test_tags=terminator::claude,terminator::claude::mcp::__sync__
 @test "terminator::claude::mcp::__sync__ skips-when-value-matches" {
   # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # shellcheck disable=SC2317 # invoked indirectly
   function claude {
     echo 'should not be called'
     return 1
   }
 
-  run terminator::claude::mcp::__sync__ foo 1.0.0 1.0.0 0 -- cmd
+  run terminator::claude::mcp::__sync__ foo 1.0.0 1.0.0 0 user -- cmd
 
   assert_success
 }
@@ -931,9 +2018,12 @@ bats_require_minimum_version 1.5.0
 # bats test_tags=terminator::claude,terminator::claude::mcp::__sync__
 @test "terminator::claude::mcp::__sync__ readds-when-value-differs" {
   # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # shellcheck disable=SC2317 # invoked indirectly
   function claude { return 0; }
 
-  run terminator::claude::mcp::__sync__ foo 1.0.0 2.0.0 0 -- cmd
+  run terminator::claude::mcp::__sync__ foo 1.0.0 2.0.0 0 user -- cmd
 
   assert_success
 }
@@ -941,9 +2031,12 @@ bats_require_minimum_version 1.5.0
 # bats test_tags=terminator::claude,terminator::claude::mcp::__sync__
 @test "terminator::claude::mcp::__sync__ readds-when-current-empty" {
   # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # shellcheck disable=SC2317 # invoked indirectly
   function claude { return 0; }
 
-  run terminator::claude::mcp::__sync__ foo '' 2.0.0 0 -- cmd
+  run terminator::claude::mcp::__sync__ foo '' 2.0.0 0 user -- cmd
 
   assert_success
 }
@@ -951,19 +2044,47 @@ bats_require_minimum_version 1.5.0
 # bats test_tags=terminator::claude,terminator::claude::mcp::__sync__
 @test "terminator::claude::mcp::__sync__ force-readds-when-value-matches" {
   # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # shellcheck disable=SC2317 # invoked indirectly
   function claude { return 0; }
 
-  run terminator::claude::mcp::__sync__ foo 1.0.0 1.0.0 1 -- cmd
+  run terminator::claude::mcp::__sync__ foo 1.0.0 1.0.0 1 user -- cmd
 
   assert_success
 }
 
+# bats test_tags=terminator::claude,terminator::claude::mcp::__sync__
+@test "terminator::claude::mcp::__sync__ removes-and-adds-at-passed-scope" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'mcp remove --scope project foo') echo 'removed at project scope' ;;
+      'mcp add --scope project foo -- cmd') echo 'added at project scope' ;;
+      *)
+        echo "should not be called: $*"
+        return 1
+        ;;
+    esac
+  }
+
+  run terminator::claude::mcp::__sync__ foo 1.0.0 2.0.0 0 project -- cmd
+
+  assert_success
+  assert_output --partial 'removed at project scope'
+  assert_output --partial 'added at project scope'
+  refute_output --partial 'should not be called'
+}
+
 ################################################################################
-# terminator::claude::mcp::add::* --version override
+# terminator::claude::mcp::enable::* --version override
 ################################################################################
 
-# bats test_tags=terminator::claude,terminator::claude::mcp::add::context7
-@test "terminator::claude::mcp::add::context7 version-override-readds-on-mismatch" {
+# bats test_tags=terminator::claude,terminator::claude::mcp::enable::context7
+@test "terminator::claude::mcp::enable::context7 version-override-readds-on-mismatch" {
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
     case "$1" in
@@ -978,13 +2099,13 @@ bats_require_minimum_version 1.5.0
     esac
   }
 
-  run terminator::claude::mcp::add::context7 --version 9.9.9
+  run terminator::claude::mcp::enable::context7 --version 9.9.9
 
   assert_success
 }
 
-# bats test_tags=terminator::claude,terminator::claude::mcp::add::context7
-@test "terminator::claude::mcp::add::context7 version-override-skips-on-match" {
+# bats test_tags=terminator::claude,terminator::claude::mcp::enable::context7
+@test "terminator::claude::mcp::enable::context7 version-override-skips-on-match" {
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
     case "$1" in
@@ -1005,35 +2126,13 @@ bats_require_minimum_version 1.5.0
     esac
   }
 
-  run terminator::claude::mcp::add::context7 --version 9.9.9
+  run terminator::claude::mcp::enable::context7 --version 9.9.9
 
   assert_success
 }
 
-# bats test_tags=terminator::claude,terminator::claude::mcp::add::serena
-@test "terminator::claude::mcp::add::serena version-override-readds-on-mismatch" {
-  # shellcheck disable=SC2317 # invoked indirectly
-  function claude {
-    case "$1" in
-      mcp)
-        shift
-        case "$1" in
-          list) echo 'serena: uvx --from serena-agent==2.1.0 serena start-mcp-server --context claude-code --project-from-cwd --open-web-dashboard False' ;;
-          remove) return 0 ;;
-          add) return 0 ;;
-        esac
-        ;;
-    esac
-  }
-
-  run terminator::claude::mcp::add::serena \
-    --version deadbeefdeadbeefdeadbeefdeadbeefdeadbeef
-
-  assert_success
-}
-
-# bats test_tags=terminator::claude,terminator::claude::mcp::add::atlassian
-@test "terminator::claude::mcp::add::atlassian version-override-readds-on-mismatch" {
+# bats test_tags=terminator::claude,terminator::claude::mcp::enable::atlassian
+@test "terminator::claude::mcp::enable::atlassian version-override-readds-on-mismatch" {
   export JIRA_URL='https://hill-valley.atlassian.net'
   export JIRA_USERNAME='doc.brown@hill-valley.net'
   export JIRA_API_TOKEN='1.21-gigawatts'
@@ -1055,7 +2154,7 @@ bats_require_minimum_version 1.5.0
     esac
   }
 
-  run terminator::claude::mcp::add::atlassian --version 0.99.0
+  run terminator::claude::mcp::enable::atlassian --version 0.99.0
 
   assert_success
 }
@@ -1334,6 +2433,114 @@ bats_require_minimum_version 1.5.0
   assert_success
 }
 
+# bats test_tags=terminator::claude,terminator::claude::plugin::sync
+@test "terminator::claude::plugin::sync semver-settles-disabled-on-version-match" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # Version matches but the plugin is enabled: disable it without a reinstall.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'plugin list')
+        printf '  ❯ greeter@my-plugins\n    Version: 2.5.1\n    Scope: user\n    Status: ✔ enabled\n'
+        ;;
+      plugin\ disable\ *)
+        echo 'disable called'
+        return 0
+        ;;
+      *)
+        echo "should not be called: $*"
+        return 1
+        ;;
+    esac
+  }
+
+  run terminator::claude::plugin::sync \
+    greeter@my-plugins rbuchss/my-plugins 2.5.1 0 1
+
+  assert_success
+  assert_output --partial 'disable called'
+  refute_output --partial 'should not be called'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::sync
+@test "terminator::claude::plugin::sync sha-settles-disabled-on-commit-match" {
+  command -v jq >/dev/null 2>&1 || skip 'jq not available'
+
+  local temp_home
+  temp_home="$(mktemp -d)"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
+  mkdir -p "${temp_home}/.claude/plugins"
+  printf '{"plugins":{"greeter@my-plugins":[{"gitCommitSha":"4913d94c903fbd1193cc6073d9331d28060f4156"}]}}\n' \
+    >"${temp_home}/.claude/plugins/installed_plugins.json"
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # Commit matches but the plugin is enabled: disable it without a reinstall.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'plugin list')
+        printf '  ❯ greeter@my-plugins\n    Version: 2.5.1\n    Scope: user\n    Status: ✔ enabled\n'
+        ;;
+      plugin\ disable\ *)
+        echo 'disable called'
+        return 0
+        ;;
+      *)
+        echo "should not be called: $*"
+        return 1
+        ;;
+    esac
+  }
+
+  run terminator::claude::plugin::sync \
+    greeter@my-plugins rbuchss/my-plugins 4913d94 0 1
+
+  HOME="${original_home}"
+
+  assert_success
+  assert_output --partial 'disable called'
+  refute_output --partial 'should not be called'
+
+  rm -rf "${temp_home}"
+}
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::sync
+@test "terminator::claude::plugin::sync tag-settles-disabled-on-version-match" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # Version matches but the plugin is enabled: disable it without a reinstall.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'plugin list')
+        printf '  ❯ greeter@my-plugins\n    Version: 3.1.2\n    Scope: user\n    Status: ✔ enabled\n'
+        ;;
+      plugin\ disable\ *)
+        echo 'disable called'
+        return 0
+        ;;
+      *)
+        echo "should not be called: $*"
+        return 1
+        ;;
+    esac
+  }
+
+  run terminator::claude::plugin::sync \
+    greeter@my-plugins rbuchss/my-plugins v3.1.2 0 1
+
+  assert_success
+  assert_output --partial 'disable called'
+  refute_output --partial 'should not be called'
+}
+
 ################################################################################
 # terminator::claude::plugin::__pin_and_reinstall__
 ################################################################################
@@ -1412,6 +2619,42 @@ bats_require_minimum_version 1.5.0
   assert_success
 }
 
+# bats test_tags=terminator::claude,terminator::claude::plugin::__pin_and_reinstall__
+@test "terminator::claude::plugin::__pin_and_reinstall__ disables-instead-of-enables" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # `claude plugin install` enables by default, so the reconcile must disable
+  # after reinstalling rather than enabling.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'plugin marketplace list')
+        printf '  ❯ my-plugins\n    Source: GitHub (rbuchss/my-plugins)\n'
+        ;;
+      'plugin list')
+        printf '  ❯ greeter@my-plugins\n    Version: 3.1.2\n    Scope: user\n    Status: ✔ enabled\n'
+        ;;
+      plugin\ enable\ *)
+        echo 'should not be called'
+        return 1
+        ;;
+      plugin\ disable\ *)
+        echo 'disable called'
+        return 0
+        ;;
+      *) return 0 ;;
+    esac
+  }
+
+  run terminator::claude::plugin::__pin_and_reinstall__ \
+    rbuchss/my-plugins v3.1.2 greeter@my-plugins 1
+
+  assert_success
+  assert_output --partial 'disable called'
+  refute_output --partial 'should not be called'
+}
+
 ################################################################################
 # terminator::claude::plugin::install
 ################################################################################
@@ -1477,4 +2720,143 @@ bats_require_minimum_version 1.5.0
   run terminator::claude::plugin::install greeter@my-plugins
 
   assert_success
+}
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::install
+@test "terminator::claude::plugin::install installs-then-disables-when-missing" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # Simulate `claude plugin install` auto-enabling: the plugin is absent until
+  # installed, then reported enabled. The disabled reconcile must disable it
+  # after the install.
+  __installed__=false
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'plugin list')
+        if [[ "${__installed__}" == true ]]; then
+          printf '  ❯ greeter@my-plugins\n    Version: 3.1.2\n    Scope: user\n    Status: ✔ enabled\n'
+        else
+          echo ''
+        fi
+        ;;
+      plugin\ install\ *)
+        __installed__=true
+        return 0
+        ;;
+      plugin\ disable\ *)
+        echo 'disable called'
+        return 0
+        ;;
+      plugin\ enable\ *)
+        echo 'should not be called'
+        return 1
+        ;;
+      *) return 0 ;;
+    esac
+  }
+
+  run terminator::claude::plugin::install greeter@my-plugins 1
+
+  assert_success
+  assert_output --partial 'disable called'
+  refute_output --partial 'should not be called'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::install
+@test "terminator::claude::plugin::install disables-when-installed-and-enabled" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # Installed and enabled: skip the install and just disable.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'plugin list')
+        printf '  ❯ greeter@my-plugins\n    Version: 3.1.2\n    Scope: user\n    Status: ✔ enabled\n'
+        ;;
+      plugin\ disable\ *)
+        echo 'disable called'
+        return 0
+        ;;
+      *)
+        echo "should not be called: $*"
+        return 1
+        ;;
+    esac
+  }
+
+  run terminator::claude::plugin::install greeter@my-plugins 1
+
+  assert_success
+  assert_output --partial 'disable called'
+  refute_output --partial 'should not be called'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::install
+@test "terminator::claude::plugin::install noops-when-installed-and-disabled" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # Installed and already disabled: nothing to do.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'plugin list')
+        printf '  ❯ greeter@my-plugins\n    Version: 3.1.2\n    Scope: user\n    Status: ✘ disabled\n'
+        ;;
+      *)
+        echo "should not be called: $*"
+        return 1
+        ;;
+    esac
+  }
+
+  run terminator::claude::plugin::install greeter@my-plugins 1
+
+  assert_success
+  refute_output --partial 'should not be called'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::install
+@test "terminator::claude::plugin::install skips-redundant-disable-when-install-leaves-disabled" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # Simulate `claude plugin install` leaving the plugin disabled: the
+  # follow-up disable must be skipped rather than erroring.
+  __installed__=false
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'plugin list')
+        if [[ "${__installed__}" == true ]]; then
+          printf '  ❯ greeter@my-plugins\n    Version: 3.1.2\n    Scope: user\n    Status: ✘ disabled\n'
+        else
+          echo ''
+        fi
+        ;;
+      plugin\ install\ *)
+        __installed__=true
+        return 0
+        ;;
+      plugin\ disable\ *)
+        echo 'should not be called'
+        return 1
+        ;;
+      plugin\ enable\ *)
+        echo 'should not be called'
+        return 1
+        ;;
+      *) return 0 ;;
+    esac
+  }
+
+  run terminator::claude::plugin::install greeter@my-plugins 1
+
+  assert_success
+  refute_output --partial 'should not be called'
 }
