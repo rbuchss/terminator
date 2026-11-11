@@ -509,14 +509,16 @@ function terminator::claude::settings::merge_baseline {
 }
 
 # Checks if a marketplace repo is already registered.
-# Matches the parenthesized repo format from `claude plugin marketplace list`.
+# Matches the repo field from `claude plugin marketplace list --json`, so a
+# ref-pinned marketplace (shown as repo@ref) still matches its bare repo.
 function terminator::claude::plugin::marketplace::exists {
   local marketplace_repo="$1"
 
   terminator::claude::__require_claude__ || return 1
 
-  claude plugin marketplace list 2>/dev/null \
-    | grep -qF "(${marketplace_repo})"
+  claude plugin marketplace list --json 2>/dev/null \
+    | jq -e --arg repo "${marketplace_repo}" \
+      '.[] | select(.repo == $repo)' >/dev/null 2>&1
 }
 
 # Registers a Claude Code plugin marketplace if not already present.
@@ -532,27 +534,43 @@ function terminator::claude::plugin::marketplace::add {
   claude plugin marketplace add "${marketplace_repo}"
 }
 
+# Prints a field for an installed plugin from `claude plugin list --json`, or
+# nothing when the plugin is not installed or the field is absent. jq's `//`
+# also drops false values, so boolean fields are read by comparing the output
+# against 'true' rather than against 'false'.
+# Usage: terminator::claude::plugin::__field__ PLUGIN_ID FIELD
+function terminator::claude::plugin::__field__ {
+  local \
+    plugin_id="$1" \
+    field="$2"
+
+  terminator::claude::__require_claude__ || return 1
+
+  claude plugin list --json 2>/dev/null \
+    | jq -r --arg id "${plugin_id}" --arg field "${field}" \
+      '.[] | select(.id == $id) | .[$field] // empty' 2>/dev/null
+}
+
 # Checks if a plugin is already installed.
-# Matches the plugin ID format from `claude plugin list`.
+# Matches the plugin by exact id against `claude plugin list --json`.
 function terminator::claude::plugin::exists {
   local plugin_id="$1"
 
   terminator::claude::__require_claude__ || return 1
 
-  claude plugin list 2>/dev/null \
-    | grep -qF "${plugin_id}"
+  terminator::claude::plugin::__field__ "${plugin_id}" id \
+    | grep -q .
 }
 
-# Checks if a plugin is enabled by looking for the enabled status marker
-# in the output block following the plugin ID line.
+# Checks if a plugin is enabled by reading the enabled field from
+# `claude plugin list --json`.
 function terminator::claude::plugin::is_enabled {
   local plugin_id="$1"
 
   terminator::claude::__require_claude__ || return 1
 
-  claude plugin list 2>/dev/null \
-    | grep -A3 -F "${plugin_id}" \
-    | grep -qF 'enabled'
+  terminator::claude::plugin::__field__ "${plugin_id}" enabled \
+    | grep -qx 'true'
 }
 
 # Disables an installed plugin when it is currently enabled, and does nothing
@@ -615,17 +633,14 @@ function terminator::claude::plugin::install {
     || claude plugin enable "${plugin_id}"
 }
 
-# Prints the resolved version of an installed plugin (the `Version:` field from
-# `claude plugin list`), or nothing when the plugin is not installed.
+# Prints the resolved version of an installed plugin (the version field from
+# `claude plugin list --json`), or nothing when the plugin is not installed.
 function terminator::claude::plugin::installed_version {
   local plugin_id="$1"
 
   terminator::claude::__require_claude__ || return 1
 
-  claude plugin list 2>/dev/null \
-    | grep -A3 -F "${plugin_id}" \
-    | grep -m1 'Version:' \
-    | awk '{print $2}'
+  terminator::claude::plugin::__field__ "${plugin_id}" version
 }
 
 # Prints the git commit SHA an installed plugin was built from, read from
@@ -860,8 +875,10 @@ function terminator::claude::__export__ {
   export -f terminator::claude::settings::merge_baseline
   export -f terminator::claude::plugin::marketplace::exists
   export -f terminator::claude::plugin::marketplace::add
+  export -f terminator::claude::plugin::__field__
   export -f terminator::claude::plugin::exists
   export -f terminator::claude::plugin::is_enabled
+  export -f terminator::claude::plugin::__settle_disabled__
   export -f terminator::claude::plugin::install
   export -f terminator::claude::plugin::installed_version
   export -f terminator::claude::plugin::installed_commit
@@ -888,8 +905,10 @@ function terminator::claude::__recall__ {
   export -fn terminator::claude::settings::merge_baseline
   export -fn terminator::claude::plugin::marketplace::exists
   export -fn terminator::claude::plugin::marketplace::add
+  export -fn terminator::claude::plugin::__field__
   export -fn terminator::claude::plugin::exists
   export -fn terminator::claude::plugin::is_enabled
+  export -fn terminator::claude::plugin::__settle_disabled__
   export -fn terminator::claude::plugin::install
   export -fn terminator::claude::plugin::installed_version
   export -fn terminator::claude::plugin::installed_commit
