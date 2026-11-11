@@ -1575,7 +1575,7 @@ bats_require_minimum_version 1.5.0
 @test "terminator::claude::plugin::marketplace::exists when-registered" {
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
-    printf '  ❯ my-plugins\n    Source: GitHub (rbuchss/my-plugins)\n'
+    printf '[{"name":"my-plugins","source":"github","repo":"rbuchss/my-plugins"}]\n'
   }
 
   run terminator::claude::plugin::marketplace::exists 'rbuchss/my-plugins'
@@ -1587,7 +1587,7 @@ bats_require_minimum_version 1.5.0
 @test "terminator::claude::plugin::marketplace::exists when-not-registered" {
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
-    printf '  ❯ other-marketplace\n    Source: GitHub (someone/other)\n'
+    printf '[{"name":"other-marketplace","source":"github","repo":"someone/other"}]\n'
   }
 
   run terminator::claude::plugin::marketplace::exists 'rbuchss/my-plugins'
@@ -1599,12 +1599,26 @@ bats_require_minimum_version 1.5.0
 @test "terminator::claude::plugin::marketplace::exists no-substring-match" {
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
-    printf '  ❯ my-plugins-extended\n    Source: GitHub (rbuchss/my-plugins-extended)\n'
+    printf '[{"name":"my-plugins-extended","source":"github","repo":"rbuchss/my-plugins-extended"}]\n'
   }
 
   run terminator::claude::plugin::marketplace::exists 'rbuchss/my-plugins'
 
   assert_failure
+}
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::marketplace::exists
+@test "terminator::claude::plugin::marketplace::exists matches-ref-pinned-marketplace" {
+  # A marketplace registered with a pinned ref still lists the bare repo, so a
+  # ref-pinned registration must match its repo without the ref.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    printf '[{"name":"my-plugins","source":"github","repo":"rbuchss/my-plugins","ref":"v3.1.2"}]\n'
+  }
+
+  run terminator::claude::plugin::marketplace::exists 'rbuchss/my-plugins'
+
+  assert_success
 }
 
 ################################################################################
@@ -1615,7 +1629,7 @@ bats_require_minimum_version 1.5.0
 @test "terminator::claude::plugin::exists when-installed" {
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
-    printf '  ❯ greeter@my-plugins\n    Version: 1.0.0\n'
+    printf '[{"id":"greeter@my-plugins","version":"1.0.0"}]\n'
   }
 
   run terminator::claude::plugin::exists 'greeter@my-plugins'
@@ -1627,7 +1641,19 @@ bats_require_minimum_version 1.5.0
 @test "terminator::claude::plugin::exists when-not-installed" {
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
-    printf '  ❯ other@other-marketplace\n    Version: 1.0.0\n'
+    printf '[{"id":"other@other-marketplace","version":"1.0.0"}]\n'
+  }
+
+  run terminator::claude::plugin::exists 'greeter@my-plugins'
+
+  assert_failure
+}
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::exists
+@test "terminator::claude::plugin::exists no-substring-match" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    printf '[{"id":"greeter@my-plugins-extended","version":"1.0.0"}]\n'
   }
 
   run terminator::claude::plugin::exists 'greeter@my-plugins'
@@ -1643,7 +1669,7 @@ bats_require_minimum_version 1.5.0
 @test "terminator::claude::plugin::is_enabled when-enabled" {
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
-    printf '  ❯ greeter@my-plugins\n    Version: 1.0.0\n    Scope: user\n    Status: ✔ enabled\n'
+    printf '[{"id":"greeter@my-plugins","version":"1.0.0","enabled":true}]\n'
   }
 
   run terminator::claude::plugin::is_enabled 'greeter@my-plugins'
@@ -1655,7 +1681,7 @@ bats_require_minimum_version 1.5.0
 @test "terminator::claude::plugin::is_enabled when-disabled" {
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
-    printf '  ❯ greeter@my-plugins\n    Version: 1.0.0\n    Scope: user\n    Status: ✘ disabled\n'
+    printf '[{"id":"greeter@my-plugins","version":"1.0.0","enabled":false}]\n'
   }
 
   run terminator::claude::plugin::is_enabled 'greeter@my-plugins'
@@ -1667,7 +1693,7 @@ bats_require_minimum_version 1.5.0
 @test "terminator::claude::plugin::is_enabled when-not-installed" {
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
-    echo ''
+    echo '[]'
   }
 
   run terminator::claude::plugin::is_enabled 'greeter@my-plugins'
@@ -1687,8 +1713,8 @@ bats_require_minimum_version 1.5.0
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
     case "$*" in
-      'plugin list')
-        printf '  ❯ greeter@my-plugins\n    Version: 1.0.0\n    Scope: user\n    Status: ✔ enabled\n'
+      'plugin list --json')
+        printf '[{"id":"greeter@my-plugins","version":"1.0.0","enabled":true}]\n'
         ;;
       'plugin disable greeter@my-plugins')
         echo 'disable called'
@@ -1716,8 +1742,8 @@ bats_require_minimum_version 1.5.0
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
     case "$*" in
-      'plugin list')
-        printf '  ❯ greeter@my-plugins\n    Version: 1.0.0\n    Scope: user\n    Status: ✘ disabled\n'
+      'plugin list --json')
+        printf '[{"id":"greeter@my-plugins","version":"1.0.0","enabled":false}]\n'
         ;;
       *)
         echo "should not be called: $*"
@@ -1740,7 +1766,7 @@ bats_require_minimum_version 1.5.0
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
     case "$*" in
-      'plugin list') echo '' ;;
+      'plugin list --json') echo '[]' ;;
       *)
         echo "should not be called: $*"
         return 1
@@ -1790,11 +1816,11 @@ bats_require_minimum_version 1.5.0
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
     case "$*" in
-      'plugin marketplace list')
-        printf '  ❯ my-plugins\n    Source: GitHub (rbuchss/my-plugins)\n'
+      'plugin marketplace list --json')
+        printf '[{"name":"my-plugins","source":"github","repo":"rbuchss/my-plugins"}]\n'
         ;;
-      'plugin list')
-        printf '  ❯ greeter@my-plugins\n    Version: 1.0.0\n    Scope: user\n    Status: ✔ enabled\n'
+      'plugin list --json')
+        printf '[{"id":"greeter@my-plugins","version":"1.0.0","enabled":true}]\n'
         ;;
     esac
   }
@@ -1811,14 +1837,14 @@ bats_require_minimum_version 1.5.0
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
     case "$*" in
-      'plugin marketplace list')
-        echo ''
+      'plugin marketplace list --json')
+        echo '[]'
         ;;
       plugin\ marketplace\ add\ *)
         return 0
         ;;
-      'plugin list')
-        echo ''
+      'plugin list --json')
+        echo '[]'
         ;;
       plugin\ install\ *)
         return 0
@@ -1858,8 +1884,8 @@ bats_require_minimum_version 1.5.0
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
     case "$*" in
-      'plugin list')
-        printf '  ❯ greeter@my-plugins\n    Version: 1.0.0\n    Scope: user\n    Status: ✔ enabled\n'
+      'plugin list --json')
+        printf '[{"id":"greeter@my-plugins","version":"1.0.0","enabled":true}]\n'
         ;;
       *)
         echo "should not be called: $*"
@@ -1891,13 +1917,13 @@ bats_require_minimum_version 1.5.0
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
     case "$*" in
-      'plugin marketplace list') echo '' ;;
+      'plugin marketplace list --json') echo '[]' ;;
       plugin\ marketplace\ add\ *) return 0 ;;
-      'plugin list')
+      'plugin list --json')
         if [[ "${__installed__}" == true ]]; then
-          printf '  ❯ greeter@my-plugins\n    Version: 1.0.0\n    Scope: user\n    Status: ✔ enabled\n'
+          printf '[{"id":"greeter@my-plugins","version":"1.0.0","enabled":true}]\n'
         else
-          echo ''
+          echo '[]'
         fi
         ;;
       plugin\ install\ *)
@@ -1936,8 +1962,8 @@ bats_require_minimum_version 1.5.0
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
     case "$*" in
-      'plugin list')
-        printf '  ❯ greeter@my-plugins\n    Version: 1.0.0\n    Scope: user\n    Status: ✔ enabled\n'
+      'plugin list --json')
+        printf '[{"id":"greeter@my-plugins","version":"1.0.0","enabled":true}]\n'
         ;;
       plugin\ disable\ *)
         echo 'disable called'
@@ -2170,7 +2196,7 @@ bats_require_minimum_version 1.5.0
 
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
-    printf '  ❯ greeter@my-plugins\n    Version: 1.2.3\n    Scope: user\n    Status: ✔ enabled\n'
+    printf '[{"id":"greeter@my-plugins","version":"1.2.3","enabled":true}]\n'
   }
 
   run terminator::claude::plugin::installed_version greeter@my-plugins
@@ -2185,7 +2211,7 @@ bats_require_minimum_version 1.5.0
   function terminator::command::exists { return 0; }
 
   # shellcheck disable=SC2317 # invoked indirectly
-  function claude { echo ''; }
+  function claude { echo '[]'; }
 
   run terminator::claude::plugin::installed_version greeter@my-plugins
 
@@ -2252,8 +2278,8 @@ bats_require_minimum_version 1.5.0
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
     case "$*" in
-      'plugin list')
-        printf '  ❯ greeter@my-plugins\n    Version: 2.5.1\n    Scope: user\n    Status: ✔ enabled\n'
+      'plugin list --json')
+        printf '[{"id":"greeter@my-plugins","version":"2.5.1","enabled":true}]\n'
         ;;
       *)
         echo "should not be called: $*"
@@ -2276,11 +2302,11 @@ bats_require_minimum_version 1.5.0
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
     case "$*" in
-      'plugin list')
-        printf '  ❯ greeter@my-plugins\n    Version: 2.4.0\n    Scope: user\n    Status: ✔ enabled\n'
+      'plugin list --json')
+        printf '[{"id":"greeter@my-plugins","version":"2.4.0","enabled":true}]\n'
         ;;
-      'plugin marketplace list')
-        printf '  ❯ my-plugins\n    Source: GitHub (rbuchss/my-plugins)\n'
+      'plugin marketplace list --json')
+        printf '[{"name":"my-plugins","source":"github","repo":"rbuchss/my-plugins"}]\n'
         ;;
       *) return 0 ;;
     esac
@@ -2343,8 +2369,8 @@ bats_require_minimum_version 1.5.0
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
     case "$*" in
-      'plugin marketplace list')
-        printf '  ❯ my-plugins\n    Source: GitHub (rbuchss/my-plugins)\n'
+      'plugin marketplace list --json')
+        printf '[{"name":"my-plugins","source":"github","repo":"rbuchss/my-plugins"}]\n'
         ;;
       *) return 0 ;;
     esac
@@ -2369,8 +2395,8 @@ bats_require_minimum_version 1.5.0
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
     case "$*" in
-      'plugin list')
-        printf '  ❯ greeter@my-plugins\n    Version: 3.1.2\n    Scope: user\n    Status: ✔ enabled\n'
+      'plugin list --json')
+        printf '[{"id":"greeter@my-plugins","version":"3.1.2","enabled":true}]\n'
         ;;
       *)
         echo "should not be called: $*"
@@ -2393,11 +2419,11 @@ bats_require_minimum_version 1.5.0
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
     case "$*" in
-      'plugin list')
-        printf '  ❯ greeter@my-plugins\n    Version: 2.5.1\n    Scope: user\n    Status: ✔ enabled\n'
+      'plugin list --json')
+        printf '[{"id":"greeter@my-plugins","version":"2.5.1","enabled":true}]\n'
         ;;
-      'plugin marketplace list')
-        printf '  ❯ my-plugins\n    Source: GitHub (rbuchss/my-plugins)\n'
+      'plugin marketplace list --json')
+        printf '[{"name":"my-plugins","source":"github","repo":"rbuchss/my-plugins"}]\n'
         ;;
       *) return 0 ;;
     esac
@@ -2417,11 +2443,11 @@ bats_require_minimum_version 1.5.0
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
     case "$*" in
-      'plugin list')
-        printf '  ❯ greeter@my-plugins\n    Version: 3.1.2\n    Scope: user\n    Status: ✔ enabled\n'
+      'plugin list --json')
+        printf '[{"id":"greeter@my-plugins","version":"3.1.2","enabled":true}]\n'
         ;;
-      'plugin marketplace list')
-        printf '  ❯ my-plugins\n    Source: GitHub (rbuchss/my-plugins)\n'
+      'plugin marketplace list --json')
+        printf '[{"name":"my-plugins","source":"github","repo":"rbuchss/my-plugins"}]\n'
         ;;
       *) return 0 ;;
     esac
@@ -2442,8 +2468,8 @@ bats_require_minimum_version 1.5.0
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
     case "$*" in
-      'plugin list')
-        printf '  ❯ greeter@my-plugins\n    Version: 2.5.1\n    Scope: user\n    Status: ✔ enabled\n'
+      'plugin list --json')
+        printf '[{"id":"greeter@my-plugins","version":"2.5.1","enabled":true}]\n'
         ;;
       plugin\ disable\ *)
         echo 'disable called'
@@ -2484,8 +2510,8 @@ bats_require_minimum_version 1.5.0
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
     case "$*" in
-      'plugin list')
-        printf '  ❯ greeter@my-plugins\n    Version: 2.5.1\n    Scope: user\n    Status: ✔ enabled\n'
+      'plugin list --json')
+        printf '[{"id":"greeter@my-plugins","version":"2.5.1","enabled":true}]\n'
         ;;
       plugin\ disable\ *)
         echo 'disable called'
@@ -2519,8 +2545,8 @@ bats_require_minimum_version 1.5.0
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
     case "$*" in
-      'plugin list')
-        printf '  ❯ greeter@my-plugins\n    Version: 3.1.2\n    Scope: user\n    Status: ✔ enabled\n'
+      'plugin list --json')
+        printf '[{"id":"greeter@my-plugins","version":"3.1.2","enabled":true}]\n'
         ;;
       plugin\ disable\ *)
         echo 'disable called'
@@ -2553,8 +2579,8 @@ bats_require_minimum_version 1.5.0
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
     case "$*" in
-      'plugin marketplace list')
-        printf '  ❯ my-plugins\n    Source: GitHub (rbuchss/my-plugins)\n'
+      'plugin marketplace list --json')
+        printf '[{"name":"my-plugins","source":"github","repo":"rbuchss/my-plugins"}]\n'
         ;;
       *) return 0 ;;
     esac
@@ -2574,7 +2600,7 @@ bats_require_minimum_version 1.5.0
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
     case "$*" in
-      'plugin marketplace list') echo '' ;;
+      'plugin marketplace list --json') echo '[]' ;;
       plugin\ marketplace\ remove\ *)
         echo 'should not be called'
         return 1
@@ -2599,11 +2625,11 @@ bats_require_minimum_version 1.5.0
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
     case "$*" in
-      'plugin marketplace list')
-        printf '  ❯ my-plugins\n    Source: GitHub (rbuchss/my-plugins)\n'
+      'plugin marketplace list --json')
+        printf '[{"name":"my-plugins","source":"github","repo":"rbuchss/my-plugins"}]\n'
         ;;
-      'plugin list')
-        printf '  ❯ greeter@my-plugins\n    Version: 3.1.2\n    Scope: user\n    Status: ✔ enabled\n'
+      'plugin list --json')
+        printf '[{"id":"greeter@my-plugins","version":"3.1.2","enabled":true}]\n'
         ;;
       plugin\ enable\ *)
         echo 'should not be called'
@@ -2629,11 +2655,11 @@ bats_require_minimum_version 1.5.0
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
     case "$*" in
-      'plugin marketplace list')
-        printf '  ❯ my-plugins\n    Source: GitHub (rbuchss/my-plugins)\n'
+      'plugin marketplace list --json')
+        printf '[{"name":"my-plugins","source":"github","repo":"rbuchss/my-plugins"}]\n'
         ;;
-      'plugin list')
-        printf '  ❯ greeter@my-plugins\n    Version: 3.1.2\n    Scope: user\n    Status: ✔ enabled\n'
+      'plugin list --json')
+        printf '[{"id":"greeter@my-plugins","version":"3.1.2","enabled":true}]\n'
         ;;
       plugin\ enable\ *)
         echo 'should not be called'
@@ -2672,11 +2698,11 @@ bats_require_minimum_version 1.5.0
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
     case "$*" in
-      'plugin list')
+      'plugin list --json')
         if [[ "${__installed__}" == true ]]; then
-          printf '  ❯ greeter@my-plugins\n    Version: 3.1.2\n    Scope: user\n    Status: ✔ enabled\n'
+          printf '[{"id":"greeter@my-plugins","version":"3.1.2","enabled":true}]\n'
         else
-          echo ''
+          echo '[]'
         fi
         ;;
       plugin\ install\ *)
@@ -2705,8 +2731,8 @@ bats_require_minimum_version 1.5.0
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
     case "$*" in
-      'plugin list')
-        printf '  ❯ greeter@my-plugins\n    Version: 3.1.2\n    Scope: user\n    Status: ✘ disabled\n'
+      'plugin list --json')
+        printf '[{"id":"greeter@my-plugins","version":"3.1.2","enabled":false}]\n'
         ;;
       plugin\ enable\ *) return 0 ;;
       plugin\ install\ *)
@@ -2735,11 +2761,11 @@ bats_require_minimum_version 1.5.0
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
     case "$*" in
-      'plugin list')
+      'plugin list --json')
         if [[ "${__installed__}" == true ]]; then
-          printf '  ❯ greeter@my-plugins\n    Version: 3.1.2\n    Scope: user\n    Status: ✔ enabled\n'
+          printf '[{"id":"greeter@my-plugins","version":"3.1.2","enabled":true}]\n'
         else
-          echo ''
+          echo '[]'
         fi
         ;;
       plugin\ install\ *)
@@ -2774,8 +2800,8 @@ bats_require_minimum_version 1.5.0
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
     case "$*" in
-      'plugin list')
-        printf '  ❯ greeter@my-plugins\n    Version: 3.1.2\n    Scope: user\n    Status: ✔ enabled\n'
+      'plugin list --json')
+        printf '[{"id":"greeter@my-plugins","version":"3.1.2","enabled":true}]\n'
         ;;
       plugin\ disable\ *)
         echo 'disable called'
@@ -2804,8 +2830,8 @@ bats_require_minimum_version 1.5.0
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
     case "$*" in
-      'plugin list')
-        printf '  ❯ greeter@my-plugins\n    Version: 3.1.2\n    Scope: user\n    Status: ✘ disabled\n'
+      'plugin list --json')
+        printf '[{"id":"greeter@my-plugins","version":"3.1.2","enabled":false}]\n'
         ;;
       *)
         echo "should not be called: $*"
@@ -2832,11 +2858,11 @@ bats_require_minimum_version 1.5.0
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
     case "$*" in
-      'plugin list')
+      'plugin list --json')
         if [[ "${__installed__}" == true ]]; then
-          printf '  ❯ greeter@my-plugins\n    Version: 3.1.2\n    Scope: user\n    Status: ✘ disabled\n'
+          printf '[{"id":"greeter@my-plugins","version":"3.1.2","enabled":false}]\n'
         else
-          echo ''
+          echo '[]'
         fi
         ;;
       plugin\ install\ *)
