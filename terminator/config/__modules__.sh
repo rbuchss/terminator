@@ -30,6 +30,7 @@ terminator::source \
   "${HOME}/.terminator/src/myjournal.sh" \
   "${HOME}/.terminator/src/mysql.sh" \
   "${HOME}/.terminator/src/network.sh" \
+  "${HOME}/.terminator/src/nix.sh" \
   "${HOME}/.terminator/src/nodenv.sh" \
   "${HOME}/.terminator/src/pipx.sh" \
   "${HOME}/.terminator/src/postgresql.sh" \
@@ -79,6 +80,7 @@ __modules__=(
   terminator::myjournal
   terminator::mysql
   terminator::network
+  terminator::nix
   terminator::nodenv
   terminator::pipx
   terminator::postgresql
