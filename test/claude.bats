@@ -86,15 +86,14 @@ bats_require_minimum_version 1.5.0
   # shellcheck disable=SC2317 # invoked indirectly
   function terminator::claude::settings::merge_baseline { return 0; }
 
-  # The context7 version matches so its sync is a no-op, leaving the serena
-  # removal as the only mcp mutation.
+  # The context7 version matches so its sync is a no-op, and the user-scope
+  # serena entry drives the removal, leaving it as the only mcp mutation.
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
     case "$1" in
       mcp)
         shift
         case "$1" in
-          list) echo 'context7: bunx -y @upstash/context7-mcp@4.4.4' ;;
           remove)
             echo "removed: $*"
             return 0
@@ -111,6 +110,8 @@ bats_require_minimum_version 1.5.0
   local temp_home
   temp_home="$(mktemp -d)"
   mkdir -p "${temp_home}/.local/bin"
+  printf '{"mcpServers":{"context7":{"command":"bunx","args":["-y","@upstash/context7-mcp@4.4.4"]},"serena":{"command":"uvx","args":["--from","serena-agent==9.9.9"]}}}\n' \
+    >"${temp_home}/.claude.json"
   local original_home="${HOME}"
   HOME="${temp_home}"
 
@@ -121,6 +122,7 @@ bats_require_minimum_version 1.5.0
 
   assert_success
   assert_output --partial 'removed: remove --scope user serena'
+  refute_output --partial 'should not be called'
 }
 
 # bats test_tags=terminator::claude,terminator::claude::__enable__
@@ -139,7 +141,6 @@ bats_require_minimum_version 1.5.0
       mcp)
         shift
         case "$1" in
-          list) echo 'context7: bunx -y @upstash/context7-mcp@4.4.4' ;;
           remove)
             if [[ "$*" == 'remove --scope user serena' ]]; then
               return 0
@@ -160,10 +161,15 @@ bats_require_minimum_version 1.5.0
     esac
   }
 
-  local temp_home
+  local \
+    temp_home \
+    repo_root \
+    original_home="${HOME}"
+  repo_root="$(git rev-parse --show-toplevel)"
   temp_home="$(mktemp -d)"
   mkdir -p "${temp_home}/.local/bin"
-  local original_home="${HOME}"
+  printf '{"mcpServers":{"context7":{"command":"bunx","args":["-y","@upstash/context7-mcp@4.4.4"]},"serena":{"command":"uvx","args":["--from","serena-agent==9.9.9"]}},"projects":{"%s":{"mcpServers":{"serena":{"command":"uvx","args":["--from","serena-agent==2.1.0"]}}}}}\n' \
+    "${repo_root}" >"${temp_home}/.claude.json"
   HOME="${temp_home}"
 
   run terminator::claude::__enable__
@@ -224,27 +230,26 @@ bats_require_minimum_version 1.5.0
 @test "terminator::claude::mcp::enable::context7 skips-when-version-matches" {
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
-    case "$1" in
-      mcp)
-        shift
-        case "$1" in
-          list) echo 'context7: bunx -y @upstash/context7-mcp@4.4.4' ;;
-          remove)
-            echo 'should not be called'
-            return 1
-            ;;
-          add)
-            echo 'should not be called'
-            return 1
-            ;;
-        esac
-        ;;
-    esac
+    echo 'should not be called'
+    return 1
   }
+
+  # The user-scope entry already matches the pinned version, so no claude
+  # call is made at all.
+  local temp_home
+  temp_home="$(mktemp -d)"
+  printf '{"mcpServers":{"context7":{"command":"bunx","args":["-y","@upstash/context7-mcp@4.4.4"]}}}\n' \
+    >"${temp_home}/.claude.json"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
 
   run terminator::claude::mcp::enable::context7
 
+  HOME="${original_home}"
+  rm -rf "${temp_home}"
+
   assert_success
+  refute_output --partial 'should not be called'
 }
 
 # bats test_tags=terminator::claude,terminator::claude::mcp::enable::context7
@@ -255,7 +260,6 @@ bats_require_minimum_version 1.5.0
       mcp)
         shift
         case "$1" in
-          list) echo 'context7: bunx -y @upstash/context7-mcp@4.4.4' ;;
           remove) return 0 ;;
           add) return 0 ;;
         esac
@@ -263,7 +267,17 @@ bats_require_minimum_version 1.5.0
     esac
   }
 
+  local temp_home
+  temp_home="$(mktemp -d)"
+  printf '{"mcpServers":{"context7":{"command":"bunx","args":["-y","@upstash/context7-mcp@4.4.4"]}}}\n' \
+    >"${temp_home}/.claude.json"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
   run terminator::claude::mcp::enable::context7 --force
+
+  HOME="${original_home}"
+  rm -rf "${temp_home}"
 
   assert_success
 }
@@ -279,7 +293,6 @@ bats_require_minimum_version 1.5.0
       mcp)
         shift
         case "$1" in
-          list) echo '' ;;
           remove)
             echo "removed: $*"
             return 0
@@ -293,7 +306,15 @@ bats_require_minimum_version 1.5.0
     esac
   }
 
+  local temp_home
+  temp_home="$(mktemp -d)"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
   run terminator::claude::mcp::enable::context7
+
+  HOME="${original_home}"
+  rm -rf "${temp_home}"
 
   assert_success
   assert_output --partial 'added: add --scope user context7 -- bunx -y @upstash/context7-mcp@4.4.4'
@@ -310,7 +331,6 @@ bats_require_minimum_version 1.5.0
       mcp)
         shift
         case "$1" in
-          list) echo '' ;;
           remove) return 0 ;;
           add)
             echo "added: $*"
@@ -321,10 +341,44 @@ bats_require_minimum_version 1.5.0
     esac
   }
 
+  local temp_home
+  temp_home="$(mktemp -d)"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
   run terminator::claude::mcp::enable::context7 --project
+
+  HOME="${original_home}"
+  rm -rf "${temp_home}"
 
   assert_success
   assert_output --partial 'added: add --scope project context7 -- bunx -y @upstash/context7-mcp@4.4.4'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::enable::context7
+@test "terminator::claude::mcp::enable::context7 skips-at-project-scope-when-version-matches" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    echo 'should not be called'
+    return 1
+  }
+
+  local \
+    temp_repo \
+    original_dir="${PWD}"
+  temp_repo="$(mktemp -d)"
+  git init -q "${temp_repo}"
+  printf '{"mcpServers":{"context7":{"command":"bunx","args":["-y","@upstash/context7-mcp@4.4.4"]}}}\n' \
+    >"${temp_repo}/.mcp.json"
+  cd "${temp_repo}"
+
+  run terminator::claude::mcp::enable::context7 --project
+
+  cd "${original_dir}"
+  rm -rf "${temp_repo}"
+
+  assert_success
+  refute_output --partial 'should not be called'
 }
 
 # bats test_tags=terminator::claude,terminator::claude::mcp::enable::context7
@@ -405,7 +459,17 @@ bats_require_minimum_version 1.5.0
     esac
   }
 
+  local temp_home
+  temp_home="$(mktemp -d)"
+  printf '{"mcpServers":{"context7":{"command":"bunx","args":["-y","@upstash/context7-mcp@4.4.4"]}}}\n' \
+    >"${temp_home}/.claude.json"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
   run terminator::claude::mcp::disable::context7
+
+  HOME="${original_home}"
+  rm -rf "${temp_home}"
 
   assert_success
   assert_output 'removed user context7'
@@ -427,7 +491,19 @@ bats_require_minimum_version 1.5.0
     esac
   }
 
+  local \
+    temp_repo \
+    original_dir="${PWD}"
+  temp_repo="$(mktemp -d)"
+  git init -q "${temp_repo}"
+  printf '{"mcpServers":{"context7":{"command":"bunx","args":["-y","@upstash/context7-mcp@4.4.4"]}}}\n' \
+    >"${temp_repo}/.mcp.json"
+  cd "${temp_repo}"
+
   run terminator::claude::mcp::disable::context7 --project
+
+  cd "${original_dir}"
+  rm -rf "${temp_repo}"
 
   assert_success
   assert_output 'removed project context7'
@@ -465,12 +541,20 @@ bats_require_minimum_version 1.5.0
   # shellcheck disable=SC2317 # invoked indirectly
   function terminator::command::exists { return 0; }
 
-  # The removal is idempotent: `claude mcp remove` fails when the server is
-  # not registered at the scope, and the failure is swallowed.
+  # The removal is idempotent: with no registration at the scope, the config
+  # gate skips the CLI call entirely.
   # shellcheck disable=SC2317 # invoked indirectly
   function claude { return 1; }
 
+  local temp_home
+  temp_home="$(mktemp -d)"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
   run terminator::claude::mcp::disable::context7
+
+  HOME="${original_home}"
+  rm -rf "${temp_home}"
 
   assert_success
 }
@@ -554,6 +638,159 @@ bats_require_minimum_version 1.5.0
 }
 
 ################################################################################
+# terminator::claude::mcp::__configured_command__
+################################################################################
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::__configured_command__
+@test "terminator::claude::mcp::__configured_command__ prints-user-scope-command" {
+  local temp_home
+  temp_home="$(mktemp -d)"
+  printf '{"mcpServers":{"context7":{"command":"bunx","args":["-y","@upstash/context7-mcp@4.4.4"]}}}\n' \
+    >"${temp_home}/.claude.json"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
+  run terminator::claude::mcp::__configured_command__ context7 user
+
+  HOME="${original_home}"
+
+  assert_success
+  assert_output 'bunx -y @upstash/context7-mcp@4.4.4'
+
+  rm -rf "${temp_home}"
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::__configured_command__
+@test "terminator::claude::mcp::__configured_command__ prints-local-scope-command" {
+  local \
+    temp_home \
+    repo_root
+  repo_root="$(git rev-parse --show-toplevel)"
+  temp_home="$(mktemp -d)"
+  printf '{"projects":{"%s":{"mcpServers":{"serena":{"command":"uvx","args":["--from","serena-agent==2.1.0"]}}}}}\n' \
+    "${repo_root}" >"${temp_home}/.claude.json"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
+  run terminator::claude::mcp::__configured_command__ serena local "${repo_root}"
+
+  HOME="${original_home}"
+
+  assert_success
+  assert_output 'uvx --from serena-agent==2.1.0'
+
+  rm -rf "${temp_home}"
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::__configured_command__
+@test "terminator::claude::mcp::__configured_command__ prints-project-scope-command" {
+  local \
+    temp_repo \
+    original_dir="${PWD}"
+  temp_repo="$(mktemp -d)"
+  git init -q "${temp_repo}"
+  printf '{"mcpServers":{"foo":{"command":"echo","args":["hi"]}}}\n' \
+    >"${temp_repo}/.mcp.json"
+  cd "${temp_repo}"
+
+  run terminator::claude::mcp::__configured_command__ foo project
+
+  cd "${original_dir}"
+
+  assert_success
+  assert_output 'echo hi'
+
+  rm -rf "${temp_repo}"
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::__configured_command__
+@test "terminator::claude::mcp::__configured_command__ yields-nothing-when-entry-absent" {
+  local temp_home
+  temp_home="$(mktemp -d)"
+  printf '{"mcpServers":{"other":{"command":"echo"}}}\n' >"${temp_home}/.claude.json"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
+  run terminator::claude::mcp::__configured_command__ context7 user
+
+  HOME="${original_home}"
+
+  assert_success
+  assert_output ''
+
+  rm -rf "${temp_home}"
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::__configured_command__
+@test "terminator::claude::mcp::__configured_command__ yields-nothing-when-file-absent" {
+  local temp_home
+  temp_home="$(mktemp -d)"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
+  run terminator::claude::mcp::__configured_command__ context7 user
+
+  HOME="${original_home}"
+
+  assert_success
+  assert_output ''
+
+  rm -rf "${temp_home}"
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::__configured_command__
+@test "terminator::claude::mcp::__configured_command__ never-prints-env" {
+  local temp_home
+  temp_home="$(mktemp -d)"
+  printf '{"mcpServers":{"atlassian":{"command":"uvx","args":["mcp-atlassian==0.23.1"],"env":{"JIRA_API_TOKEN":"secret-token"}}}}\n' \
+    >"${temp_home}/.claude.json"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
+  run terminator::claude::mcp::__configured_command__ atlassian user
+
+  HOME="${original_home}"
+
+  assert_success
+  assert_output 'uvx mcp-atlassian==0.23.1'
+  refute_output --partial 'secret-token'
+
+  rm -rf "${temp_home}"
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::__configured_command__
+@test "terminator::claude::mcp::__configured_command__ respects-claude-config-dir" {
+  local \
+    temp_config \
+    original_config_dir="${CLAUDE_CONFIG_DIR}"
+  temp_config="$(mktemp -d)"
+  printf '{"mcpServers":{"context7":{"command":"bunx","args":["-y","@upstash/context7-mcp@4.4.4"]}}}\n' \
+    >"${temp_config}/.claude.json"
+  export CLAUDE_CONFIG_DIR="${temp_config}"
+
+  run terminator::claude::mcp::__configured_command__ context7 user
+
+  if [[ -n "${original_config_dir}" ]]; then
+    export CLAUDE_CONFIG_DIR="${original_config_dir}"
+  else
+    unset CLAUDE_CONFIG_DIR
+  fi
+
+  assert_success
+  assert_output 'bunx -y @upstash/context7-mcp@4.4.4'
+
+  rm -rf "${temp_config}"
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::__configured_command__
+@test "terminator::claude::mcp::__configured_command__ when-unknown-scope" {
+  run terminator::claude::mcp::__configured_command__ foo bogus
+
+  assert_failure
+  assert_output --partial 'unknown scope'
+}
+
+################################################################################
 # terminator::claude::mcp::__remove__
 ################################################################################
 
@@ -573,10 +810,53 @@ bats_require_minimum_version 1.5.0
     esac
   }
 
+  local \
+    temp_home \
+    repo_root \
+    original_dir="${PWD}"
+  repo_root="$(git rev-parse --show-toplevel)"
+  temp_home="$(mktemp -d)"
+  printf '{"projects":{"%s":{"mcpServers":{"serena":{"command":"uvx","args":["--from","serena-agent==2.1.0"]}}}}}\n' \
+    "${repo_root}" >"${temp_home}/.claude.json"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+  cd "${repo_root}"
+
   run terminator::claude::mcp::__remove__ serena local
+
+  cd "${original_dir}"
+  HOME="${original_home}"
+  rm -rf "${temp_home}"
 
   assert_success
   assert_output 'removed serena'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::__remove__
+@test "terminator::claude::mcp::__remove__ skips-cli-when-not-registered" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # With no registration at the scope, the config gate skips the CLI call
+  # entirely: the steady state makes no claude calls at all.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    echo 'should not be called'
+    return 1
+  }
+
+  local temp_home
+  temp_home="$(mktemp -d)"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
+  run terminator::claude::mcp::__remove__ serena local
+
+  HOME="${original_home}"
+  rm -rf "${temp_home}"
+
+  assert_success
+  refute_output --partial 'should not be called'
 }
 
 # bats test_tags=terminator::claude,terminator::claude::mcp::__remove__
@@ -584,13 +864,21 @@ bats_require_minimum_version 1.5.0
   # shellcheck disable=SC2317 # invoked indirectly
   function terminator::command::exists { return 0; }
 
-  # `claude mcp remove` fails when the server is not registered at the scope;
-  # the removal must still succeed so callers can use it for idempotent
-  # cleanup.
+  # The removal is idempotent: with no registration at the scope, the config
+  # gate skips the CLI call entirely, and a failing CLI could not break it
+  # either.
   # shellcheck disable=SC2317 # invoked indirectly
   function claude { return 1; }
 
+  local temp_home
+  temp_home="$(mktemp -d)"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
   run terminator::claude::mcp::__remove__ serena local
+
+  HOME="${original_home}"
+  rm -rf "${temp_home}"
 
   assert_success
 }
@@ -700,7 +988,6 @@ bats_require_minimum_version 1.5.0
       mcp)
         shift
         case "$1" in
-          list) echo '' ;;
           remove)
             echo "removed: $*"
             return 0
@@ -714,7 +1001,18 @@ bats_require_minimum_version 1.5.0
     esac
   }
 
+  # The user-scope entry drives the strip; no local entry exists yet.
+  local temp_home
+  temp_home="$(mktemp -d)"
+  printf '{"mcpServers":{"serena":{"command":"uvx","args":["--from","serena-agent==9.9.9"]}}}\n' \
+    >"${temp_home}/.claude.json"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
   run terminator::claude::mcp::enable::serena
+
+  HOME="${original_home}"
+  rm -rf "${temp_home}"
 
   assert_success
   assert_output --partial 'removed: remove --scope user serena'
@@ -726,33 +1024,28 @@ bats_require_minimum_version 1.5.0
   # shellcheck disable=SC2317 # invoked indirectly
   function terminator::command::exists { return 0; }
 
-  # The user-scope cleanup still runs so the opted-in scope owns the entry.
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
-    case "$1" in
-      mcp)
-        shift
-        case "$1" in
-          list)
-            echo 'serena: uvx --from serena-agent==2.1.0 serena start-mcp-server --context claude-code --project-from-cwd --open-web-dashboard False'
-            ;;
-          remove)
-            if [[ "$*" == 'remove --scope user serena' ]]; then
-              return 0
-            fi
-            echo 'should not be called'
-            return 1
-            ;;
-          add)
-            echo 'should not be called'
-            return 1
-            ;;
-        esac
-        ;;
-    esac
+    echo 'should not be called'
+    return 1
   }
 
+  # The local entry already matches the pinned version, so no claude call is
+  # made at all; with no user-scope entry, even the strip is skipped.
+  local \
+    temp_home \
+    repo_root
+  repo_root="$(git rev-parse --show-toplevel)"
+  temp_home="$(mktemp -d)"
+  printf '{"projects":{"%s":{"mcpServers":{"serena":{"command":"uvx","args":["--from","serena-agent==2.1.0"]}}}}}\n' \
+    "${repo_root}" >"${temp_home}/.claude.json"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
   run terminator::claude::mcp::enable::serena
+
+  HOME="${original_home}"
+  rm -rf "${temp_home}"
 
   assert_success
   refute_output --partial 'should not be called'
@@ -769,9 +1062,6 @@ bats_require_minimum_version 1.5.0
       mcp)
         shift
         case "$1" in
-          list)
-            echo 'serena: uvx --from serena-agent==2.1.0 serena start-mcp-server --context claude-code --project-from-cwd --open-web-dashboard False'
-            ;;
           remove) return 0 ;;
           add)
             echo "added: $*"
@@ -782,7 +1072,20 @@ bats_require_minimum_version 1.5.0
     esac
   }
 
+  local \
+    temp_home \
+    repo_root
+  repo_root="$(git rev-parse --show-toplevel)"
+  temp_home="$(mktemp -d)"
+  printf '{"projects":{"%s":{"mcpServers":{"serena":{"command":"uvx","args":["--from","serena-agent==2.1.0"]}}}}}\n' \
+    "${repo_root}" >"${temp_home}/.claude.json"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
   run terminator::claude::mcp::enable::serena --force
+
+  HOME="${original_home}"
+  rm -rf "${temp_home}"
 
   assert_success
   assert_output --partial 'added: add --scope local serena -- uvx --from serena-agent==2.1.0'
@@ -799,9 +1102,6 @@ bats_require_minimum_version 1.5.0
       mcp)
         shift
         case "$1" in
-          list)
-            echo 'serena: uvx --from serena-agent==2.1.0 serena start-mcp-server --context claude-code --project-from-cwd --open-web-dashboard False'
-            ;;
           remove) return 0 ;;
           add)
             echo "added: $*"
@@ -812,7 +1112,20 @@ bats_require_minimum_version 1.5.0
     esac
   }
 
+  local \
+    temp_home \
+    repo_root
+  repo_root="$(git rev-parse --show-toplevel)"
+  temp_home="$(mktemp -d)"
+  printf '{"projects":{"%s":{"mcpServers":{"serena":{"command":"uvx","args":["--from","serena-agent==2.1.0"]}}}}}\n' \
+    "${repo_root}" >"${temp_home}/.claude.json"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
   run terminator::claude::mcp::enable::serena --version 9.9.9
+
+  HOME="${original_home}"
+  rm -rf "${temp_home}"
 
   assert_success
   assert_output --partial 'added: add --scope local serena -- uvx --from serena-agent==9.9.9'
@@ -823,44 +1136,33 @@ bats_require_minimum_version 1.5.0
   # shellcheck disable=SC2317 # invoked indirectly
   function terminator::command::exists { return 0; }
 
-  # `claude mcp list` shows every visible scope, so a user-scope remnant would
-  # report its version and mask the local entry during detection. Once the
-  # user-scope entry is removed first, the list reports the local 2.1.0 entry
-  # and the sync skips; without the early removal the 9.9.9 remnant forces a
-  # re-add.
-  __user_removed__=false
-
+  # A user-scope remnant must be removed so the opt-in owns the entry. The
+  # local entry already matches the pinned version, so nothing else may run.
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
-    case "$1" in
-      mcp)
-        shift
-        case "$1" in
-          list)
-            if [[ "${__user_removed__}" == true ]]; then
-              echo 'serena: uvx --from serena-agent==2.1.0 serena start-mcp-server --context claude-code --project-from-cwd --open-web-dashboard False'
-            else
-              echo 'serena: uvx --from serena-agent==9.9.9 serena start-mcp-server --context claude-code --project-from-cwd --open-web-dashboard False'
-            fi
-            ;;
-          remove)
-            if [[ "$*" == 'remove --scope user serena' ]]; then
-              __user_removed__=true
-              return 0
-            fi
-            echo 'should not be called'
-            return 1
-            ;;
-          add)
-            echo 'should not be called'
-            return 1
-            ;;
-        esac
+    case "$*" in
+      'mcp remove --scope user serena') return 0 ;;
+      *)
+        echo "should not be called: $*"
+        return 1
         ;;
     esac
   }
 
+  local \
+    temp_home \
+    repo_root
+  repo_root="$(git rev-parse --show-toplevel)"
+  temp_home="$(mktemp -d)"
+  printf '{"mcpServers":{"serena":{"command":"uvx","args":["--from","serena-agent==9.9.9"]}},"projects":{"%s":{"mcpServers":{"serena":{"command":"uvx","args":["--from","serena-agent==2.1.0"]}}}}}\n' \
+    "${repo_root}" >"${temp_home}/.claude.json"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
   run terminator::claude::mcp::enable::serena
+
+  HOME="${original_home}"
+  rm -rf "${temp_home}"
 
   assert_success
   refute_output --partial 'should not be called'
@@ -877,21 +1179,32 @@ bats_require_minimum_version 1.5.0
       mcp)
         shift
         case "$1" in
-          list) echo '' ;;
-          remove) return 0 ;;
           add)
             echo "added: $*"
             return 0
+            ;;
+          *)
+            echo 'should not be called'
+            return 1
             ;;
         esac
         ;;
     esac
   }
 
+  local temp_home
+  temp_home="$(mktemp -d)"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
   run terminator::claude::mcp::enable::serena --project
+
+  HOME="${original_home}"
+  rm -rf "${temp_home}"
 
   assert_success
   assert_output --partial 'added: add --scope project serena -- uvx --from serena-agent==2.1.0'
+  refute_output --partial 'should not be called'
 }
 
 # bats test_tags=terminator::claude,terminator::claude::mcp::enable::serena
@@ -972,7 +1285,20 @@ bats_require_minimum_version 1.5.0
     esac
   }
 
+  local \
+    temp_home \
+    repo_root
+  repo_root="$(git rev-parse --show-toplevel)"
+  temp_home="$(mktemp -d)"
+  printf '{"projects":{"%s":{"mcpServers":{"serena":{"command":"uvx","args":["--from","serena-agent==2.1.0"]}}}}}\n' \
+    "${repo_root}" >"${temp_home}/.claude.json"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
   run terminator::claude::mcp::disable::serena
+
+  HOME="${original_home}"
+  rm -rf "${temp_home}"
 
   assert_success
   assert_output 'removed local serena'
@@ -994,7 +1320,19 @@ bats_require_minimum_version 1.5.0
     esac
   }
 
+  local \
+    temp_repo \
+    original_dir="${PWD}"
+  temp_repo="$(mktemp -d)"
+  git init -q "${temp_repo}"
+  printf '{"mcpServers":{"serena":{"command":"uvx","args":["--from","serena-agent==2.1.0"]}}}\n' \
+    >"${temp_repo}/.mcp.json"
+  cd "${temp_repo}"
+
   run terminator::claude::mcp::disable::serena --project
+
+  cd "${original_dir}"
+  rm -rf "${temp_repo}"
 
   assert_success
   assert_output 'removed project serena'
@@ -1032,12 +1370,20 @@ bats_require_minimum_version 1.5.0
   # shellcheck disable=SC2317 # invoked indirectly
   function terminator::command::exists { return 0; }
 
-  # The removal is idempotent: `claude mcp remove` fails when the server is
-  # not registered at the scope, and the failure is swallowed.
+  # The removal is idempotent: with no registration at the scope, the config
+  # gate skips the CLI call entirely.
   # shellcheck disable=SC2317 # invoked indirectly
   function claude { return 1; }
 
+  local temp_home
+  temp_home="$(mktemp -d)"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
   run terminator::claude::mcp::disable::serena
+
+  HOME="${original_home}"
+  rm -rf "${temp_home}"
 
   assert_success
 }
@@ -1136,15 +1482,21 @@ bats_require_minimum_version 1.5.0
       mcp)
         shift
         case "$1" in
-          list) echo '' ;;
-          remove) return 0 ;;
           add) __add_called__=true ;;
         esac
         ;;
     esac
   }
 
+  local temp_home
+  temp_home="$(mktemp -d)"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
   run terminator::claude::mcp::enable::atlassian
+
+  HOME="${original_home}"
+  rm -rf "${temp_home}"
 
   assert_success
 }
@@ -1160,27 +1512,26 @@ bats_require_minimum_version 1.5.0
 
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
-    case "$1" in
-      mcp)
-        shift
-        case "$1" in
-          list) echo 'atlassian: uvx mcp-atlassian==0.23.1' ;;
-          remove)
-            echo 'should not be called'
-            return 1
-            ;;
-          add)
-            echo 'should not be called'
-            return 1
-            ;;
-        esac
-        ;;
-    esac
+    echo 'should not be called'
+    return 1
   }
+
+  # The user-scope entry already matches the pinned version, so no claude
+  # call is made at all.
+  local temp_home
+  temp_home="$(mktemp -d)"
+  printf '{"mcpServers":{"atlassian":{"command":"uvx","args":["mcp-atlassian==0.23.1"]}}}\n' \
+    >"${temp_home}/.claude.json"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
 
   run terminator::claude::mcp::enable::atlassian
 
+  HOME="${original_home}"
+  rm -rf "${temp_home}"
+
   assert_success
+  refute_output --partial 'should not be called'
 }
 
 # bats test_tags=terminator::claude,terminator::claude::mcp::enable::atlassian
@@ -1198,7 +1549,6 @@ bats_require_minimum_version 1.5.0
       mcp)
         shift
         case "$1" in
-          list) echo 'atlassian: uvx mcp-atlassian==0.23.1' ;;
           remove) return 0 ;;
           add) return 0 ;;
         esac
@@ -1206,7 +1556,17 @@ bats_require_minimum_version 1.5.0
     esac
   }
 
+  local temp_home
+  temp_home="$(mktemp -d)"
+  printf '{"mcpServers":{"atlassian":{"command":"uvx","args":["mcp-atlassian==0.23.1"]}}}\n' \
+    >"${temp_home}/.claude.json"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
   run terminator::claude::mcp::enable::atlassian --force
+
+  HOME="${original_home}"
+  rm -rf "${temp_home}"
 
   assert_success
 }
@@ -1226,7 +1586,6 @@ bats_require_minimum_version 1.5.0
       mcp)
         shift
         case "$1" in
-          list) echo 'atlassian: uvx mcp-atlassian==0.19.0' ;;
           remove) return 0 ;;
           add) return 0 ;;
         esac
@@ -1234,7 +1593,17 @@ bats_require_minimum_version 1.5.0
     esac
   }
 
+  local temp_home
+  temp_home="$(mktemp -d)"
+  printf '{"mcpServers":{"atlassian":{"command":"uvx","args":["mcp-atlassian==0.19.0"]}}}\n' \
+    >"${temp_home}/.claude.json"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
   run terminator::claude::mcp::enable::atlassian
+
+  HOME="${original_home}"
+  rm -rf "${temp_home}"
 
   assert_success
 }
@@ -1294,7 +1663,17 @@ bats_require_minimum_version 1.5.0
     esac
   }
 
+  local temp_home
+  temp_home="$(mktemp -d)"
+  printf '{"mcpServers":{"atlassian":{"command":"uvx","args":["mcp-atlassian==0.23.1"]}}}\n' \
+    >"${temp_home}/.claude.json"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
   run terminator::claude::mcp::disable::atlassian
+
+  HOME="${original_home}"
+  rm -rf "${temp_home}"
 
   assert_success
   assert_output 'removed user atlassian'
@@ -1316,7 +1695,19 @@ bats_require_minimum_version 1.5.0
     esac
   }
 
+  local \
+    temp_repo \
+    original_dir="${PWD}"
+  temp_repo="$(mktemp -d)"
+  git init -q "${temp_repo}"
+  printf '{"mcpServers":{"atlassian":{"command":"uvx","args":["mcp-atlassian==0.23.1"]}}}\n' \
+    >"${temp_repo}/.mcp.json"
+  cd "${temp_repo}"
+
   run terminator::claude::mcp::disable::atlassian --project
+
+  cd "${original_dir}"
+  rm -rf "${temp_repo}"
 
   assert_success
   assert_output 'removed project atlassian'
@@ -1354,12 +1745,20 @@ bats_require_minimum_version 1.5.0
   # shellcheck disable=SC2317 # invoked indirectly
   function terminator::command::exists { return 0; }
 
-  # The removal is idempotent: `claude mcp remove` fails when the server is
-  # not registered at the scope, and the failure is swallowed.
+  # The removal is idempotent: with no registration at the scope, the config
+  # gate skips the CLI call entirely.
   # shellcheck disable=SC2317 # invoked indirectly
   function claude { return 1; }
 
+  local temp_home
+  temp_home="$(mktemp -d)"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
   run terminator::claude::mcp::disable::atlassian
+
+  HOME="${original_home}"
+  rm -rf "${temp_home}"
 
   assert_success
 }
@@ -1555,6 +1954,49 @@ bats_require_minimum_version 1.5.0
   [[ "${content}" == *'"default"'* ]]
 
   rm -rf "${temp_home}"
+}
+
+# bats test_tags=terminator::claude,terminator::claude::settings::merge_baseline
+@test "terminator::claude::settings::merge_baseline respects-claude-config-dir" {
+  command -v jq >/dev/null 2>&1 || skip 'jq not available'
+
+  local \
+    temp_parent \
+    original_config_dir="${CLAUDE_CONFIG_DIR}"
+  temp_parent="$(mktemp -d)"
+  # Not created up front, so the merge also has to create the directory.
+  export CLAUDE_CONFIG_DIR="${temp_parent}/claude-config"
+
+  local temp_home
+  temp_home="$(mktemp -d)"
+  local original_home="${HOME}"
+  local original_root="${TERMINATOR_MODULE_ROOT_DIR}"
+  HOME="${temp_home}"
+
+  mkdir -p "${temp_home}/.terminator/config/claude"
+  printf '{"statusLine":{"type":"command"}}\n' \
+    >"${temp_home}/.terminator/config/claude/settings.base.json"
+  TERMINATOR_MODULE_ROOT_DIR="${temp_home}/.terminator"
+
+  run terminator::claude::settings::merge_baseline
+
+  HOME="${original_home}"
+  TERMINATOR_MODULE_ROOT_DIR="${original_root}"
+  if [[ -n "${original_config_dir}" ]]; then
+    export CLAUDE_CONFIG_DIR="${original_config_dir}"
+  else
+    unset CLAUDE_CONFIG_DIR
+  fi
+
+  assert_success
+  assert [ -f "${temp_parent}/claude-config/settings.json" ]
+  refute [ -f "${temp_home}/.claude/settings.json" ]
+
+  local content
+  content="$(cat "${temp_parent}/claude-config/settings.json")"
+  [[ "${content}" == *'"statusLine"'* ]]
+
+  rm -rf "${temp_parent}" "${temp_home}"
 }
 
 ################################################################################
@@ -2097,7 +2539,19 @@ bats_require_minimum_version 1.5.0
     esac
   }
 
+  local \
+    temp_repo \
+    original_dir="${PWD}"
+  temp_repo="$(mktemp -d)"
+  git init -q "${temp_repo}"
+  printf '{"mcpServers":{"foo":{"command":"echo","args":["hi"]}}}\n' \
+    >"${temp_repo}/.mcp.json"
+  cd "${temp_repo}"
+
   run terminator::claude::mcp::__sync__ foo 1.0.0 2.0.0 0 project -- cmd
+
+  cd "${original_dir}"
+  rm -rf "${temp_repo}"
 
   assert_success
   assert_output --partial 'removed at project scope'
@@ -2117,7 +2571,6 @@ bats_require_minimum_version 1.5.0
       mcp)
         shift
         case "$1" in
-          list) echo 'context7: bunx -y @upstash/context7-mcp@4.4.4' ;;
           remove) return 0 ;;
           add) return 0 ;;
         esac
@@ -2125,7 +2578,17 @@ bats_require_minimum_version 1.5.0
     esac
   }
 
+  local temp_home
+  temp_home="$(mktemp -d)"
+  printf '{"mcpServers":{"context7":{"command":"bunx","args":["-y","@upstash/context7-mcp@4.4.4"]}}}\n' \
+    >"${temp_home}/.claude.json"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
   run terminator::claude::mcp::enable::context7 --version 9.9.9
+
+  HOME="${original_home}"
+  rm -rf "${temp_home}"
 
   assert_success
 }
@@ -2134,27 +2597,24 @@ bats_require_minimum_version 1.5.0
 @test "terminator::claude::mcp::enable::context7 version-override-skips-on-match" {
   # shellcheck disable=SC2317 # invoked indirectly
   function claude {
-    case "$1" in
-      mcp)
-        shift
-        case "$1" in
-          list) echo 'context7: bunx -y @upstash/context7-mcp@9.9.9' ;;
-          remove)
-            echo 'should not be called'
-            return 1
-            ;;
-          add)
-            echo 'should not be called'
-            return 1
-            ;;
-        esac
-        ;;
-    esac
+    echo 'should not be called'
+    return 1
   }
+
+  local temp_home
+  temp_home="$(mktemp -d)"
+  printf '{"mcpServers":{"context7":{"command":"bunx","args":["-y","@upstash/context7-mcp@9.9.9"]}}}\n' \
+    >"${temp_home}/.claude.json"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
 
   run terminator::claude::mcp::enable::context7 --version 9.9.9
 
+  HOME="${original_home}"
+  rm -rf "${temp_home}"
+
   assert_success
+  refute_output --partial 'should not be called'
 }
 
 # bats test_tags=terminator::claude,terminator::claude::mcp::enable::atlassian
@@ -2172,7 +2632,6 @@ bats_require_minimum_version 1.5.0
       mcp)
         shift
         case "$1" in
-          list) echo 'atlassian: uvx mcp-atlassian==0.21.0' ;;
           remove) return 0 ;;
           add) return 0 ;;
         esac
@@ -2180,7 +2639,17 @@ bats_require_minimum_version 1.5.0
     esac
   }
 
+  local temp_home
+  temp_home="$(mktemp -d)"
+  printf '{"mcpServers":{"atlassian":{"command":"uvx","args":["mcp-atlassian==0.21.0"]}}}\n' \
+    >"${temp_home}/.claude.json"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
   run terminator::claude::mcp::enable::atlassian --version 0.99.0
+
+  HOME="${original_home}"
+  rm -rf "${temp_home}"
 
   assert_success
 }
@@ -2264,6 +2733,33 @@ bats_require_minimum_version 1.5.0
   assert_output ''
 
   rm -rf "${temp_home}"
+}
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::installed_commit
+@test "terminator::claude::plugin::installed_commit respects-claude-config-dir" {
+  command -v jq >/dev/null 2>&1 || skip 'jq not available'
+
+  local \
+    temp_config \
+    original_config_dir="${CLAUDE_CONFIG_DIR}"
+  temp_config="$(mktemp -d)"
+  mkdir -p "${temp_config}/plugins"
+  printf '{"plugins":{"greeter@my-plugins":[{"gitCommitSha":"abc1234def"}]}}\n' \
+    >"${temp_config}/plugins/installed_plugins.json"
+  export CLAUDE_CONFIG_DIR="${temp_config}"
+
+  run terminator::claude::plugin::installed_commit greeter@my-plugins
+
+  if [[ -n "${original_config_dir}" ]]; then
+    export CLAUDE_CONFIG_DIR="${original_config_dir}"
+  else
+    unset CLAUDE_CONFIG_DIR
+  fi
+
+  assert_success
+  assert_output 'abc1234def'
+
+  rm -rf "${temp_config}"
 }
 
 ################################################################################

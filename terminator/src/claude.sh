@@ -155,11 +155,71 @@ function terminator::claude::mcp::__parse_scope_flag__ {
   printf -v "${__scope_var__}" '%s' "${__scope__}"
 }
 
+# Prints the configured command line (command plus args) of an MCP server at a
+# scope, read straight from the config files rather than through `claude mcp
+# list`, which health-checks every registered server and takes seconds per
+# call. User and local scope live in .claude.json (inside CLAUDE_CONFIG_DIR
+# when set, otherwise in HOME); project scope lives in .mcp.json at the repo
+# root. Local entries are keyed by ROOT, matching how `claude mcp add` keys
+# them by the directory it runs from. Prints nothing when the file or entry
+# is absent or unreadable (missing jq, invalid JSON); callers treat that as
+# not registered. Env values are never printed, since they can hold secrets.
+# Usage: terminator::claude::mcp::__configured_command__ NAME SCOPE [ROOT]
+# shellcheck disable=SC2016 # $name and $root are jq variables bound with --arg
+function terminator::claude::mcp::__configured_command__ {
+  local \
+    name="$1" \
+    scope="$2" \
+    root="${3:-${PWD}}" \
+    config_file \
+    entry
+
+  case "${scope}" in
+    user)
+      entry='.mcpServers[$name]'
+      ;;
+    local)
+      entry='.projects[$root].mcpServers[$name]'
+      ;;
+    project)
+      entry='.mcpServers[$name]'
+      ;;
+    *)
+      terminator::logger::warning "unknown scope: ${scope}"
+      return 1
+      ;;
+  esac
+
+  if [[ "${scope}" == 'project' ]]; then
+    config_file="${root}/.mcp.json"
+  elif [[ -n "${CLAUDE_CONFIG_DIR}" ]]; then
+    config_file="${CLAUDE_CONFIG_DIR}/.claude.json"
+  else
+    config_file="${HOME}/.claude.json"
+  fi
+
+  [[ -f "${config_file}" ]] || return 0
+
+  jq -r --arg name "${name}" --arg root "${root}" \
+    "${entry} // empty | \"\(.command) \(.args // [] | join(\" \"))\"" \
+    "${config_file}" 2>/dev/null
+}
+
 # Removes an MCP server registration at a scope. Succeeds when the server is
-# absent, so callers can use it for idempotent cleanup.
+# absent, so callers can use it for idempotent cleanup. The config file is
+# read first so the steady state skips the CLI call entirely.
 # Usage: terminator::claude::mcp::__remove__ NAME SCOPE
 function terminator::claude::mcp::__remove__ {
   terminator::claude::__require_claude__ "$1" || return 1
+
+  local configured
+
+  # An unreadable config (missing jq, invalid JSON) falls through to the CLI
+  # so a removal is never skipped on a broken machine.
+  if configured="$(terminator::claude::mcp::__configured_command__ "$1" "$2")" \
+    && [[ -z "${configured}" ]]; then
+    return 0
+  fi
 
   claude mcp remove --scope "$2" "$1" 2>/dev/null || true
 }
@@ -239,11 +299,9 @@ function terminator::claude::mcp::enable::context7 {
   fi
 
   current_version="$(
-    cd "${root}" \
-      && claude mcp list \
-      | grep 'context7' \
-        | grep -o '@upstash/context7-mcp@[0-9.]*' \
-        | cut -d@ -f3
+    terminator::claude::mcp::__configured_command__ context7 "${scope}" "${root}" \
+      | grep -o '@upstash/context7-mcp@[0-9.]*' \
+      | cut -d@ -f3
   )"
 
   (
@@ -297,7 +355,7 @@ function terminator::claude::mcp::disable::context7 {
 # entry stored per project path in ~/.claude.json, so each git worktree is its
 # own opt-in. --project writes .mcp.json at the repo root instead, shared
 # with other worktrees when committed. Any user-scope registration is removed
-# first so its version cannot mask the opted-in scope during detection.
+# first so serena never leaks into directories that did not opt in.
 # shellcheck disable=SC2120 # optional flags, called without args by default
 function terminator::claude::mcp::enable::serena {
   terminator::claude::__require_claude__ 'serena' || return 1
@@ -321,11 +379,9 @@ function terminator::claude::mcp::enable::serena {
   terminator::claude::mcp::__remove__ serena user
 
   current_version="$(
-    cd "${root}" \
-      && claude mcp list \
-      | grep 'serena' \
-        | grep -o 'serena-agent==[0-9.]*' \
-        | cut -d= -f3
+    terminator::claude::mcp::__configured_command__ serena "${scope}" "${root}" \
+      | grep -o 'serena-agent==[0-9.]*' \
+      | cut -d= -f3
   )"
 
   (
@@ -405,11 +461,9 @@ function terminator::claude::mcp::enable::atlassian {
   fi
 
   current_version="$(
-    cd "${root}" \
-      && claude mcp list \
-      | grep 'atlassian' \
-        | grep -o 'mcp-atlassian==[0-9.]*' \
-        | cut -d= -f3
+    terminator::claude::mcp::__configured_command__ atlassian "${scope}" "${root}" \
+      | grep -o 'mcp-atlassian==[0-9.]*' \
+      | cut -d= -f3
   )"
 
   (
@@ -450,15 +504,21 @@ function terminator::claude::mcp::disable::atlassian {
   )
 }
 
-# Merges open-source baseline settings into ~/.claude/settings.json.
-# Existing user settings take precedence (baseline provides defaults only).
-# Handles transition from homesick-managed symlink to generated regular file.
+# Merges open-source baseline settings into the claude settings file
+# (settings.json inside CLAUDE_CONFIG_DIR when set, otherwise
+# ~/.claude/settings.json), so the merge lands in the file the current
+# shell's claude actually reads. Existing user settings take precedence
+# (baseline provides defaults only). Handles transition from homesick-managed
+# symlink to generated regular file.
 function terminator::claude::settings::merge_baseline {
   local \
     baseline_path="${TERMINATOR_MODULE_ROOT_DIR}/config/claude/settings.base.json" \
-    settings_path="${HOME}/.claude/settings.json" \
+    settings_dir="${CLAUDE_CONFIG_DIR:-${HOME}/.claude}" \
+    settings_path \
     merged \
     current
+
+  settings_path="${settings_dir}/settings.json"
 
   if ! terminator::command::exists jq; then
     terminator::logger::warning 'jq is required for claude settings merge'
@@ -483,7 +543,7 @@ function terminator::claude::settings::merge_baseline {
   fi
 
   if [[ ! -f "${settings_path}" ]]; then
-    mkdir -p "${HOME}/.claude"
+    mkdir -p "${settings_dir}"
     jq . "${baseline_path}" >"${settings_path}"
     return 0
   fi
@@ -644,12 +704,12 @@ function terminator::claude::plugin::installed_version {
 }
 
 # Prints the git commit SHA an installed plugin was built from, read from
-# Claude Code's internal installed_plugins.json. Prints nothing when the file,
-# jq, or the plugin entry is missing.
+# Claude Code's internal installed_plugins.json (inside CLAUDE_CONFIG_DIR
+# when set). Prints nothing when the file, jq, or the plugin entry is missing.
 function terminator::claude::plugin::installed_commit {
   local \
     plugin_id="$1" \
-    installed_path="${HOME}/.claude/plugins/installed_plugins.json"
+    installed_path="${CLAUDE_CONFIG_DIR:-${HOME}/.claude}/plugins/installed_plugins.json"
 
   [[ -f "${installed_path}" ]] || return 0
   terminator::command::exists jq || return 0
@@ -863,6 +923,7 @@ function terminator::claude::__export__ {
   export -f terminator::claude::mcp::__parse_options__
   export -f terminator::claude::mcp::__parse_scope_options__
   export -f terminator::claude::mcp::__parse_scope_flag__
+  export -f terminator::claude::mcp::__configured_command__
   export -f terminator::claude::mcp::__remove__
   export -f terminator::claude::mcp::__project_root__
   export -f terminator::claude::mcp::__sync__
@@ -893,6 +954,7 @@ function terminator::claude::__recall__ {
   export -fn terminator::claude::mcp::__parse_options__
   export -fn terminator::claude::mcp::__parse_scope_options__
   export -fn terminator::claude::mcp::__parse_scope_flag__
+  export -fn terminator::claude::mcp::__configured_command__
   export -fn terminator::claude::mcp::__remove__
   export -fn terminator::claude::mcp::__project_root__
   export -fn terminator::claude::mcp::__sync__
