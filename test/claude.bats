@@ -216,6 +216,29 @@ bats_require_minimum_version 1.5.0
 }
 
 # bats test_tags=terminator::claude,terminator::claude::mcp::enable::context7
+@test "terminator::claude::mcp::enable::context7 when-jq-missing" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists {
+    if [[ "$1" == 'jq' ]]; then
+      return 1
+    fi
+    return 0
+  }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    echo 'should not be called'
+    return 1
+  }
+
+  run terminator::claude::mcp::enable::context7
+
+  assert_failure
+  assert_output --partial 'jq is not installed'
+  refute_output --partial 'should not be called'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::enable::context7
 @test "terminator::claude::mcp::enable::context7 when-unknown-option" {
   # shellcheck disable=SC2317 # invoked indirectly
   function terminator::command::exists { return 0; }
@@ -967,6 +990,29 @@ bats_require_minimum_version 1.5.0
 }
 
 # bats test_tags=terminator::claude,terminator::claude::mcp::enable::serena
+@test "terminator::claude::mcp::enable::serena when-jq-missing" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists {
+    if [[ "$1" == 'jq' ]]; then
+      return 1
+    fi
+    return 0
+  }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    echo 'should not be called'
+    return 1
+  }
+
+  run terminator::claude::mcp::enable::serena
+
+  assert_failure
+  assert_output --partial 'jq is not installed'
+  refute_output --partial 'should not be called'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::enable::serena
 @test "terminator::claude::mcp::enable::serena when-unknown-option" {
   # shellcheck disable=SC2317 # invoked indirectly
   function terminator::command::exists { return 0; }
@@ -1412,6 +1458,29 @@ bats_require_minimum_version 1.5.0
 }
 
 # bats test_tags=terminator::claude,terminator::claude::mcp::enable::atlassian
+@test "terminator::claude::mcp::enable::atlassian when-jq-missing" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists {
+    if [[ "$1" == 'jq' ]]; then
+      return 1
+    fi
+    return 0
+  }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    echo 'should not be called'
+    return 1
+  }
+
+  run terminator::claude::mcp::enable::atlassian
+
+  assert_failure
+  assert_output --partial 'jq is not installed'
+  refute_output --partial 'should not be called'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::mcp::enable::atlassian
 @test "terminator::claude::mcp::enable::atlassian when-all-env-vars-missing" {
   # shellcheck disable=SC2317 # invoked indirectly
   function terminator::command::exists { return 0; }
@@ -1775,6 +1844,7 @@ bats_require_minimum_version 1.5.0
   run terminator::claude::settings::merge_baseline
 
   assert_failure 1
+  assert_output --partial 'jq is not installed'
 }
 
 # bats test_tags=terminator::claude,terminator::claude::settings::merge_baseline
@@ -2064,6 +2134,33 @@ bats_require_minimum_version 1.5.0
 }
 
 ################################################################################
+# terminator::claude::plugin::marketplace::add
+################################################################################
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::marketplace::add
+@test "terminator::claude::plugin::marketplace::add when-jq-missing" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists {
+    if [[ "$1" == 'jq' ]]; then
+      return 1
+    fi
+    return 0
+  }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    echo 'should not be called'
+    return 1
+  }
+
+  run terminator::claude::plugin::marketplace::add 'rbuchss/my-plugins'
+
+  assert_failure
+  assert_output --partial 'jq is not installed'
+  refute_output --partial 'should not be called'
+}
+
+################################################################################
 # terminator::claude::plugin::exists
 ################################################################################
 
@@ -2237,6 +2334,31 @@ bats_require_minimum_version 1.5.0
 
   assert_failure
   assert_output --partial 'greeter@my-plugins'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::register
+@test "terminator::claude::plugin::register when-jq-missing" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists {
+    if [[ "$1" == 'jq' ]]; then
+      return 1
+    fi
+    return 0
+  }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    echo 'should not be called'
+    return 1
+  }
+
+  run terminator::claude::plugin::register \
+    --plugin greeter@my-plugins \
+    --marketplace rbuchss/my-plugins
+
+  assert_failure
+  assert_output --partial 'jq is not installed'
+  refute_output --partial 'should not be called'
 }
 
 # bats test_tags=terminator::claude,terminator::claude::plugin::register
@@ -2767,6 +2889,30 @@ bats_require_minimum_version 1.5.0
 ################################################################################
 
 # bats test_tags=terminator::claude,terminator::claude::plugin::sync
+@test "terminator::claude::plugin::sync when-jq-missing" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists {
+    if [[ "$1" == 'jq' ]]; then
+      return 1
+    fi
+    return 0
+  }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    echo 'should not be called'
+    return 1
+  }
+
+  run terminator::claude::plugin::sync \
+    greeter@my-plugins rbuchss/my-plugins 2.5.1 0
+
+  assert_failure
+  assert_output --partial 'jq is not installed'
+  refute_output --partial 'should not be called'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::sync
 @test "terminator::claude::plugin::sync semver-skips-when-version-matches" {
   # shellcheck disable=SC2317 # invoked indirectly
   function terminator::command::exists { return 0; }
@@ -3180,6 +3326,29 @@ bats_require_minimum_version 1.5.0
 ################################################################################
 # terminator::claude::plugin::install
 ################################################################################
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::install
+@test "terminator::claude::plugin::install when-jq-missing" {
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists {
+    if [[ "$1" == 'jq' ]]; then
+      return 1
+    fi
+    return 0
+  }
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    echo 'should not be called'
+    return 1
+  }
+
+  run terminator::claude::plugin::install greeter@my-plugins
+
+  assert_failure
+  assert_output --partial 'jq is not installed'
+  refute_output --partial 'should not be called'
+}
 
 # bats test_tags=terminator::claude,terminator::claude::plugin::install
 @test "terminator::claude::plugin::install skips-redundant-enable-after-fresh-install" {

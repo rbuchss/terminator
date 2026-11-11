@@ -61,6 +61,17 @@ function terminator::claude::__require_claude__ {
   return 1
 }
 
+# Guards against missing jq, which the config-file reads for mcp detection
+# and the settings merge require. Logs a warning with the caller's name.
+function terminator::claude::__require_jq__ {
+  if terminator::command::exists jq; then
+    return 0
+  fi
+
+  terminator::logger::warning "jq is not installed, skipping ${FUNCNAME[1]}"
+  return 1
+}
+
 # Parses the options shared by every mcp enable helper and writes the resolved
 # force flag (0/1) and version override (empty when unset) to the two
 # caller-provided variable names. Returns 1 on an unrecognized option so the
@@ -281,6 +292,7 @@ function terminator::claude::mcp::__sync__ {
 # shellcheck disable=SC2120 # optional flags, called without args by default
 function terminator::claude::mcp::enable::context7 {
   terminator::claude::__require_claude__ 'context7' || return 1
+  terminator::claude::__require_jq__ || return 1
 
   local \
     force \
@@ -359,6 +371,7 @@ function terminator::claude::mcp::disable::context7 {
 # shellcheck disable=SC2120 # optional flags, called without args by default
 function terminator::claude::mcp::enable::serena {
   terminator::claude::__require_claude__ 'serena' || return 1
+  terminator::claude::__require_jq__ || return 1
 
   local \
     force \
@@ -428,6 +441,7 @@ function terminator::claude::mcp::disable::serena {
 # shellcheck disable=SC2120 # optional flags, called without args by default
 function terminator::claude::mcp::enable::atlassian {
   terminator::claude::__require_claude__ 'mcp-atlassian' || return 1
+  terminator::claude::__require_jq__ || return 1
 
   local missing=()
 
@@ -520,10 +534,7 @@ function terminator::claude::settings::merge_baseline {
 
   settings_path="${settings_dir}/settings.json"
 
-  if ! terminator::command::exists jq; then
-    terminator::logger::warning 'jq is required for claude settings merge'
-    return 1
-  fi
+  terminator::claude::__require_jq__ || return 1
 
   if [[ ! -f "${baseline_path}" ]]; then
     terminator::logger::warning "claude baseline settings not found: ${baseline_path}"
@@ -586,6 +597,7 @@ function terminator::claude::plugin::marketplace::add {
   local marketplace_repo="$1"
 
   terminator::claude::__require_claude__ || return 1
+  terminator::claude::__require_jq__ || return 1
 
   if terminator::claude::plugin::marketplace::exists "${marketplace_repo}"; then
     return 0
@@ -662,6 +674,7 @@ function terminator::claude::plugin::install {
     disabled="${2:-0}"
 
   terminator::claude::__require_claude__ || return 1
+  terminator::claude::__require_jq__ || return 1
 
   if ((disabled)); then
     if terminator::claude::plugin::exists "${plugin_id}"; then
@@ -789,6 +802,7 @@ function terminator::claude::plugin::sync {
     expected
 
   terminator::claude::__require_claude__ "${plugin_id}" || return 1
+  terminator::claude::__require_jq__ || return 1
 
   # Commit SHA: pin to the commit and compare the installed commit SHA.
   if [[ "${desired}" =~ ^[0-9a-f]{7,40}$ ]]; then
@@ -896,6 +910,7 @@ function terminator::claude::plugin::register {
   done
 
   terminator::claude::__require_claude__ "${plugin_id}" || return 1
+  terminator::claude::__require_jq__ || return 1
 
   if [[ -z "${plugin_id}" ]]; then
     terminator::logger::warning '--plugin is required'
@@ -920,6 +935,7 @@ function terminator::claude::plugin::register {
 
 function terminator::claude::__export__ {
   export -f terminator::claude::__require_claude__
+  export -f terminator::claude::__require_jq__
   export -f terminator::claude::mcp::__parse_options__
   export -f terminator::claude::mcp::__parse_scope_options__
   export -f terminator::claude::mcp::__parse_scope_flag__
@@ -951,6 +967,7 @@ function terminator::claude::__export__ {
 # KCOV_EXCL_START
 function terminator::claude::__recall__ {
   export -fn terminator::claude::__require_claude__
+  export -fn terminator::claude::__require_jq__
   export -fn terminator::claude::mcp::__parse_options__
   export -fn terminator::claude::mcp::__parse_scope_options__
   export -fn terminator::claude::mcp::__parse_scope_flag__
