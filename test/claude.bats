@@ -2885,6 +2885,130 @@ bats_require_minimum_version 1.5.0
 }
 
 ################################################################################
+# terminator::claude::plugin::marketplace::ref_commit
+################################################################################
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::marketplace::ref_commit
+@test "terminator::claude::plugin::marketplace::ref_commit prints-commit-for-known-ref" {
+  command -v git >/dev/null 2>&1 || skip 'git not available'
+  command -v jq >/dev/null 2>&1 || skip 'jq not available'
+
+  local \
+    temp_home \
+    temp_clone
+  temp_home="$(mktemp -d)"
+  temp_clone="$(mktemp -d)"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
+  git init -q "${temp_clone}"
+  git -c user.email=test@example.com -c user.name=test \
+    -C "${temp_clone}" commit --allow-empty -q -m 'initial'
+  git -C "${temp_clone}" tag v3.1.2
+
+  # The registration points through a symlink at the real clone, so the helper
+  # has to resolve the physical path before handing it to git.
+  ln -s "${temp_clone}" "${temp_home}/clone-link"
+  mkdir -p "${temp_home}/.claude/plugins"
+  printf '{"my-plugins":{"source":{"source":"github","repo":"rbuchss/my-plugins"},"installLocation":"%s"}}\n' \
+    "${temp_home}/clone-link" >"${temp_home}/.claude/plugins/known_marketplaces.json"
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  run terminator::claude::plugin::marketplace::ref_commit \
+    rbuchss/my-plugins v3.1.2
+
+  HOME="${original_home}"
+
+  assert_success
+  assert_output "$(git -C "${temp_clone}" rev-parse 'v3.1.2^{commit}')"
+
+  rm -rf "${temp_home}" "${temp_clone}"
+}
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::marketplace::ref_commit
+@test "terminator::claude::plugin::marketplace::ref_commit prints-nothing-when-marketplace-not-registered" {
+  command -v jq >/dev/null 2>&1 || skip 'jq not available'
+
+  local temp_home
+  temp_home="$(mktemp -d)"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
+  mkdir -p "${temp_home}/.claude/plugins"
+  printf '{"other":{"source":{"source":"github","repo":"someone/other"},"installLocation":"/nowhere"}}\n' \
+    >"${temp_home}/.claude/plugins/known_marketplaces.json"
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  run terminator::claude::plugin::marketplace::ref_commit \
+    rbuchss/my-plugins v3.1.2
+
+  HOME="${original_home}"
+
+  assert_success
+  assert_output ''
+
+  rm -rf "${temp_home}"
+}
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::marketplace::ref_commit
+@test "terminator::claude::plugin::marketplace::ref_commit prints-nothing-when-ref-unknown" {
+  command -v git >/dev/null 2>&1 || skip 'git not available'
+  command -v jq >/dev/null 2>&1 || skip 'jq not available'
+
+  local \
+    temp_home \
+    temp_clone
+  temp_home="$(mktemp -d)"
+  temp_clone="$(mktemp -d)"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
+  git init -q "${temp_clone}"
+  git -c user.email=test@example.com -c user.name=test \
+    -C "${temp_clone}" commit --allow-empty -q -m 'initial'
+  git -C "${temp_clone}" tag v3.1.2
+
+  mkdir -p "${temp_home}/.claude/plugins"
+  printf '{"my-plugins":{"source":{"source":"github","repo":"rbuchss/my-plugins"},"installLocation":"%s"}}\n' \
+    "${temp_clone}" >"${temp_home}/.claude/plugins/known_marketplaces.json"
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  run terminator::claude::plugin::marketplace::ref_commit \
+    rbuchss/my-plugins v9.9.9
+
+  HOME="${original_home}"
+
+  assert_success
+  assert_output ''
+
+  rm -rf "${temp_home}" "${temp_clone}"
+}
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::marketplace::ref_commit
+@test "terminator::claude::plugin::marketplace::ref_commit prints-nothing-when-file-missing" {
+  local temp_home
+  temp_home="$(mktemp -d)"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
+  run terminator::claude::plugin::marketplace::ref_commit \
+    rbuchss/my-plugins v3.1.2
+
+  HOME="${original_home}"
+
+  assert_success
+  assert_output ''
+
+  rm -rf "${temp_home}"
+}
+
+################################################################################
 # terminator::claude::plugin::sync
 ################################################################################
 
@@ -3207,6 +3331,289 @@ bats_require_minimum_version 1.5.0
   assert_success
   assert_output --partial 'disable called'
   refute_output --partial 'should not be called'
+}
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::sync
+@test "terminator::claude::plugin::sync tag-skips-when-tag-commit-matches" {
+  command -v git >/dev/null 2>&1 || skip 'git not available'
+  command -v jq >/dev/null 2>&1 || skip 'jq not available'
+
+  local \
+    temp_home \
+    temp_clone
+  temp_home="$(mktemp -d)"
+  temp_clone="$(mktemp -d)"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
+  git init -q "${temp_clone}"
+  git -c user.email=test@example.com -c user.name=test \
+    -C "${temp_clone}" commit --allow-empty -q -m 'initial'
+  # A tag-only release: the newer tag re-tags the same commit.
+  git -C "${temp_clone}" tag v3.1.2
+  git -C "${temp_clone}" tag v3.1.3
+
+  local tag_sha
+  tag_sha="$(git -C "${temp_clone}" rev-parse 'v3.1.3^{commit}')"
+
+  mkdir -p "${temp_home}/.claude/plugins"
+  printf '{"plugins":{"greeter@my-plugins":[{"gitCommitSha":"%s"}]}}\n' \
+    "${tag_sha}" >"${temp_home}/.claude/plugins/installed_plugins.json"
+  printf '{"my-plugins":{"source":{"source":"github","repo":"rbuchss/my-plugins"},"installLocation":"%s"}}\n' \
+    "${temp_clone}" >"${temp_home}/.claude/plugins/known_marketplaces.json"
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # The declared version lags the tag name, so the version check cannot match
+  # and only the commit check can stop the reinstall.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'plugin list --json')
+        printf '[{"id":"greeter@my-plugins","version":"3.1.2","enabled":true}]\n'
+        ;;
+      *)
+        echo "should not be called: $*"
+        return 1
+        ;;
+    esac
+  }
+
+  run terminator::claude::plugin::sync \
+    greeter@my-plugins rbuchss/my-plugins v3.1.3 0
+
+  HOME="${original_home}"
+
+  assert_success
+  refute_output --partial 'should not be called'
+
+  rm -rf "${temp_home}" "${temp_clone}"
+}
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::sync
+@test "terminator::claude::plugin::sync tag-reinstalls-when-tag-commit-differs" {
+  command -v git >/dev/null 2>&1 || skip 'git not available'
+  command -v jq >/dev/null 2>&1 || skip 'jq not available'
+
+  local \
+    temp_home \
+    temp_clone
+  temp_home="$(mktemp -d)"
+  temp_clone="$(mktemp -d)"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
+  git init -q "${temp_clone}"
+  git -c user.email=test@example.com -c user.name=test \
+    -C "${temp_clone}" commit --allow-empty -q -m 'initial'
+  git -C "${temp_clone}" tag v3.1.3
+
+  mkdir -p "${temp_home}/.claude/plugins"
+  printf '{"plugins":{"greeter@my-plugins":[{"gitCommitSha":"deadbeefdeadbeefdeadbeefdeadbeefdeadbeef"}]}}\n' \
+    >"${temp_home}/.claude/plugins/installed_plugins.json"
+  printf '{"my-plugins":{"source":{"source":"github","repo":"rbuchss/my-plugins"},"installLocation":"%s"}}\n' \
+    "${temp_clone}" >"${temp_home}/.claude/plugins/known_marketplaces.json"
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # The installed commit differs from the tag's, so the reinstall runs.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'plugin list --json')
+        printf '[{"id":"greeter@my-plugins","version":"3.1.2","enabled":true}]\n'
+        ;;
+      'plugin marketplace list --json')
+        printf '[{"name":"my-plugins","source":"github","repo":"rbuchss/my-plugins"}]\n'
+        ;;
+      plugin\ marketplace\ add\ *)
+        echo 'marketplace add called'
+        return 0
+        ;;
+      *) return 0 ;;
+    esac
+  }
+
+  run terminator::claude::plugin::sync \
+    greeter@my-plugins rbuchss/my-plugins v3.1.3 0
+
+  HOME="${original_home}"
+
+  assert_success
+  assert_output --partial 'marketplace add called'
+
+  rm -rf "${temp_home}" "${temp_clone}"
+}
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::sync
+@test "terminator::claude::plugin::sync tag-force-reinstalls-even-when-tag-commit-matches" {
+  command -v git >/dev/null 2>&1 || skip 'git not available'
+  command -v jq >/dev/null 2>&1 || skip 'jq not available'
+
+  local \
+    temp_home \
+    temp_clone
+  temp_home="$(mktemp -d)"
+  temp_clone="$(mktemp -d)"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
+  git init -q "${temp_clone}"
+  git -c user.email=test@example.com -c user.name=test \
+    -C "${temp_clone}" commit --allow-empty -q -m 'initial'
+  git -C "${temp_clone}" tag v3.1.3
+
+  local tag_sha
+  tag_sha="$(git -C "${temp_clone}" rev-parse 'v3.1.3^{commit}')"
+
+  mkdir -p "${temp_home}/.claude/plugins"
+  printf '{"plugins":{"greeter@my-plugins":[{"gitCommitSha":"%s"}]}}\n' \
+    "${tag_sha}" >"${temp_home}/.claude/plugins/installed_plugins.json"
+  printf '{"my-plugins":{"source":{"source":"github","repo":"rbuchss/my-plugins"},"installLocation":"%s"}}\n' \
+    "${temp_clone}" >"${temp_home}/.claude/plugins/known_marketplaces.json"
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # Force bypasses the commit check and reinstalls anyway.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'plugin list --json')
+        printf '[{"id":"greeter@my-plugins","version":"3.1.2","enabled":true}]\n'
+        ;;
+      'plugin marketplace list --json')
+        printf '[{"name":"my-plugins","source":"github","repo":"rbuchss/my-plugins"}]\n'
+        ;;
+      plugin\ marketplace\ add\ *)
+        echo 'marketplace add called'
+        return 0
+        ;;
+      *) return 0 ;;
+    esac
+  }
+
+  run terminator::claude::plugin::sync \
+    greeter@my-plugins rbuchss/my-plugins v3.1.3 1
+
+  HOME="${original_home}"
+
+  assert_success
+  assert_output --partial 'marketplace add called'
+
+  rm -rf "${temp_home}" "${temp_clone}"
+}
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::sync
+@test "terminator::claude::plugin::sync tag-settles-disabled-on-tag-commit-match" {
+  command -v git >/dev/null 2>&1 || skip 'git not available'
+  command -v jq >/dev/null 2>&1 || skip 'jq not available'
+
+  local \
+    temp_home \
+    temp_clone
+  temp_home="$(mktemp -d)"
+  temp_clone="$(mktemp -d)"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
+  git init -q "${temp_clone}"
+  git -c user.email=test@example.com -c user.name=test \
+    -C "${temp_clone}" commit --allow-empty -q -m 'initial'
+  git -C "${temp_clone}" tag v3.1.3
+
+  local tag_sha
+  tag_sha="$(git -C "${temp_clone}" rev-parse 'v3.1.3^{commit}')"
+
+  mkdir -p "${temp_home}/.claude/plugins"
+  printf '{"plugins":{"greeter@my-plugins":[{"gitCommitSha":"%s"}]}}\n' \
+    "${tag_sha}" >"${temp_home}/.claude/plugins/installed_plugins.json"
+  printf '{"my-plugins":{"source":{"source":"github","repo":"rbuchss/my-plugins"},"installLocation":"%s"}}\n' \
+    "${temp_clone}" >"${temp_home}/.claude/plugins/known_marketplaces.json"
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # Version mismatches the tag name, but the commit matches, so the plugin is
+  # disabled without a reinstall.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    case "$*" in
+      'plugin list --json')
+        printf '[{"id":"greeter@my-plugins","version":"3.1.2","enabled":true}]\n'
+        ;;
+      plugin\ disable\ *)
+        echo 'disable called'
+        return 0
+        ;;
+      *)
+        echo "should not be called: $*"
+        return 1
+        ;;
+    esac
+  }
+
+  run terminator::claude::plugin::sync \
+    greeter@my-plugins rbuchss/my-plugins v3.1.3 0 1
+
+  HOME="${original_home}"
+
+  assert_success
+  assert_output --partial 'disable called'
+  refute_output --partial 'should not be called'
+
+  rm -rf "${temp_home}" "${temp_clone}"
+}
+
+# bats test_tags=terminator::claude,terminator::claude::plugin::sync
+@test "terminator::claude::plugin::sync non-semver-ref-skips-when-commit-matches" {
+  command -v git >/dev/null 2>&1 || skip 'git not available'
+  command -v jq >/dev/null 2>&1 || skip 'jq not available'
+
+  local \
+    temp_home \
+    temp_clone
+  temp_home="$(mktemp -d)"
+  temp_clone="$(mktemp -d)"
+  local original_home="${HOME}"
+  HOME="${temp_home}"
+
+  git init -q "${temp_clone}"
+  git -c user.email=test@example.com -c user.name=test \
+    -C "${temp_clone}" commit --allow-empty -q -m 'initial'
+  git -C "${temp_clone}" tag stable
+
+  local tag_sha
+  tag_sha="$(git -C "${temp_clone}" rev-parse 'stable^{commit}')"
+
+  mkdir -p "${temp_home}/.claude/plugins"
+  printf '{"plugins":{"greeter@my-plugins":[{"gitCommitSha":"%s"}]}}\n' \
+    "${tag_sha}" >"${temp_home}/.claude/plugins/installed_plugins.json"
+  printf '{"my-plugins":{"source":{"source":"github","repo":"rbuchss/my-plugins"},"installLocation":"%s"}}\n' \
+    "${temp_clone}" >"${temp_home}/.claude/plugins/known_marketplaces.json"
+
+  # shellcheck disable=SC2317 # invoked indirectly
+  function terminator::command::exists { return 0; }
+
+  # A plain tag has no version to compare, so the commit check alone runs and
+  # no claude call happens at all.
+  # shellcheck disable=SC2317 # invoked indirectly
+  function claude {
+    echo "should not be called: $*"
+    return 1
+  }
+
+  run terminator::claude::plugin::sync \
+    greeter@my-plugins rbuchss/my-plugins stable 0
+
+  HOME="${original_home}"
+
+  assert_success
+  refute_output --partial 'should not be called'
+
+  rm -rf "${temp_home}" "${temp_clone}"
 }
 
 ################################################################################

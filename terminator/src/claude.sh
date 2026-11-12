@@ -732,6 +732,37 @@ function terminator::claude::plugin::installed_commit {
     "${installed_path}" 2>/dev/null
 }
 
+# Prints the git commit SHA the registered marketplace's local clone resolves
+# REF to, or nothing when the marketplace is not registered, git or jq is
+# missing, or the clone does not know the ref. The clone location comes from
+# Claude Code's known_marketplaces.json (inside CLAUDE_CONFIG_DIR when set),
+# matched by repo, and is resolved to its physical path because a registration
+# can point through a symlink at a clone owned by another user and git's
+# ownership check compares against the physical path.
+# Usage: marketplace::ref_commit MARKETPLACE_REPO REF
+function terminator::claude::plugin::marketplace::ref_commit {
+  local \
+    marketplace_repo="$1" \
+    ref="$2" \
+    marketplaces_path="${CLAUDE_CONFIG_DIR:-${HOME}/.claude}/plugins/known_marketplaces.json" \
+    clone_path
+
+  [[ -f "${marketplaces_path}" ]] || return 0
+  terminator::command::exists git || return 0
+  terminator::command::exists jq || return 0
+
+  clone_path="$(jq -r --arg repo "${marketplace_repo}" \
+    '[ to_entries[] | select(.value.source.repo == $repo) | .value.installLocation ] | .[0] // empty' \
+    "${marketplaces_path}" 2>/dev/null)"
+  [[ -n "${clone_path}" ]] || return 0
+
+  clone_path="$(cd "${clone_path}" 2>/dev/null && pwd -P)"
+  [[ -n "${clone_path}" ]] || return 0
+
+  git -c safe.directory="${clone_path}" -C "${clone_path}" \
+    rev-parse --verify "${ref}^{commit}" 2>/dev/null || return 0
+}
+
 # Re-pins a marketplace to a git ref and reinstalls the plugin from it. Removing
 # the marketplace first is required because re-adding is the only way to change
 # the pinned ref of an already-registered marketplace. A truthy DISABLED
@@ -776,7 +807,10 @@ function terminator::claude::plugin::__pin_and_reinstall__ {
 #     example `v3.1.2`) pins the marketplace to that ref. A v-prefixed semver tag
 #     resolves to the plugin's `plugin.json` version (the ref without the leading
 #     `v`), so the reconcile compares the installed version locally and skips work
-#     without a network round trip; other refs cannot be compared and reinstall.
+#     without a network round trip. Every ref also converges by comparing the
+#     installed commit against the commit the marketplace clone resolves the ref
+#     to, which catches a tag whose declared version drifted from the tag name
+#     (a tag-only release); an unknown ref falls back to reinstalling.
 #
 #   * A bare semver (for example `2.5.1`) has no git ref to pin to, so it tracks
 #     whatever the marketplace currently publishes and pulls updates on drift. It
@@ -799,7 +833,9 @@ function terminator::claude::plugin::sync {
     disabled="${5:-0}" \
     marketplace_name="${2##*/}" \
     current \
-    expected
+    expected \
+    ref_commit \
+    installed_sha
 
   terminator::claude::__require_claude__ "${plugin_id}" || return 1
   terminator::claude::__require_jq__ || return 1
@@ -850,7 +886,8 @@ function terminator::claude::plugin::sync {
 
   # Git tag or branch: pin the marketplace to the ref. A v-prefixed semver tag
   # maps to the plugin.json version without the leading `v`, enabling a local,
-  # network-free idempotency check.
+  # network-free idempotency check; every ref additionally converges by
+  # comparing commits below.
   if [[ "${desired}" =~ ^v([0-9]+(\.[0-9]+)+)$ ]]; then
     expected="${BASH_REMATCH[1]}"
     current="$(terminator::claude::plugin::installed_version "${plugin_id}")"
@@ -858,6 +895,25 @@ function terminator::claude::plugin::sync {
     if [[ -n "${current}" ]] \
       && [[ "${current}" == "${expected}" ]] \
       && ((force == 0)); then
+      if ((disabled)); then
+        terminator::claude::plugin::__settle_disabled__ "${plugin_id}"
+      fi
+      return 0
+    fi
+  fi
+
+  # A tag name and the plugin's declared version can drift apart (a tag-only
+  # release re-tags the existing commit, leaving the marketplace declaring the
+  # older version), and reinstalling from the same commit cannot fix that
+  # mismatch. The commit is authoritative: when the installed plugin was built
+  # from the commit the marketplace clone resolves the desired ref to, the
+  # installation is already at the desired state.
+  if ((force == 0)); then
+    ref_commit="$(terminator::claude::plugin::marketplace::ref_commit \
+      "${marketplace_repo}" "${desired}")"
+    installed_sha="$(terminator::claude::plugin::installed_commit "${plugin_id}")"
+
+    if [[ -n "${ref_commit}" ]] && [[ "${ref_commit}" == "${installed_sha}" ]]; then
       if ((disabled)); then
         terminator::claude::plugin::__settle_disabled__ "${plugin_id}"
       fi
@@ -959,6 +1015,7 @@ function terminator::claude::__export__ {
   export -f terminator::claude::plugin::install
   export -f terminator::claude::plugin::installed_version
   export -f terminator::claude::plugin::installed_commit
+  export -f terminator::claude::plugin::marketplace::ref_commit
   export -f terminator::claude::plugin::__pin_and_reinstall__
   export -f terminator::claude::plugin::sync
   export -f terminator::claude::plugin::register
@@ -991,6 +1048,7 @@ function terminator::claude::__recall__ {
   export -fn terminator::claude::plugin::install
   export -fn terminator::claude::plugin::installed_version
   export -fn terminator::claude::plugin::installed_commit
+  export -fn terminator::claude::plugin::marketplace::ref_commit
   export -fn terminator::claude::plugin::__pin_and_reinstall__
   export -fn terminator::claude::plugin::sync
   export -fn terminator::claude::plugin::register
