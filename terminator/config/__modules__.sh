@@ -42,6 +42,7 @@ terminator::source \
   "${HOME}/.terminator/src/rsync.sh" \
   "${HOME}/.terminator/src/ruby.sh" \
   "${HOME}/.terminator/src/rust.sh" \
+  "${HOME}/.terminator/src/slack.sh" \
   "${HOME}/.terminator/src/ssh.sh" \
   "${HOME}/.terminator/src/terraform.sh" \
   "${HOME}/.terminator/src/tmux.sh" \
@@ -92,6 +93,7 @@ __modules__=(
   terminator::rsync
   terminator::ruby
   terminator::rust
+  terminator::slack
   terminator::source
   terminator::ssh
   terminator::terraform
